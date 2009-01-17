@@ -19,7 +19,7 @@ CFLAGS = \
     -Wall -fPIC \
     -I/usr/include/python2.4 \
     -I/util/include/python2.4 \
-    -I.
+    -Isrc
 
 
 # matlab options
@@ -37,30 +37,21 @@ MEX_EXT = mexglx
 SPIDIR_PROG = spidir
 
 SPIDIR_SRC = \
-    spidir.cpp \
-    mldist.cpp \
-    common.cpp \
-    likelihood.cpp \
-    birthdeath.cpp \
-    parsimony.cpp \
-    phylogeny.cpp \
-    search.cpp \
-    Tree.cpp \
+    src/spidir.cpp \
+    src/mldist.cpp \
+    src/common.cpp \
+    src/likelihood.cpp \
+    src/birthdeath.cpp \
+    src/parsimony.cpp \
+    src/phylogeny.cpp \
+    src/search.cpp \
+    src/Sequences.cpp \
+    src/Tree.cpp
 
-SPIDIR_OBJS = \
-    spidir.o \
-    mldist.o \
-    common.o \
-    likelihood.o \
-    birthdeath.o \
-    parsimony.o \
-    phylogeny.o \
-    search.o \
-    Tree.o \
-    Sequences.o 
+SPIDIR_OBJS = $(SPIDIR_SRC:.cpp=.o)
 
-PROG_SRC = spidir_main.cpp 
-PROG_OBJS = spidir_main.o $(SPIDIR_OBJS)
+PROG_SRC = src/spidir_main.cpp 
+PROG_OBJS = src/spidir_main.o $(SPIDIR_OBJS)
 PROG_LIBS = 
 #`gsl-config --libs`
 
@@ -72,9 +63,9 @@ LIBSPIDIR_OBJS = $(SPIDIR_OBJS)
 
 
 # python files
-PYTHON_MODULE = pyspidir.so
+PYTHON_MODULE = python/spidir/pyspidir.so
 PYTHON_MODULE_OBJS = \
-    pyspidir.o \
+    python/src/pyspidir.o \
     $(SPIDIR_OBJS)  
 PYTHON_MODULE_LIBS = -lpython2.5
 #-lpython2.4 
@@ -100,7 +91,7 @@ MATLAB_COMPILE_RULES = \
               matlab/spidir_reconcile.rule \
               matlab/spidir_readtree.rule
 
-MATLAB_SRC = $(SPIDIR_SRC) matlab_interface.cpp
+MATLAB_SRC = $(SPIDIR_SRC) src/matlab_interface.cpp
 
 
 #=============================================================================
@@ -177,10 +168,10 @@ $(PYTHON_MODULE_OBJS): %.o: %.cpp
 
 install: $(SPIDIR_PROG)
 	cp $(SPIDIR_PROG) $(prefix)/bin
-	
+
 installpy:
 	cp $(PYTHON_MODULE) $(prefix_python)
-	
+
 
 myinstall: $(SPIDIR_PROG) $(PYTHON_MODULE) maxml
 	cp $(SPIDIR_PROG) maxml ../bin
@@ -202,10 +193,10 @@ clean:
 
 dep:
 	touch Makefile.dep
-	makedepend -f Makefile.dep *.cpp *.h
+	makedepend -f Makefile.dep src/*.cpp src/*.h
 
 Makefile.dep:
 	touch Makefile.dep
-	makedepend -f Makefile.dep *.cpp *.h
+	makedepend -f Makefile.dep src/*.cpp src/*.h
 
 include Makefile.dep
