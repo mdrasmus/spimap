@@ -985,12 +985,13 @@ extern "C" {
 Tree *makeTree(int nnodes, int *ptree) 
 {
     Tree *tree = new Tree(nnodes);
-
-    for (int i=0; i<nnodes; i++)
-	printf("> %d\n", ptree[i]);
-
-    ptree2tree(nnodes, ptree, tree);
+    ptree2tree(nnodes, ptree, tree); 
     return tree;
+}
+
+void deleteTree(Tree *tree)
+{
+    delete tree;
 }
 
 } // extern C

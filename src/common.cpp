@@ -31,8 +31,14 @@ static int g_loglevel = LOG_QUIET;
 // Math
 
 int choose(int n, int k)
+{       
+    return int(fchoose(n, k) + .5);
+}
+
+
+double fchoose(int n, int k)
 {   
-    if (n <= 0 || k <= 0 || k > n)
+    if (n < 0 || k < 0 || k > n)
         return 0;
     
     // optimization for speed
@@ -40,10 +46,12 @@ int choose(int n, int k)
         k = n - k;
     
     double t = 1.0;
-    for (int i=0; i<k+1; i++)
-        t = t * (n - i + 1) / i;
-    return int(t + 0.5);
+    double m = n;
+    for (double i=1; i<k+1; i++)
+        t *= (m - i + 1) / i;
+    return t;
 }
+
 
 // probability density distribution of the Poisson
 float poisson(int x, float lambda)

@@ -123,7 +123,7 @@ maxml: maxml.o $(SPIDIR_OBJS)
 	$(CXX) $(CFLAGS) maxml.o $(SPIDIR_OBJS) $(PROG_LIBS) -o maxml
 
 # C-library
-spidirlib: $(LIBSPIDIR) $(LIBSPIDIR_SHARED)
+lib: $(LIBSPIDIR) $(LIBSPIDIR_SHARED)
 
 $(LIBSPIDIR): $(LIBSPIDIR_OBJS)
 	mkdir -p lib

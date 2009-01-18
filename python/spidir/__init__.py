@@ -7,6 +7,7 @@
 # requires rasmus library
 #
 
+import os
 from math import *
 from ctypes import *
 
@@ -14,7 +15,8 @@ from rasmus import treelib, util
 from rasmus.bio import fasta
 
 import pyspidir
-spidir = cdll.LoadLibrary("lib/libspidir.so")
+libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
+spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
 
 
 def export(lib, funcname, return_type, arg_types, scope=globals()):
@@ -25,10 +27,18 @@ def export(lib, funcname, return_type, arg_types, scope=globals()):
     scope[funcname].argtypes = arg_types
 
 
-export(spidir, "numHistories", c_int, [c_int])
+export(spidir, "inumHistories", c_int, [c_int])
+export(spidir, "numHistories", c_double, [c_int])
+export(spidir, "numTopologyHistories", c_double, [c_void_p])
 export(spidir, "birthDeathCount", c_float, [c_int, c_float, c_float, c_float])
 export(spidir, "makeTree", c_void_p, [c_int, POINTER(c_int)])
+export(spidir, "deleteTree", c_void_p, [c_void_p])
 
+
+def c_list(c_type, lst):
+    """Make a C array from a list"""
+    list_type = c_type * len(lst)
+    return list_type(* lst)
 
 
 #=============================================================================

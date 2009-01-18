@@ -5,7 +5,7 @@
 namespace spidir {
 
 
-int dna2int [256] = 
+const int dna2int [256] = 
 {
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,   // 9
     -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,   // 19
@@ -35,7 +35,7 @@ int dna2int [256] =
     -1, -1, -1, -1, -1, -1                    // 255
 };
 
-char *int2dna = "ACGT";
+const char *int2dna = "ACGT";
 
 int dnatype[] = { 
     DNA_PURINE,     // A

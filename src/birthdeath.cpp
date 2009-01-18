@@ -9,14 +9,91 @@ namespace spidir
 extern "C" {
 
 
-int numHistories(int ngenes)
+// returns the number of labeled histories with 'ngenes' surviving lineages
+int inumHistories(int ngenes)
 {
+    // gaurd against overflow
+    assert(ngenes <= 9);
+
     int n = 1;
     for (int i=2; i<=ngenes; i++) {
-	n *= i*(i-1) / 2;
+        n *= i*(i-1) / 2;
     }
     return n;
 }
+
+
+// returns the number of labeled histories with 'ngenes' surviving lineages
+double numHistories(int ngenes)
+{
+    double n = 1;
+    for (int i=2; i<=ngenes; i++) {
+        n *= i*(i-1) / 2;
+    }
+    return n;
+}
+
+// returns the number of labeled histories exist for the given tree topology
+// NOTE: assumes binary tree
+int inumTopologyHistories(Tree *tree)
+{
+    int n = 1;
+
+    // get nodes in post order
+    ExtendArray<Node*> nodes(0, tree->nnodes);
+    getTreePostOrder(tree, &nodes);
+
+    // count number of descendant internal nodes
+    ExtendArray<int> ninternals(tree->nnodes);
+
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = nodes[i];
+
+        if (node->isLeaf()) {
+            ninternals[node->name] = 0;
+        } else {
+            // count internal children
+            const int right = ninternals[node->children[0]->name];
+            const int left = ninternals[node->children[1]->name];
+            ninternals[node->name] = 1 + right + left;
+            n *= choose(right + left, right);
+        }
+    }
+
+    return n;
+}
+
+
+// returns the number of labeled histories exist for the given tree topology
+// NOTE: assumes binary tree
+double numTopologyHistories(Tree *tree)
+{
+    double n = 1;
+
+    // get nodes in post order
+    ExtendArray<Node*> nodes(0, tree->nnodes);
+    getTreePostOrder(tree, &nodes);
+
+    // count number of descendant internal nodes
+    ExtendArray<int> ninternals(tree->nnodes);
+
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = nodes[i];
+
+        if (node->isLeaf()) {
+            ninternals[node->name] = 0;
+        } else {
+            // count internal children
+            const int right = ninternals[node->children[0]->name];
+            const int left = ninternals[node->children[1]->name];
+            ninternals[node->name] = 1 + right + left;
+            n *= fchoose(right + left, right);
+        }
+    }
+
+    return n;
+}
+
 
 
 // returns the probability of 1 gene giving rise to ngenes after time 'time'

@@ -319,6 +319,8 @@ void printTree(Tree *tree, Node *node=NULL, int depth=0);
 extern "C" {
     Tree *makeTree(int nnodes, int *ptree);
 
+    void deleteTree(Tree *tree);
+
 }
 
 

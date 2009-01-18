@@ -209,15 +209,29 @@ void permute(T* array, int *perm, int size)
 template <class T>
 T ipow(T val, int expo)
 {
-    T result = val;
-    for (int i=1; i<expo; i++)
-        result *= val;
+    T result = 1.0;
+    unsigned int e = expo;
+
+    if ((int)e < 0) {
+	e = -e;
+	val = 1.0 / val;
+    }
+
+    while (true) {
+	if (e & 1)
+	    result *= val;
+	if ((e >>= 1) == 0)
+	    break;
+	val *= val;
+    }
+
     return result;
 }
 
 
 int choose(int n, int k);
 
+double fchoose(int n, int k);
 
 
 template <class T>

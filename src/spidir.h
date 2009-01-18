@@ -9,10 +9,10 @@ namespace spidir {
 
 
 // convert dna characters into standard numbers
-extern int dna2int[256];
+extern const int dna2int[256];
 
 // convert standard numbers to dna characters
-extern char *int2dna;
+extern const char *int2dna;
 
 // base numbers
 enum {

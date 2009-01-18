@@ -8,7 +8,13 @@ namespace spidir {
 
 extern "C" {
 
-int numHistories(int ngenes);
+int inumHistories(int ngenes);
+
+double numHistories(int ngenes);
+
+int inumTopologyHistories(Tree *tree);
+
+double numTopologyHistories(Tree *tree);
 
 float birthDeathCount(int ngenes, float time, float birthRate, float deathRate);
 
