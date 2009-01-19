@@ -24,7 +24,7 @@ T *resize(T *array, size_t oldsize, size_t newsize)
     if (oldsize == 0)
         return tmp;
     
-    copy(array, array + oldsize, tmp);
+    std::copy(array, array + oldsize, tmp);
    
     delete [] array;
     return tmp;
@@ -35,7 +35,7 @@ T *resize(T *array, size_t oldsize, size_t newsize)
     easy, detachable wrapper for arrays
 
     len      -- the length of the populated data
-    datasize -- the size of the allocated array
+    capacity -- the size of the allocated array
 */
 template <class ValueType>
 class ExtendArray
@@ -44,35 +44,35 @@ public:
     typedef ValueType* ValuePtrType;
     typedef ValuePtrType* ValuePtrPtrType;
 
-    ExtendArray(int _len=0, int size=0, ValueType *_data=NULL, 
+    ExtendArray(int _len=0, int _capacity=0, ValueType *_data=NULL, 
                 int _minsize=40) :
         data(_data),
         len(_len),
-        datasize(size),
+        capacity(_capacity),
         minsize(_minsize)
     {
         // make sure capacity is atleast length of data
-        if (datasize < len)
-            datasize = len;
+        if (capacity < len)
+            capacity = len;
         
         // make sure min allocate size is atleast capacity
         // useful for multiple detachment
-        if (minsize < datasize)
-            minsize = datasize;
+        if (minsize < capacity)
+            minsize = capacity;
         
         // if no pointer is given to manage, allocate our own
-        if (data == NULL && datasize != 0) {
-            data = new ValueType [datasize];
+        if (data == NULL && capacity != 0) {
+            data = new ValueType [capacity];
         }
     }
     
     ExtendArray(const ExtendArray &other) :
         len(other.len),
-        datasize(other.datasize),
+        capacity(other.capacity),
         minsize(other.minsize)
     {
         // allocate new memory
-        data = new ValueType [datasize];
+        data = new ValueType [capacity];
         
         // copy over data
         for (int i=0; i<len; i++)
@@ -117,16 +117,16 @@ public:
         ValueType *ret = data;
         data = NULL;
         len = 0;
-        datasize = 0;
+        capacity = 0;
         
         return ret;
     }
     
-    void attach(ValueType* _data, int _len, int _size)
+    void attach(ValueType* _data, int _len, int _capacity)
     {
         data = _data;
         len = _len;
-        datasize = _size;
+        capacity = _capacity;
     }
     
     //=========================================================================
@@ -134,7 +134,7 @@ public:
     
     bool setCapacity(int newsize)
     {
-        int oldsize = datasize;
+        int oldsize = capacity;
         ValueType *ret = resize(data, oldsize, newsize);
         
         // failed to alloc memory
@@ -142,13 +142,13 @@ public:
             return false;
         
         data = ret;
-        datasize = newsize;
+        capacity = newsize;
         return true;
     }
     
     bool increaseCapacity()
     {
-        int newsize = datasize;
+        int newsize = capacity;
         if (newsize < minsize)
             newsize = minsize;
         newsize *= 2;
@@ -157,7 +157,7 @@ public:
     
     bool ensureSize(int needed)
     {
-        if (needed <= datasize)
+        if (needed <= capacity)
             return true;
         
         int newsize = needed;
@@ -169,14 +169,15 @@ public:
         return setCapacity(newsize);
     }
     
-    inline int capacity() const
+    inline int get_capacity() const
     {
-        return datasize;
+        return capacity;
     }
     
     
     //=========================================================================
     // data access
+    
     inline void append(const ValueType &val)
     {
         assert(ensureSize(len + 1));
@@ -231,7 +232,7 @@ public:
 protected:    
     ValueType *data;
     int len;
-    int datasize;
+    int capacity;
     int minsize;
 };
 

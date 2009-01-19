@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <string>
 #include <vector>
+#include <string.h>
 
 // spidir headers
 #include "ExtendArray.h"
@@ -307,13 +308,13 @@ public:
         while (!feof(m_stream)) {
             int pos = m_line.size();
             char *ret = fgets(&(m_line.get()[pos]), 
-                              m_line.capacity()-m_line.size(), m_stream);
+                              m_line.get_capacity()-m_line.size(), m_stream);
             int readsize = strlen(&(m_line.get()[pos]));
             
             if (ret == NULL)
                 return NULL;
             
-            if (m_line.size() + readsize < m_line.capacity() - 1)
+            if (m_line.size() + readsize < m_line.get_capacity() - 1)
                 return m_line.get();
 
             assert(m_line.increaseCapacity());

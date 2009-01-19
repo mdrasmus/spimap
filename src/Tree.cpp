@@ -994,6 +994,11 @@ void deleteTree(Tree *tree)
     delete tree;
 }
 
+void setTreeDists(Tree *tree, float *dists) 
+{
+    tree->setDists(dists);
+}
+
 } // extern C
 
 

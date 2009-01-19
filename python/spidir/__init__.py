@@ -32,7 +32,13 @@ export(spidir, "numHistories", c_double, [c_int])
 export(spidir, "numTopologyHistories", c_double, [c_void_p])
 export(spidir, "birthDeathCount", c_float, [c_int, c_float, c_float, c_float])
 export(spidir, "makeTree", c_void_p, [c_int, POINTER(c_int)])
-export(spidir, "deleteTree", c_void_p, [c_void_p])
+export(spidir, "setTreeDists", c_void_p, [c_void_p, POINTER(c_float)])
+export(spidir, "deleteTree", c_int, [c_void_p])
+export(spidir, "calcDoomTable", c_int, [c_void_p, c_float, c_float,
+                                           c_int, POINTER(c_float)])
+export(spidir, "birthDeathTreePrior", c_float,
+       [c_void_p, c_void_p, POINTER(c_int), POINTER(c_int),
+        c_float, c_float, POINTER(c_float), c_int])
 
 
 def c_list(c_type, lst):
@@ -96,7 +102,10 @@ def tree2ctree(tree):
     """Make a c++ Tree from a treelib.Tree datastructure"""
 
     ptree, nodes, nodelookup = make_ptree(tree)
-    return ptree2ctree(ptree)
+    dists = [x.dist for x in nodes]
+    ctree = ptree2ctree(ptree)
+    setTreeDists(ctree, c_list(c_float, dists))
+    return ctree
 
 
 def make_gene2species_array(stree, nodes, snodelookup, gene2species):
@@ -108,6 +117,20 @@ def make_gene2species_array(stree, nodes, snodelookup, gene2species):
         else:
             gene2speciesarray.append(-1)
     return gene2speciesarray
+
+
+def make_recon_array(tree, recon, nodes, snodelookup):
+    recon2 = []
+    for node in nodes:
+        recon2.append(snodelookup[recon[node]])
+    return recon2
+
+
+def make_events_array(nodes, events):
+    mapping = {"gene": 0,
+               "spec": 1,
+               "dup": 2}
+    return util.mget(mapping, util.mget(events, nodes))
 
 
 def parsimony(aln, tree):    

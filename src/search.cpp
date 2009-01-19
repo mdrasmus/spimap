@@ -630,8 +630,8 @@ float BirthDeathFitter::findLengths(Tree *tree)
     
     // TODO: I could add multiple samples here
     
-    float bdlogl = birthDeathTreePrior(tree, stree, recon, events, 
-                                       birthRate, deathRate);
+    float bdlogl = birthDeathTreeQuickPrior(tree, stree, recon, events, 
+                                            birthRate, deathRate);
     
     removeImpliedSpecNodes(tree, addedNodes);
     

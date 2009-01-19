@@ -317,9 +317,10 @@ void printTree(Tree *tree, Node *node=NULL, int depth=0);
 
 // C exports
 extern "C" {
-    Tree *makeTree(int nnodes, int *ptree);
 
+    Tree *makeTree(int nnodes, int *ptree);
     void deleteTree(Tree *tree);
+    void setTreeDists(Tree *tree, float *dists);
 
 }
 

@@ -42,6 +42,7 @@ SPIDIR_SRC = \
     src/common.cpp \
     src/likelihood.cpp \
     src/birthdeath.cpp \
+    src/mem.cpp \
     src/parsimony.cpp \
     src/phylogeny.cpp \
     src/search.cpp \
