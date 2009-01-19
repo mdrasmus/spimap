@@ -12,22 +12,11 @@ import sys, unittest, ctypes
 sys.path.append("python")
 import spidir
 
+from test import *
 
 from rasmus.common import *
 from rasmus.bio import phylo
 
-
-def fequal(f1, f2, rel=.0001):
-    if f1 == f2:
-        return True
-    if f2 == 0:
-        err = f1
-    else:
-        err = abs(f1 - f2) / abs(f2)
-    x = (err < rel)
-    if not x:
-        print f1, "!=", f2, "[err=%f]" % err
-    return x
 
 
 def birthDeathCount(ngenes, time, birthRate, deathRate):
@@ -146,7 +135,7 @@ def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom):
                     
     
 
-
+#=============================================================================
 
 class TestBirthDeath (unittest.TestCase):
 
@@ -155,6 +144,7 @@ class TestBirthDeath (unittest.TestCase):
 
 
     def test_birthDeathCount(self):
+        """birthDeathCount"""
         l = 3
         u = .5
 
@@ -163,17 +153,18 @@ class TestBirthDeath (unittest.TestCase):
                 p1 = spidir.birthDeathCount(s, t, l, u)
                 p2 = birthDeathCount(s, t, l, u)
                 #print t, s, p1, p2
-                self.assert_(fequal(p1, p2, .01))
+                fequal(p1, p2, .01)
 
         #s = 0
         #1 = 2
         #u = .5
         #p1 = spidir.birthDeathCount(s, t, l, u)
         #p2 = birthDeathCount(s, t, l, u)
-        #self.assert_(fequal(sp1, p2))
+        #fequal(sp1, p2)
 
 
     def test_numHistories(self):
+        """numHistories"""
         for i in range(1, 20):
             n = spidir.numHistories(i)
             n2 = int(factorial(i) * factorial(i-1) / 2**(i-1))
@@ -181,6 +172,7 @@ class TestBirthDeath (unittest.TestCase):
         
 
     def test_make_trees(self):
+        """makeTree"""
         tree = treelib.parseNewick("((a,b),(c,d));")
         ctree = spidir.tree2ctree(tree)
         spidir.deleteTree(ctree)
@@ -193,7 +185,8 @@ class TestBirthDeath (unittest.TestCase):
 
 
     def test_numTopologyHistories(self):
-
+        """numTopologyHistories"""
+        
         tree = treelib.parseNewick("((a,b),(c,d));")
         ctree = spidir.tree2ctree(tree)
         self.assertEqual(spidir.numTopologyHistories(ctree), 2)
@@ -236,7 +229,7 @@ class TestBirthDeath (unittest.TestCase):
         print doomtable2
 
         for i, j in zip(doomtable, doomtable2):            
-            self.assert_(fequal(i, j))
+            fequal(i, j)
         
 
     def test_calcDoomTable(self):
@@ -296,12 +289,8 @@ class TestBirthDeath (unittest.TestCase):
         spidir.deleteTree(cstree)
 
         print "prior", p, p2
-        self.assert_(fequal(p, p2))
+        fequal(p, p2)
         
-
-        
-
-
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(testRunner=TestRunner())
