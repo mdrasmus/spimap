@@ -39,6 +39,9 @@ export(spidir, "calcDoomTable", c_int, [c_void_p, c_float, c_float,
 export(spidir, "birthDeathTreePrior", c_float,
        [c_void_p, c_void_p, POINTER(c_int), POINTER(c_int),
         c_float, c_float, POINTER(c_float), c_int])
+export(spidir, "birthDeathTreePriorFull", c_float,
+       [c_void_p, c_void_p, POINTER(c_int), POINTER(c_int),
+        c_float, c_float, POINTER(c_float), c_int])
 
 
 def c_list(c_type, lst):

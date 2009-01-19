@@ -107,10 +107,12 @@ def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom):
 
     # TODO: must add implied speciation nodes for this to fully work
 
-    treelib.drawTreeNames(tree, minlen=5)
-
     events = phylo.labelEvents(tree, recon)
+    phylo.addImpliedSpecNodes(tree, stree, recon, events)
+    
     pstree, snodes, snodelookup = spidir.make_ptree(stree)
+
+    treelib.drawTreeNames(tree, minlen=5)
 
     # get doomtable
     doomtable = calcDoomTable(stree, birth, death, maxdoom)
@@ -119,17 +121,26 @@ def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom):
     for node in tree:
         if events[node] == "spec":
             for schild in recon[node].children:
-                node2 = [x for x in node.children if recon[x] == schild][0]
-                subleaves = getSubTree(node2, schild, recon, events)
-                nhist = numTopologyHistories(node2, subleaves)
-                s = len(subleaves)
-                thist = factorial(s) * factorial(s-1) / 2**(s-1)
+                nodes2 = [x for x in node.children if recon[x] == schild]
+                if len(nodes2) > 0:
+                    node2 = nodes2[0]
+                    subleaves = getSubTree(node2, schild, recon, events)
+                    nhist = numTopologyHistories(node2, subleaves)
+                    s = len(subleaves)
+                    thist = factorial(s) * factorial(s-1) / 2**(s-1)
+                else:
+                    nhist = 1.0
+                    thist = 1.0
+                    s = 0
 
                 t = sum(birthDeathCount(s + i, schild.dist, birth, death) *
                         exp(doomtable[snodelookup[schild]]) ** i
                         for i in range(maxdoom+1))
                 
                 prod += log(nhist) - log(thist) + log(t)
+
+
+    phylo.removeImpliedSpecNodes(tree, recon, events)
 
     return prod
                     
@@ -254,8 +265,8 @@ class TestBirthDeath (unittest.TestCase):
         u = .5
         maxdoom = 10
 
-        stree = treelib.parseNewick("((A:1,B:1):1,(C:1,D:1):2);")
-        tree = treelib.parseNewick("((((a1,a2),(a3,a4)),(b1,b2)),((c1,d1),(c2,d2)));")
+        stree = treelib.parseNewick("((A:1,B:1):1,((C:1,D:1):2,E:3):1);")
+        tree = treelib.parseNewick("((((a1,a2),(a3,a4)),(b1,b2)),((c1,d1),(c2,c3)));")
         def gene2species(gene):
             return gene[:1].upper()
         recon = phylo.reconcile(tree, stree, gene2species)
@@ -279,10 +290,10 @@ class TestBirthDeath (unittest.TestCase):
         print list(doomtable)
         print list(doomtable2)
         
-        p = spidir.birthDeathTreePrior(ctree, cstree,
-                                       spidir.c_list(ctypes.c_int, recon2), 
-                                       spidir.c_list(ctypes.c_int, events2),
-                                       l, u, doomtable, maxdoom)
+        p = spidir.birthDeathTreePriorFull(ctree, cstree,
+                                           spidir.c_list(ctypes.c_int, recon2), 
+                                           spidir.c_list(ctypes.c_int, events2),
+                                           l, u, doomtable, maxdoom)
         p2 = calcBirthDeathPrior(tree, stree, recon, l, u, maxdoom)
         
         spidir.deleteTree(ctree)

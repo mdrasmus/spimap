@@ -28,6 +28,10 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                           int *events, float birthRate, float deathRate,
                           float *doomtable, int maxdoom);
 
+float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
+                              int *events, float birthRate, float deathRate,
+                              float *doomtable, int maxdoom);
+
 float birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
                                int *events, float birthRate, float deathRate);
 

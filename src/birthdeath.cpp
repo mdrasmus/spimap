@@ -291,6 +291,29 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
 
 
 
+// Convenience function
+// Adds and removes implied species nodes to the gene tree
+// NOTE: assumes binary species tree
+float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
+                              int *events, float birthRate, float deathRate,
+                              float *doomtable, int maxdoom)
+{
+    ExtendArray<int> recon2(0, tree->nnodes);
+    recon2.extend(recon, tree->nnodes);
+
+    ExtendArray<int> events2(0, tree->nnodes);
+    events2.extend(events, tree->nnodes);
+
+
+    int addedNodes = addImpliedSpecNodes(tree, stree, recon2, events2);
+    float p = birthDeathTreePrior(tree, stree, recon2, events2, 
+                                  birthRate, deathRate,
+                                  doomtable,  maxdoom);
+    removeImpliedSpecNodes(tree, addedNodes);
+
+    return p;
+}
+
 
 
 // returns the probability of 1 gene giving rise to ngenes after time 'time'
@@ -314,6 +337,11 @@ float birthDeathCount(int ngenes, float time, float birthRate, float deathRate)
 
 
 
+
+
+
+//=============================================================================
+// OLD CODE
 
 // returns the probability of 'start' genes giving rise to 'end' genes after 
 // time 'time'

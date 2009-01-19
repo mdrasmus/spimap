@@ -350,60 +350,47 @@ void addSpecNode(Node *node, Node *snode, Tree *tree,
     events.append(EVENT_SPEC);
 }
 
-int addImpliedSpecNodes_recurse(Node *node, Tree *tree, SpeciesTree *stree, 
+int addImpliedSpecNodes(Tree *tree, Tree *stree, 
     ExtendArray<int> &recon, ExtendArray<int> &events)
 {
     int addedNodes = 0;
 
     // recurse
-    for (int i=0; i<node->nchildren; i++)
-        addedNodes += addImpliedSpecNodes_recurse(node->children[i], 
-                                                  tree, stree, recon, events);
-
-    // process this node and the branch above it
-    
-    // if no parent, then no implied speciation nodes above us
-    if (node->parent == NULL)
-        return addedNodes;
-    
-    // determine starting and ending species
-    Node *sstart = stree->nodes[recon[node->name]];
-    Node *send = stree->nodes[recon[node->parent->name]];
-    
-    // the species path is too short to have implied speciations
-    if (sstart == send)
-        return addedNodes;
-    
-    Node *parent = node->parent;
-    
-    // determine species path of this gene branch (node, node->parent)
-    Node *ptr = sstart->parent;
-    while (ptr != send) {
-        // process ptr
-        addSpecNode(node, ptr, tree, recon, events);
-        addedNodes++;
-        node = node->parent;
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = tree->nodes[i];
+        // process this node and the branch above it
         
-        // go up species tree
-        ptr = ptr->parent;
-    }
+        // if no parent, then no implied speciation nodes above us
+        if (node->parent == NULL)
+            continue;
     
-    // determine whether node->parent is a dup
-    // if so, send (a.k.a. species end) is part of species path
-    if (events[parent->name] == EVENT_DUP) {
-         addSpecNode(node, send, tree, recon, events);
-         addedNodes++;
+        // determine starting and ending species
+        Node *sstart = stree->nodes[recon[node->name]];
+        Node *send = stree->nodes[recon[node->parent->name]];
+    
+        // the species path is too short to have implied speciations
+        if (sstart == send)
+            continue;
+    
+        Node *parent = node->parent;
+    
+        // determine species path of this gene branch (node, node->parent)    
+        for (Node *ptr = sstart->parent; ptr != send; ptr = ptr->parent) {
+            // process ptr
+            addSpecNode(node, ptr, tree, recon, events);
+            addedNodes++;
+            node = node->parent;
+        }
+    
+        // determine whether node->parent is a dup
+        // if so, send (a.k.a. species end) is part of species path
+        if (events[parent->name] == EVENT_DUP) {
+            addSpecNode(node, send, tree, recon, events);
+            addedNodes++;
+        }
     }
     
     return addedNodes;
-}
-
-
-
-int addImpliedSpecNodes(Tree *tree, SpeciesTree *stree, 
-                         ExtendArray<int> &recon, ExtendArray<int> &events)
-{
-    return addImpliedSpecNodes_recurse(tree->root, tree, stree, recon, events);
 }
 
 
