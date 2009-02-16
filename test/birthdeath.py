@@ -314,9 +314,9 @@ class TestBirthDeath (unittest.TestCase):
         maxdoom = 10
 
         stree = treelib.parseNewick("((A:1,B:1):1,((C:1,D:1):2,E:3):1);")
-        #tree = treelib.parseNewick("((((a1,a2),(a3,a4)),(b1,b2)),((c1,d1),(c2,c3)));")
+        tree = treelib.parseNewick("((((a1,a2),(a3,a4)),(b1,b2)),((c1,d1),(c2,c3)));")
         #tree = treelib.parseNewick("((((a1,a2),(a3,a4)),(b1,b2)),((c1,d1),(c2,d2)))")
-        tree = treelib.parseNewick("((a1,b1),(c1,d1));")
+        #tree = treelib.parseNewick("((a1,b1),(c1,d1));")
         def gene2species(gene):
             return gene[:1].upper()
         recon = phylo.reconcile(tree, stree, gene2species)
