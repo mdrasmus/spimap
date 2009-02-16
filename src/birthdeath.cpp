@@ -239,6 +239,7 @@ void getSpecSubtree(Node *node, Node *snode, int *recon, int *events,
 }
 
 
+// TODO: does not handle branches above the species tree root yet
 // NOTE: assumes binary species tree
 float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
                           int *events, float birthRate, float deathRate,
@@ -306,6 +307,7 @@ float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
 
 
     int addedNodes = addImpliedSpecNodes(tree, stree, recon2, events2);
+    printf("> %d\n", addedNodes);
     float p = birthDeathTreePrior(tree, stree, recon2, events2, 
                                   birthRate, deathRate,
                                   doomtable,  maxdoom);
@@ -335,6 +337,88 @@ float birthDeathCount(int ngenes, float time, float birthRate, float deathRate)
 }
 
 
+
+
+//=============================================================================
+// sampling
+
+
+void getNodeTimes_helper(Node *node, float time, float *times)
+{
+    const float t = time + node->dist;
+    times[node->name] = t;
+    
+    for (int i=0; i<node->nchildren; i++)
+        getNodeTimes_helper(node->children[i], t, times);
+}
+
+// gets the time from the root for each node
+void getNodeTimes(Tree *tree, float *times)
+{
+    getNodeTimes_helper(tree->root, 0.0, times);
+}
+
+void setNodeTimes(Tree *tree, float *times)
+{
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = tree->nodes[i];
+        if (node->parent) {
+            node->dist = times[node->name] - times[node->parent->name];
+        } else {
+            // root branch
+            node->dist = times[node->name];
+        }
+    }
+}
+
+
+void sampleDupTimes_helper(Node *node, Tree *stree, 
+                           int *recon, int *events,
+                           float *times, float *stimes,
+                           float birthRate, float deathRate)
+{     
+    
+    if (events[node->name] != EVENT_DUP) {
+        // speciations happend exactly at species time
+        times[node->name] = stimes[recon[node->name]];
+    } else {
+        if (node->parent == NULL) {
+            // TODO: use something realistic
+            times[node->name] = stimes[recon[node->name]] - 
+                                expovariate(birthRate);
+        } else {
+            const Node *snode = stree->nodes[recon[node->name]];
+            const float start = times[node->parent->name];
+            const float difftime = stimes[snode->name] - start;
+            
+            // sample a duplication time
+            times[node->name] = start + frand(difftime);
+        }
+    }
+
+    // recurse
+    for (int i=0; i<node->nchildren; i++)
+        sampleDupTimes_helper(node->children[i], stree, recon, events, 
+			      times, stimes,
+			      birthRate, deathRate);
+}
+
+
+void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
+                    float birthRate, float deathRate)
+{
+    // get species tree times
+    float stimes[stree->nnodes];
+    getNodeTimes(stree, stimes);
+    
+    // set gene tree times
+    float times[tree->nnodes];
+    sampleDupTimes_helper(tree->root, stree, recon, events, times, stimes, 
+			  birthRate, deathRate);
+    
+    // use the times to set branch lengths
+    setNodeTimes(tree, times);
+}
 
 
 
@@ -471,6 +555,8 @@ float birthDeathDensity(float *times, int ntimes, float maxtime,
 }
 
 
+/*
+
 void birthDeathTreePrior_recurse(Node *node, float time, int *events, 
                                  ExtendArray<float> &times)
 {
@@ -486,7 +572,7 @@ void birthDeathTreePrior_recurse(Node *node, float time, int *events,
 
 
 
-/*
+
 // NOTE: assumes binary species tree
 float birthDeathTreePrior(Tree *tree, SpeciesTree *stree, int *recon, 
                           int *events, float birthRate, float deathRate)
@@ -639,81 +725,6 @@ float birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon,
 }
 
 
-
-void getNodeTimes_helper(Node *node, float time, float *times)
-{
-    times[node->name] = time + node->dist;
-    
-    for (int i=0; i<node->nchildren; i++)
-        getNodeTimes_helper(node->children[i], time + node->dist, times);
-}
-
-void getNodeTimes(Tree *tree, float *times)
-{
-    getNodeTimes_helper(tree->root, 0.0, times);
-}
-
-void setNodeTimes(Tree *tree, float *times)
-{
-    for (int i=0; i<tree->nnodes; i++) {
-        Node *node = tree->nodes[i];
-        if (node->parent) {
-            node->dist = times[node->name] - times[node->parent->name];
-        } else {
-            // root branch
-            node->dist = 0.0;
-        }
-    }
-}
-
-
-void sampleDupTimes_helper(Node *node, SpeciesTree *stree, 
-                           int *recon, int *events,
-                           float *times, float *stimes,
-                           float birthRate, float deathRate)
-{     
-    
-    if (events[node->name] != EVENT_DUP) {
-        // speciations happend exactly at species time
-        times[node->name] = stimes[recon[node->name]];
-    } else {
-        if (node->parent == NULL) {
-            // TODO: use something realistic
-            times[node->name] = stimes[recon[node->name]] - 
-                                expovariate(birthRate);
-        } else {
-            const Node *snode = stree->nodes[recon[node->name]];
-            const float start = times[node->parent->name];
-            const float difftime = stimes[snode->name] - start;
-            
-            // sample a duplication time
-            times[node->name] = start + frand(difftime);
-        }
-    }
-
-    // recurse
-    for (int i=0; i<node->nchildren; i++)
-        sampleDupTimes_helper(node->children[i], stree, recon, events, 
-			      times, stimes,
-			      birthRate, deathRate);
-}
-
-
-void sampleDupTimes(Tree *tree, SpeciesTree *stree, int *recon, int *events,
-                    float birthRate, float deathRate)
-{
-    // get species tree times
-    float stimes[stree->nnodes];
-    getNodeTimes(stree, stimes);
-    
-    // set gene tree times
-    float times[tree->nnodes];
-    sampleDupTimes_helper(tree->root, stree, recon, events, times, stimes, 
-			  birthRate, deathRate);
-    
-    // use the times to set branch lengths
-    setNodeTimes(tree, times);
-}
 
 }
 

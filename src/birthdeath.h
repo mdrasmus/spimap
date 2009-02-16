@@ -35,7 +35,7 @@ float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
 float birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
                                int *events, float birthRate, float deathRate);
 
-void sampleDupTimes(Tree *tree, SpeciesTree *stree, int *recon, int *events,
+void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
                     float birthRate, float deathRate);
 
 
