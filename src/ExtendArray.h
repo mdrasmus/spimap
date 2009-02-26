@@ -198,6 +198,11 @@ public:
         return data[--len];
     }
     
+    inline ValueType last()
+    {
+	return data[len-1];
+    }
+
     inline void clear()
     {
         len = 0;

@@ -19,6 +19,15 @@ libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
 spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
 
 
+#=============================================================================
+# ctypes help functions
+
+def c_list(c_type, lst):
+    """Make a C array from a list"""
+    list_type = c_type * len(lst)
+    return list_type(* lst)
+
+
 def export(lib, funcname, return_type, arg_types, scope=globals()):
     """Exports a C function"""
 
@@ -26,7 +35,10 @@ def export(lib, funcname, return_type, arg_types, scope=globals()):
     scope[funcname].restype = return_type
     scope[funcname].argtypes = arg_types
 
+#=============================================================================
+# wrap functions from c library
 
+# birthdeath functions
 export(spidir, "inumHistories", c_int, [c_int])
 export(spidir, "numHistories", c_double, [c_int])
 export(spidir, "numTopologyHistories", c_double, [c_void_p])
@@ -46,14 +58,12 @@ export(spidir, "sampleDupTimes", c_int, [c_void_p, c_void_p,
                                          POINTER(c_int), POINTER(c_int),
                                          c_float, c_float])
 
-
-def c_list(c_type, lst):
-    """Make a C array from a list"""
-    list_type = c_type * len(lst)
-    return list_type(* lst)
-
+# sequence likelihood
+export(spidir, "makeHkyMatrix", c_void_p,
+       [POINTER(c_float), c_float, c_float, POINTER(c_float)])
 
 #=============================================================================
+# pure python interface
 
 
 def make_ptree(tree):
@@ -199,3 +209,20 @@ def est_gene_rate(tree, stree, gene2species, params,
     
     return sum(generates) / float(nsamples), (low, high)
 
+
+def make_hky_matrix(bgfreq, kappa, t):
+    """
+    Returns a HKY matrix
+
+    bgfreq -- the background frequency A,C,G,T
+    kappa  -- is transition/transversion ratio
+    """
+    
+    matrix = [0.0] * 16
+    matrix = c_list(c_float, matrix)
+    makeHkyMatrix(c_list(c_float, bgfreq), kappa, t, matrix)
+    return [matrix[0:4],
+            matrix[4:8],
+            matrix[8:12],
+            matrix[12:16]]
+    

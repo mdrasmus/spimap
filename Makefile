@@ -6,6 +6,7 @@
 # Makefile
 #
 
+PYTHON_VERSION=2.5
 
 # install prefix paths
 prefix = /usr
@@ -17,8 +18,8 @@ MEX = mex
 
 CFLAGS = \
     -Wall -fPIC \
-    -I/usr/include/python2.4 \
-    -I/util/include/python2.4 \
+    -I/usr/include/python$(PYTHON_VERSION) \
+    -I/util/include/python$(PYTHON_VERSION) \
     -Isrc
 
 
@@ -34,7 +35,7 @@ MEX_EXT = mexglx
 # target names
 
 # program files
-SPIDIR_PROG = spidir
+SPIDIR_PROG = bin/spidir
 
 SPIDIR_SRC = \
     src/spidir.cpp \
@@ -68,7 +69,7 @@ PYTHON_MODULE = python/spidir/pyspidir.so
 PYTHON_MODULE_OBJS = \
     python/src/pyspidir.o \
     $(SPIDIR_OBJS)  
-PYTHON_MODULE_LIBS = -lpython2.5
+PYTHON_MODULE_LIBS = -lpython$(PYTHON_VERSION)
 #-lpython2.4 
 #`gsl-config --libs`
 

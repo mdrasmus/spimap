@@ -158,6 +158,153 @@ double numSubtopologyHistories(Tree *tree, Node *root, ExtendArray<Node*> &leave
     return n;
 }
 
+int intCmp(const void *_a, const void *_b)
+{
+    return *((int*) _a) - *((int*) _b);
+}
+
+
+int numRedunantTopologies_helper(Node *node, 
+				 bool *leafset, 
+				 int *hashids)
+{
+    if (leafset[node->name] == true)
+	return 0;
+    else {
+	if (node->nchildren == 1)
+	    return numRedunantTopologies_helper(node->children[0],
+						leafset, hashids);
+	else if (node->nchildren == 2) {
+	    int n = int(hashids[node->children[0]->name] == 
+			hashids[node->children[1]->name]);
+	    return n + numRedunantTopologies_helper(node->children[0],
+						    leafset, hashids)
+		     + numRedunantTopologies_helper(node->children[1],
+						    leafset, hashids);
+	} else {
+	    // NOTE: cannot handle multifurcating nodes
+	    assert(0);
+	}
+    }
+}
+
+double numRedunantTopologies(Tree *tree, Node *root, 
+			     ExtendArray<Node*> &leaves, 
+			     int *hashids)
+{
+
+    // get nodes in post order
+    ExtendArray<Node*> queue(0, 2 * tree->nnodes);
+
+    // initialize visited array to zeros
+    ExtendArray<int> visited(tree->nnodes);
+    for (int i=0; i<visited.size(); i++)
+        visited[i] = 0;
+    
+    // process leaves
+    for (int i=0; i<leaves.size(); i++) {
+        Node *node = leaves[i];        
+        // queue parent
+        visited[node->parent->name]++;
+        queue.append(node->parent);
+    }
+
+    int nmirrors = 0;
+    
+    // go up tree until root
+    for (int i=0; i<queue.size(); i++) {
+        Node *node = queue[i];
+        
+        // do not process a node until all children are processed
+        if (visited[node->name] != node->nchildren)
+            continue;
+        
+        // count internal children
+        if (node->nchildren == 2) {
+            nmirrors += int(hashids[node->children[0]->name] == 
+                            hashids[node->children[1]->name]);
+        } else {
+            // we do not handle multifurcating nodes
+            assert(node->nchildren < 2);
+        }
+
+        if (node == root)
+            break;
+
+        visited[node->name]++;
+        visited[node->parent->name]++;
+        queue.append(node->parent);
+    }
+
+    //printf("queue.size = %d\n", queue.size());
+
+
+    // get hashes
+    ExtendArray<int> leafhashes(0, leaves.size());
+    for (int i=0; i<leaves.size(); i++)
+	leafhashes.append(hashids[leaves[i]->name]);
+    
+    qsort((void*) leafhashes.get(), leafhashes.size(), sizeof(int), intCmp);
+
+    double val = 1.0;
+    double colorsize = 1;
+    for (int i=1; i<leaves.size(); i++) {
+	if (leafhashes[i] != leafhashes[i-1]) {
+	    // val *= factorial(colorsize)
+	    for (double j=2; j<=colorsize; j+=1.0)
+		val *= j;
+	    colorsize = 1.0;
+	} else {
+	    colorsize += 1.0;
+	}
+    }
+    for (double j=2; j<=colorsize; j+=1.0)
+	val *= j;
+
+    //printf("c val=%f, nmirrors = %d\n", val, nmirrors);
+    for (int i=0; i<nmirrors; i++)
+        val /=  2.0;
+    //printf("val=%f\n", val);
+    return val;
+}
+
+
+
+double numRedunantTopologies2(Tree *tree, Node *root, 
+			     ExtendArray<Node*> &leaves, 
+			     int *hashids)
+{
+
+    // get hashes
+    ExtendArray<int> leafhashes(0, leaves.size());
+    for (int i=0; i<leaves.size(); i++)
+	leafhashes.append(hashids[leaves[i]->name]);
+    
+    qsort((void*) leafhashes.get(), leafhashes.size(), sizeof(int), intCmp);
+
+    double val = 1.0;
+    double colorsize = 1;
+    for (int i=1; i<leaves.size(); i++) {
+	if (leafhashes[i] != leafhashes[i-1]) {
+	    // val *= factorial(colorsize)
+	    for (double j=2; j<=colorsize; j+=1.0)
+		val *= j;
+	    colorsize = 1.0;
+	} else {
+	    colorsize += 1.0;
+	}
+    }
+    for (double j=2; j<=colorsize; j+=1.0)
+	val *= j;
+
+    double num = 1.0;
+    for (double j=2; j<=leaves.size(); j+=1.0)
+	num *= j;
+
+    return num / val;
+}
+
+
 
 float birthDeathTopology(Node *node, float birthRate, float deathRate,
                          ExtendArray<Node*> &leaves)
@@ -239,6 +386,157 @@ void getSpecSubtree(Node *node, Node *snode, int *recon, int *events,
 }
 
 
+
+class KeyList {
+public:
+    KeyList(int key) : 
+        key(key),
+        next(NULL)
+    {}
+
+    int key;
+    KeyList *next;
+};
+
+class HashNode {
+public:
+    HashNode(int nodeid, KeyList *start, KeyList *end, int len) :
+        nodeid(nodeid),
+	start(start),
+	end(end),
+	len(len)
+    {}
+
+    int nodeid;
+    KeyList *start;
+    KeyList *end;
+    int len;
+};
+
+
+int hashNodeCmp(const void *_a, const void *_b)
+{
+    HashNode *a = *((HashNode**) _a);
+    HashNode *b = *((HashNode**) _b);
+    
+    // first compare diffs
+    int diff = a->len - b->len;
+    if (diff) {
+    	return diff;
+    } else {
+        // compare keys
+	KeyList *keya = a->start;
+	KeyList *keyb = b->start;
+
+	while (true) {
+	    diff = keya->key - keyb->key;
+	    if (diff)
+		return diff;
+            if (keya == a->end || keyb == b->end)
+                break;
+            keya = keya->next;
+            keyb = keyb->next;
+	}
+
+	// both hashes are the same
+	// 1. same length
+	// 2. same key subsequence
+	return 0;
+    }
+}
+
+
+
+void getHashIds(Tree *tree, int *recon, int *hashids)
+{
+
+    ExtendArray<HashNode*> hashnodes(tree->nnodes);
+    ExtendArray<KeyList*> keylist(tree->nnodes);
+
+    // get post order of nodes
+    ExtendArray<Node*> postnodes(0, tree->nnodes);
+    getTreePostOrder(tree, &postnodes);    
+
+    // build hash nodes
+    for (int i=0; i<postnodes.size(); i++)
+    {
+        Node *node=postnodes[i];
+        
+        if (node->isLeaf()) {
+            KeyList *key = new KeyList(recon[node->name]);
+            keylist[node->name] = key;
+            hashnodes[node->name] = new HashNode(node->name, key, key, 1);
+        } else {
+            if (node->nchildren == 1) {                
+                KeyList *key = new KeyList(-1);
+                keylist[node->name] = key;
+                HashNode *hnode1 = hashnodes[node->children[0]->name];
+
+                // join lists: list1 -> key
+                hashnodes[node->name] = 
+                    new HashNode(node->name, hnode1->start, key, 
+                                 hnode1->len + 1);
+                hnode1->end->next = key;
+                
+            } else if (node->nchildren == 2) {
+                KeyList *key = new KeyList(-2);
+                keylist[node->name] = key;
+                HashNode *hnode1 = hashnodes[node->children[0]->name];
+                HashNode *hnode2 = hashnodes[node->children[1]->name];
+                int len = hnode1->len + hnode2->len + 1;
+                int cmp = hashNodeCmp(&hnode1, &hnode2);
+
+                if (cmp <= 0) {
+                    // join lists: list1 -> list2 -> key
+                    hashnodes[node->name] = new HashNode(node->name,
+                                                         hnode1->start, 
+                                                         key,
+                                                         len);
+                    hnode1->end->next = hnode2->start;
+                    hnode2->end->next = key;
+                } else {
+                    // join lists: list2 -> list1 -> key
+                    hashnodes[node->name] = new HashNode(node->name,
+                                                         hnode2->start, 
+                                                         key,
+                                                         len);
+                    hnode2->end->next = hnode1->start;
+                    hnode1->end->next = key;
+                }
+            } else {
+                // cannot handle multifurcating nodes
+                assert(0);
+            }
+        }
+    }
+
+    // sort hashnodes
+    qsort((void*) hashnodes.get(), hashnodes.size(), sizeof(HashNode*),
+	  hashNodeCmp);
+    
+    int hashid = 0;
+    hashids[hashnodes[0]->nodeid] = hashid;
+    for (int i=1; i<hashnodes.size(); i++) {
+	// use new hashid if nodes differ
+	if (hashNodeCmp(&hashnodes[i], &hashnodes[i-1]))
+	    hashid++;
+	hashids[hashnodes[i]->nodeid] = hashid;
+    }
+    
+
+    // clean up
+    for (int i=0; i<tree->nnodes; i++) {
+	delete hashnodes[i];
+        delete keylist[i];
+    }
+
+    //printf("hashids = ");
+    //printIntArray(hashids, tree->nnodes);
+    //printf("\n");
+}
+
+
+
 // TODO: does not handle branches above the species tree root yet
 // NOTE: assumes binary species tree
 float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
@@ -246,13 +544,16 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                           float *doomtable, int maxdoom)
 {
 
-    float prob = 0.0;
+    double prob = 0.0;
     ExtendArray<Node*> subleaves(0, tree->nnodes);
     
     // catch undefined params
     if (birthRate == deathRate)
         deathRate = .99 * birthRate;
     
+    ExtendArray<int> hashids(tree->nnodes);
+    getHashIds(tree, recon, hashids);
+
     // preroot duplications
     //if (events[tree->root->name] == EVENT_DUP)
 
@@ -270,11 +571,26 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                 subleaves.clear();
                 getSpecSubtree(node, schild, recon, events, subleaves);
 
-                float nhist = numSubtopologyHistories(tree, node, subleaves);
-                float thist = numHistories(subleaves.size());
+		double nhist, thist;
 
+		if (subleaves.size() == 0) {
+		    nhist = 1.0;
+		    thist = 1.0;
+		} else {
+		    nhist = numSubtopologyHistories(tree, node, subleaves) *
+			numRedunantTopologies2(tree, node, subleaves, hashids);
+		    thist = numHistories(subleaves.size());		    
+
+		    // correct subtrees that have leaves
+		    if (subleaves[0]->isLeaf()) {
+			nhist *= numRedunantTopologies(tree, node, 
+						       subleaves, 
+						       hashids);
+		    }
+		}
+		
                 // sum over ndoom
-                float sum = 0.0;
+                double sum = 0.0;
                 for (int ndoom=0;  ndoom<=maxdoom; ndoom++) {
                     sum += (birthDeathCount(subleaves.size() + ndoom, 
                                             schild->dist,
@@ -283,9 +599,21 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                 }
 
                 prob += log(nhist) - log(thist) + log(sum);
+                //printf("c prod2 = %f, %d\n", sum, subleaves.size());
             }
         }
     }
+
+    //printf("c prob = %f\n", prob);
+
+    ExtendArray<Node*> leaves(0, tree->nnodes);
+    for (int i=0; i<tree->nnodes; i++) {
+	if (tree->nodes[i]->isLeaf())
+	    leaves.append(tree->nodes[i]);
+    }
+    double x = numRedunantTopologies(tree, tree->root, leaves, hashids);
+    prob -= log(x);
+    //printf("c x = %f\n", x);
     
     return prob;
 }
@@ -307,7 +635,6 @@ float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
 
 
     int addedNodes = addImpliedSpecNodes(tree, stree, recon2, events2);
-    printf("> %d\n", addedNodes);
     float p = birthDeathTreePrior(tree, stree, recon2, events2, 
                                   birthRate, deathRate,
                                   doomtable,  maxdoom);
@@ -654,6 +981,145 @@ float birthDeathTreePrior(Tree *tree, SpeciesTree *stree, int *recon,
     
     return prob;
 }
+
+
+//=============================================================================
+// DEAD CODE: incorrectly hashed redundantly labeled trees 
+
+class HashNode2 {
+public:
+    HashNode2(int nodeid, int start, int end, int *key) :
+	nodeid(nodeid),
+	start(start),
+	end(end),
+	len(end - start),
+	key(key)
+    {
+    }
+    int nodeid;
+    int start;
+    int end;
+    int len;
+    int *key;
+};
+
+
+int hashNodeCmp2(const void *_a, const void *_b)
+{
+    HashNode2 *a = *((HashNode2**) _a);
+    HashNode2 *b = *((HashNode2**) _b);
+    
+    // first compare diffs
+    int diff = a->len - b->len;
+    if (diff) {
+	return diff;
+    } else {
+	int *keya = a->key + a->start;
+	int *keyb = b->key + b->start;
+	for (int i=0; i <= a->len; i++) {
+	    diff = keya[i] - keyb[i];
+	    if (diff)
+		return diff;
+	}
+
+	// both hashes are the same
+	// 1. same length
+	// 2. same key subsequence
+	return 0;
+    }
+}
+
+
+
+void getHashIds2(Tree *tree, int *recon, int *hashids)
+{
+    // get post order of nodes
+    ExtendArray<Node*> postnodes(0, tree->nnodes);
+    getTreePostOrder(tree, &postnodes);
+    
+    // order children
+    ExtendArray<int> ordering(tree->nnodes);
+    for (int i=0; i<postnodes.size(); i++)
+    {
+        Node *node=postnodes[i];
+        
+        if (node->isLeaf()) {
+            ordering[node->name] = recon[node->name];
+        } else {
+            // propogate the min order to the parent
+            int minorder = ordering[node->children[0]->name];
+            for (int j=1; j<node->nchildren; j++) {
+                int order = ordering[node->children[j]->name];
+                if (order < minorder)
+                    minorder = order;
+            }
+            ordering[node->name] = minorder;
+        }
+    }
+    
+    // get a sorted post ordering of nodes
+    ExtendArray<Node*> sortpostnodes(0, tree->nnodes);
+    getTreeSortedPostOrder(tree, &sortpostnodes, ordering);
+    
+    // generate a unique key for this topology
+    // postfix notation for a tree
+    // ((A,B),(C)) is represented as
+    // A, B, -1, C, -2, -1
+    ExtendArray<int> key(tree->nnodes);
+    ExtendArray<int> start_stack(0, tree->nnodes);
+    ExtendArray<HashNode2*> hashnodes(0, tree->nnodes);
+
+    for (int i=0; i<sortpostnodes.size(); i++) {
+        Node *node = sortpostnodes[i];
+	int last;
+        if (node->isLeaf()) {
+            key[i] = recon[node->name];
+	    last = i;
+        } else if (node->nchildren == 2) {
+            key[i] = -1;
+	    start_stack.pop();
+	    last = start_stack.pop();
+	} else if (node->nchildren == 1) {
+	    key[i] = -2;
+	    last = start_stack.pop();
+	} else {
+	    // cannot handle trifurcating trees
+	    assert(0);
+	}
+
+	hashnodes.append(new HashNode2(node->name, last, i, key));
+	start_stack.append(last);
+    }
+
+    //printf("key = ");
+    //printIntArray(key, key.size());
+    //printf("\n");
+    
+    // sort hashnodes
+    qsort((void*) hashnodes.get(), hashnodes.size(), sizeof(HashNode2*),
+	  hashNodeCmp2);    
+    
+    int hashid = 0;
+    hashids[hashnodes[0]->nodeid] = hashid;
+    for (int i=1; i<hashnodes.size(); i++) {
+	// use new hashid if nodes differ
+	if (hashNodeCmp2(&hashnodes[i], &hashnodes[i-1]))
+	    hashid++;
+	hashids[hashnodes[i]->nodeid] = hashid;
+    }
+    
+
+    // clean up
+    for (int i=0; i<hashnodes.size(); i++)
+	delete hashnodes[i];
+
+    //printf("hashids = ");
+    //printIntArray(hashids, tree->nnodes);
+    //printf("\n");
+}
+
+//=============================================================================
+
 */
 
 

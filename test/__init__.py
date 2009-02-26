@@ -1,6 +1,5 @@
 
-import unittest, traceback
-
+import unittest, traceback, os, shutil
 
 
 def fequal(f1, f2, rel=.0001):
@@ -17,6 +16,17 @@ def fequal(f1, f2, rel=.0001):
 
     assert x, "%f != %f  [err=%f]" % (f1, f2, err)
 
+
+
+def prep_dir(path):
+    try:
+        if os.path.exists(path):
+            shutil.rmtree(path)
+    except:
+        pass
+    else:
+        os.makedirs(path)
+    
 
 
 class TestResult (unittest.TestResult):

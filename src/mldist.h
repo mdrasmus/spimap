@@ -23,7 +23,11 @@ float getTotalLikelihood(ExtendArray<float*> &lktable, Tree *tree,
                          int nseqs, int seqlen, char **seqs, Model &model,
                          const float *bgfreq);
 
+extern "C" {
+
 void makeHkyMatrix(const float *bgfreq, float ratio, float t, float *matrix);
+
+} // extern "C"
 
 } // namespace spidir
 

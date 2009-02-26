@@ -361,8 +361,24 @@ int addImpliedSpecNodes(Tree *tree, Tree *stree,
         // process this node and the branch above it
         
         // if no parent, then no implied speciation nodes above us
-        if (node->parent == NULL)
-            continue;
+        //if (node->parent == NULL) 
+        //   continue;
+
+        // handle root node specially
+        if (node->parent == NULL) {
+            // ensure root of gene tree properly reconciles to
+            // root of species tree
+            if (recon[node->name] == stree->root->name)
+                continue;
+            // NOTE: root is not last node (may need to relax this condition)
+            tree->root = tree->addNode(new Node(1));
+            tree->root->children[0] = node;
+            node->parent = tree->root;
+            recon.append(stree->root->name);
+            events.append(EVENT_SPEC);
+            addedNodes++;
+        }
+
     
         // determine starting and ending species
         Node *sstart = stree->nodes[recon[node->name]];
@@ -389,11 +405,12 @@ int addImpliedSpecNodes(Tree *tree, Tree *stree,
             addedNodes++;
         }
     }
-    
+
     return addedNodes;
 }
 
 
+// NOTE: this function adds back distance
 void removeImpliedSpecNodes(Tree *tree, int addedNodes)
 {
     int nnodes = tree->nnodes;
@@ -404,8 +421,19 @@ void removeImpliedSpecNodes(Tree *tree, int addedNodes)
         Node *oldnode = tree->nodes[i];
         Node *parent = oldnode->parent;
         Node *child = oldnode->children[0];
-        
+
         assert(oldnode->nchildren == 1);
+
+        // was node added as new root?
+        if (parent == NULL) {
+            tree->root = oldnode->children[0];
+            tree->root->parent = NULL;
+            tree->root->dist += oldnode->dist;
+            tree->nodes.pop();
+            tree->nnodes--;
+            delete oldnode;
+            continue;
+        }
         
         // find index of oldnode in parent's children
         int nodei = 0;

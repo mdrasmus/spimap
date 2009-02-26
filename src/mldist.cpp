@@ -145,6 +145,8 @@ public:
 };
 
 
+extern "C" {
+
 void makeHkyMatrix(const float *bgfreq, float ratio, float t, float *matrix)
 {
     HkyModel model(bgfreq, ratio);
@@ -154,7 +156,7 @@ void makeHkyMatrix(const float *bgfreq, float ratio, float t, float *matrix)
             matrix[4*i+j] = model(i, j, t);
 }
 
-
+} // extern "C"
 
 
 // This is a functor that represents the derivative of distLikelihood
