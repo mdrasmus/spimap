@@ -6,10 +6,10 @@
 #include "common.h"
 #include "Matrix.h"
 #include "phylogeny.h"
-#include "likelihood.h"
+#include "branch_prior.h"
 #include "parsimony.h"
 #include "search.h"
-#include "mldist.h"
+#include "seq_likelihood.h"
 
 
 namespace spidir {
@@ -587,7 +587,7 @@ float HkySpidirSample::findLengths(Tree *tree)
     
     for (int i=0; i<maxiter; i++) {
         generateBranchLengths(tree, stree, recon, events, params);
-        logl = logadd(logl, calcHkySeqProb(tree, nseqs, seqs, bgfreq, tsvratio));
+        logl = logadd(logl, calcSeqProbHky(tree, nseqs, seqs, bgfreq, tsvratio));
     }
     logl -= log(maxiter);
     
@@ -707,7 +707,7 @@ float SpidirBranchLikelihoodFunc::likelihood2(Tree *tree) {
 
 float HkyBranchLikelihoodFunc::likelihood(Tree *tree)
 {
-    return calcHkySeqProb(tree, nseqs, seqs, bgfreq, tsvratio);
+    return calcSeqProbHky(tree, nseqs, seqs, bgfreq, tsvratio);
 }
 
 

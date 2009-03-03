@@ -36,16 +36,18 @@ class TestHKY (unittest.TestCase):
 
         nodes = sorted(tree.nodes.values(), key=lambda x: x.dist)
 
+        util.tic("find ML")
         for i in range(40):
             l = spidir.find_ml_branch_lengths_hky(
                 tree,
                 util.mget(align, tree.leafNames()),
                 bgfreq, kappa,
-                parsinit=False,
+                parsinit=(i == 0),
                 maxiter=1)
             
             dists.append([n.dist for n in nodes])
             likes.append(l)
+        util.toc()
 
         print likes
 

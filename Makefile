@@ -39,11 +39,10 @@ SPIDIR_PROG = bin/spidir
 
 SPIDIR_SRC = \
     src/spidir.cpp \
-    src/mldist.cpp \
+    src/seq_likelihood.cpp \
     src/common.cpp \
-    src/likelihood.cpp \
+    src/branch_prior.cpp \
     src/birthdeath.cpp \
-    src/mem.cpp \
     src/parsimony.cpp \
     src/phylogeny.cpp \
     src/search.cpp \
@@ -115,7 +114,7 @@ endif
 #=============================================================================
 # targets
 
-all: $(SPIDIR_PROG) $(LIBSPIDIR) $(PYTHON_MODULE)
+all: $(SPIDIR_PROG) $(LIBSPIDIR)
 
 # stand-alone program
 $(SPIDIR_PROG): $(PROG_OBJS)

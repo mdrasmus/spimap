@@ -135,10 +135,11 @@ float bisectRoot(Func &f, float x0, float x1, const int maxiter,
     // we expect f(x0) > 0 and f(x1) < 0
     //printf("\n");
     
+    /*
     // move x0 left until f(x0) > 0
     float f0 = f(x0);
     while (f0 < 0) {
-        //printf("low: %f %f\n", x0, f0);
+        printf("low: %f %f\n", x0, f0);
         x1 = x0;
         x0 /= 1.5;
         f0 = f(x0);
@@ -150,7 +151,7 @@ float bisectRoot(Func &f, float x0, float x1, const int maxiter,
     float f1 = f(x1);
     assert(x1 >= 0.0);
     while (f1 > 0) {
-        //printf("hi:  %f %f\n", x1, f1);
+        printf("hi:  %f %f\n", x1, f1);
         x0 = x1;
         f0 = f1;
         x1 *= 1.5;
@@ -158,6 +159,10 @@ float bisectRoot(Func &f, float x0, float x1, const int maxiter,
         if (x1 > maxx)
             return x1;
     }
+    */
+
+    float f0 = f(x0);
+    float f1 = f(x1);
     
     for (int i=0; i<maxiter; i++) {
         //printf("in:  %f %f; %f %f\n", x0, x1, f0, f1);
@@ -168,7 +173,7 @@ float bisectRoot(Func &f, float x0, float x1, const int maxiter,
         float x2 = (x0 + x1) / 2.0;
         float f2 = f(x2);
         
-        if (f2 > 0) {
+        if (f0 * f2 > 0) {
             x0 = x2;
             f0 = f2;
         } else {
@@ -177,7 +182,7 @@ float bisectRoot(Func &f, float x0, float x1, const int maxiter,
         }
     }
 
-    return x1;
+    return (x0 + x1) / 2.0;
 }
 
 

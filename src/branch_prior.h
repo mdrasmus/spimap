@@ -1,5 +1,5 @@
-#ifndef SPIDIR_LIKELIHOOD_H
-#define SPIDIR_LIKELIHOOD_H
+#ifndef SPIDIR_BRANCH_PRIOR_H
+#define SPIDIR_BRANCH_PRIOR_H
 
 #include "Tree.h"
 #include "spidir.h"
@@ -81,4 +81,4 @@ void generateBranchLengths(Tree *tree,
 
 } // namespace spidir
 
-#endif // SPIDIR_LIKELIHOOD_H
+#endif // SPIDIR_BRANCH_PRIOR_H

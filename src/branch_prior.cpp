@@ -13,11 +13,11 @@
 
 // spidir headers
 #include "common.h"
-#include "likelihood.h"
+#include "branch_prior.h"
 #include "birthdeath.h"
 #include "phylogeny.h"
 #include "ExtendArray.h"
-#include "mldist.h"
+#include "seq_likelihood.h"
 
 
 namespace spidir {
@@ -1113,7 +1113,7 @@ void samplePosteriorGeneRate(Tree *tree,
 
             
             // calculate P(D|B_2,T)
-            next_logl = calcHkySeqProb(tree, nseqs, seqs, bgfreq, ratio);
+            next_logl = calcSeqProbHky(tree, nseqs, seqs, bgfreq, ratio);
 	    
             // calculate P(B_2|T,G_2)
             next_logl2 = treelk(tree, stree, recon, events, params,
@@ -1168,7 +1168,7 @@ void samplePosteriorGeneRate(Tree *tree,
 	    }
 
             // calculate P(D|B_2,T)
-            next_logl = calcHkySeqProb(tree, nseqs, seqs, bgfreq, ratio);
+            next_logl = calcSeqProbHky(tree, nseqs, seqs, bgfreq, ratio);
             next_logl2 = 999;
             
             alpha = exp(next_logl - logl);
@@ -1226,7 +1226,7 @@ void samplePosteriorGeneRate_old(Tree *tree,
                               params, next_generate);
         
         // calculate P(D|B,T)
-        next_logl = calcHkySeqProb(tree, nseqs, seqs, bgfreq, ratio);
+        next_logl = calcSeqProbHky(tree, nseqs, seqs, bgfreq, ratio);
 
         //printf(">> %f %f\n", next_logl, logl);
 

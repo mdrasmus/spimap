@@ -14,7 +14,7 @@ from ctypes import *
 from rasmus import treelib, util
 from rasmus.bio import fasta, phylo
 
-import pyspidir
+#import pyspidir
 libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
 spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
 
@@ -69,7 +69,26 @@ export(spidir, "sampleDupTimes", c_int, [c_void_p, c_void_p,
 # sequence likelihood
 export(spidir, "makeHkyMatrix", c_void_p,
        [POINTER(c_float), c_float, c_float, POINTER(c_float)])
-export(spidir, "calcHkySeqProb", c_float,
+export(spidir, "branchLikelihoodHky", c_float,
+       [POINTER(c_float), POINTER(c_float), c_int, POINTER(c_float), c_float,
+        c_float])
+# (float *probs1, float *probs2, int seqlen, 
+#  const float *bgfreq, float kappa, float t)
+
+export(spidir, "deriveBranchLikelihoodHky", c_float,
+       [POINTER(c_float), POINTER(c_float), c_int, 
+        POINTER(c_float), c_float, c_float])       
+# (float *probs1, float *probs2, int seqlen, 
+#  const float *bgfreq, float kappa, float t)
+
+export(spidir, "mleDistanceHky", c_float,
+       [POINTER(c_float), POINTER(c_float), c_int, POINTER(c_float), c_float,
+        c_float, c_float, c_float])
+# (float *probs1, float *probs2, int seqlen, 
+#   const float *bgfreq, float ratio,
+#   float t0, float t1, float step)
+
+export(spidir, "calcSeqProbHky", c_float,
        [c_void_p, c_int, POINTER(c_char_p), POINTER(c_float), c_float])
 # (Tree *tree, int nseqs, char **seqs, 
 #  const float *bgfreq, float ratio);
@@ -168,22 +187,7 @@ def make_events_array(nodes, events):
     return util.mget(mapping, util.mget(events, nodes))
 
 
-def make_hky_matrix(bgfreq, kappa, t):
-    """
-    Returns a HKY matrix
 
-    bgfreq -- the background frequency A,C,G,T
-    kappa  -- is transition/transversion ratio
-    """
-    
-    matrix = [0.0] * 16
-    matrix = c_list(c_float, matrix)
-    makeHkyMatrix(c_list(c_float, bgfreq), kappa, t, matrix)
-    return [matrix[0:4],
-            matrix[4:8],
-            matrix[8:12],
-            matrix[12:16]]
-    
 def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
                               events=None):
 
@@ -212,23 +216,49 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
 
     return p
 
+def make_hky_matrix(bgfreq, kappa, t):
+    """
+    Returns a HKY matrix
+
+    bgfreq -- the background frequency A,C,G,T
+    kappa  -- is transition/transversion ratio
+    """
+    
+    matrix = [0.0] * 16
+    matrix = c_list(c_float, matrix)
+    makeHkyMatrix(c_list(c_float, bgfreq), kappa, t, matrix)
+    return [matrix[0:4],
+            matrix[4:8],
+            matrix[8:12],
+            matrix[12:16]]
+
+def branch_likelihood_hky(probs1, probs2, seqlen, bgfreq, kappa, time):
+    return branchLikelihoodHky(c_list(c_float, probs1), c_list(c_float, probs2),
+                               seqlen, c_list(c_float, bgfreq), kappa, time)
+
+def derive_branch_likelihood_hky(probs1, probs2, seqlen, bgfreq, kappa, time):
+    return deriveBranchLikelihoodHky(
+        c_list(c_float, probs1), c_list(c_float, probs2), seqlen, 
+        c_list(c_float, bgfreq), kappa, time)
+
+def mle_distance_hky(probs1, probs2, seqlen, bgfreq, kappa, t0, t1, step):    
+    return mleDistanceHky(c_list(c_float, probs1), c_list(c_float, probs2),
+                          seqlen, c_list(c_float, bgfreq), kappa,
+                          t0, t1, step)
+
+
 def calc_seq_likelihood_hky(tree, align, bgfreq, kappa):
 
     ctree = tree2ctree(tree)
-
-    #calign = c_matrix(c_char, align)
-    #mat = align
-    #row_type = POINTER(c_char)  #c_char * len(mat[0])
-    #mat_type = row_type * len(mat)
-    #calign = mat_type(* [row_type(row) for row in mat])
     calign = (c_char_p * len(align))(* align)
     
-    l = calcHkySeqProb(ctree, len(align), calign, c_list(c_float, bgfreq),
+    l = calcSeqProbHky(ctree, len(align), calign, c_list(c_float, bgfreq),
                        kappa)
 
     deleteTree(ctree)
 
     return l
+
 
 def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
                                parsinit=True):
@@ -247,10 +277,14 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
     
     return l
 
+
+
 #=============================================================================
 # pyspidir (older code)
 # TODO: convert to ctypes
 
+
+'''
 def parsimony(aln, tree):    
     ptree, nodes, nodelookup = make_ptree(tree)
     leaves = [x.name for x in nodes if isinstance(x.name, str)]
@@ -312,3 +346,4 @@ def est_gene_rate(tree, stree, gene2species, params,
     return sum(generates) / float(nsamples), (low, high)
 
 
+'''
