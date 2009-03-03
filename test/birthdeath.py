@@ -11,6 +11,7 @@ import sys, unittest, ctypes
 
 sys.path.append("python")
 import spidir
+from spidir import calc_birth_death_prior as c_calcBirthDeathPrior
 
 from test import *
 
@@ -245,31 +246,6 @@ def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom,
 
     return prod
 
-def c_calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom,
-                          events=None):
-
-    if events is None:
-        events = phylo.labelEvents(tree, recon)
-
-    ptree, nodes, nodelookup = spidir.make_ptree(tree)
-    pstree, snodes, snodelookup = spidir.make_ptree(stree)
-
-    ctree = spidir.tree2ctree(tree)
-    cstree = spidir.tree2ctree(stree)
-    recon2 = spidir.make_recon_array(tree, recon, nodes, snodelookup)
-    events2 = spidir.make_events_array(nodes, events)
-
-    doomtable = spidir.c_list(ctypes.c_float, [0] * len(stree.nodes))
-    spidir.calcDoomTable(cstree, birth, death, maxdoom, doomtable)
-        
-    p = spidir.birthDeathTreePriorFull(ctree, cstree,
-                                       spidir.c_list(ctypes.c_int, recon2), 
-                                       spidir.c_list(ctypes.c_int, events2),
-                                       birth, death, doomtable, maxdoom)
-    spidir.deleteTree(ctree)
-    spidir.deleteTree(cstree)
-
-    return p
 
 
 #=============================================================================

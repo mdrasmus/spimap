@@ -12,7 +12,7 @@ from math import *
 from ctypes import *
 
 from rasmus import treelib, util
-from rasmus.bio import fasta
+from rasmus.bio import fasta, phylo
 
 import pyspidir
 libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
@@ -27,6 +27,14 @@ def c_list(c_type, lst):
     list_type = c_type * len(lst)
     return list_type(* lst)
 
+#def c_matrix(c_type, mat):
+#    """Make a C matrix from a list of lists (mat)"""
+#
+#    row_type = c_type * len(mat[0])
+#    mat_type = row_type * len(mat)
+#    mat = mat_type(* [row_type(* row) for row in mat])
+#    return cast(mat, POINTER(POINTER(c_type)))
+    
 
 def export(lib, funcname, return_type, arg_types, scope=globals()):
     """Exports a C function"""
@@ -61,6 +69,17 @@ export(spidir, "sampleDupTimes", c_int, [c_void_p, c_void_p,
 # sequence likelihood
 export(spidir, "makeHkyMatrix", c_void_p,
        [POINTER(c_float), c_float, c_float, POINTER(c_float)])
+export(spidir, "calcHkySeqProb", c_float,
+       [c_void_p, c_int, POINTER(c_char_p), POINTER(c_float), c_float])
+# (Tree *tree, int nseqs, char **seqs, 
+#  const float *bgfreq, float ratio);
+
+export(spidir, "findMLBranchLengthsHky", c_float,
+       [c_int, POINTER(c_int), c_int, POINTER(c_char_p),
+        POINTER(c_float), POINTER(c_float), c_float, c_int, c_int])
+# (int nnodes, int *ptree, int nseqs, char **seqs, 
+#   float *dists, const float *bgfreq, float ratio, 
+#   int maxiter, bool parsinit)
 
 #=============================================================================
 # pure python interface
@@ -149,6 +168,89 @@ def make_events_array(nodes, events):
     return util.mget(mapping, util.mget(events, nodes))
 
 
+def make_hky_matrix(bgfreq, kappa, t):
+    """
+    Returns a HKY matrix
+
+    bgfreq -- the background frequency A,C,G,T
+    kappa  -- is transition/transversion ratio
+    """
+    
+    matrix = [0.0] * 16
+    matrix = c_list(c_float, matrix)
+    makeHkyMatrix(c_list(c_float, bgfreq), kappa, t, matrix)
+    return [matrix[0:4],
+            matrix[4:8],
+            matrix[8:12],
+            matrix[12:16]]
+    
+def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
+                              events=None):
+
+    assert birth != death, "birth and death must be different rates"
+
+    if events is None:
+        events = phylo.labelEvents(tree, recon)
+
+    ptree, nodes, nodelookup = make_ptree(tree)
+    pstree, snodes, snodelookup = make_ptree(stree)
+
+    ctree = tree2ctree(tree)
+    cstree = tree2ctree(stree)
+    recon2 = make_recon_array(tree, recon, nodes, snodelookup)
+    events2 = make_events_array(nodes, events)
+
+    doomtable = c_list(c_float, [0] * len(stree.nodes))
+    calcDoomTable(cstree, birth, death, maxdoom, doomtable)
+    
+    p = birthDeathTreePriorFull(ctree, cstree,
+                                c_list(c_int, recon2), 
+                                c_list(c_int, events2),
+                                birth, death, doomtable, maxdoom)
+    deleteTree(ctree)
+    deleteTree(cstree)
+
+    return p
+
+def calc_seq_likelihood_hky(tree, align, bgfreq, kappa):
+
+    ctree = tree2ctree(tree)
+
+    #calign = c_matrix(c_char, align)
+    #mat = align
+    #row_type = POINTER(c_char)  #c_char * len(mat[0])
+    #mat_type = row_type * len(mat)
+    #calign = mat_type(* [row_type(row) for row in mat])
+    calign = (c_char_p * len(align))(* align)
+    
+    l = calcHkySeqProb(ctree, len(align), calign, c_list(c_float, bgfreq),
+                       kappa)
+
+    deleteTree(ctree)
+
+    return l
+
+def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
+                               parsinit=True):
+
+    ptree, nodes, nodelookup = make_ptree(tree)
+    calign = (c_char_p * len(align))(* align)
+    dists = c_list(c_float, [n.dist for n in nodes])
+
+    l = findMLBranchLengthsHky(len(ptree), c_list(c_int, ptree),
+                               len(align), calign,
+                               dists, c_list(c_float, bgfreq), kappa,
+                               maxiter, int(parsinit))
+    
+    for i, node in enumerate(nodes):
+        node.dist = dists[i]
+    
+    return l
+
+#=============================================================================
+# pyspidir (older code)
+# TODO: convert to ctypes
+
 def parsimony(aln, tree):    
     ptree, nodes, nodelookup = make_ptree(tree)
     leaves = [x.name for x in nodes if isinstance(x.name, str)]
@@ -210,19 +312,3 @@ def est_gene_rate(tree, stree, gene2species, params,
     return sum(generates) / float(nsamples), (low, high)
 
 
-def make_hky_matrix(bgfreq, kappa, t):
-    """
-    Returns a HKY matrix
-
-    bgfreq -- the background frequency A,C,G,T
-    kappa  -- is transition/transversion ratio
-    """
-    
-    matrix = [0.0] * 16
-    matrix = c_list(c_float, matrix)
-    makeHkyMatrix(c_list(c_float, bgfreq), kappa, t, matrix)
-    return [matrix[0:4],
-            matrix[4:8],
-            matrix[8:12],
-            matrix[12:16]]
-    

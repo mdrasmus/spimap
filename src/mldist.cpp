@@ -303,28 +303,57 @@ float mleDistance(float *probs1, float *probs2, int seqlen,
 // Dynamic programming of conditional likelihood
 
 
+class LikelihoodTable 
+{
+public:
+
+    LikelihoodTable(int nnodes, int seqlen) :
+        nnodes(nnodes),
+        seqlen(seqlen)
+    {
+        // allocate conditional likelihood dynamic programming table
+        lktable = new float* [nnodes];
+        for (int i=0; i<nnodes; i++)
+            lktable[i] = new float [4 * seqlen];
+    }
+
+    ~LikelihoodTable()
+    {
+        // cleanup
+        for (int i=0; i<nnodes; i++)
+            delete [] lktable[i];
+    }
+
+    float **lktable;
+
+    int nnodes;
+    int seqlen;
+    
+};
+
+
+
 /*
 
     From: Inferring Phylogenies. Felsenstein. p 254.
     
     Baisc recursion of conditional likelihoods
-        L_k^(i)(s) = (sum_x P(x|s,t_l) L_l^(i)(x)) (sum_y P(y,s,t_m) L_m^(i)(y))
+        lktable[c][j,k] = (sum_x P(x|k, t_a) lktable[a][j,x]) *
+                          (sum_y P(y|k, t_b) lktable[b][j,y])
     
-    where k is a node
-          l and m are children of k
-          i indexes sites
-          t_l and t_m are the branch lengths of l and m
-    
-    I define my table to be:
-        lktable[i][matind(4, j, k)] = log(L_i^(j)(k))
+    where c is a node, with child nodes a and b
+          t_a, t_b are the branch lengths of branches a and b
+          j indexes sites
+          k,x,y are DNA bases (e.g. A=1, C=2, G=3, T=4)
 
 */
 
 
 // conditional likelihood recurrence
 template <class Model>
-inline void calcLkTable(ExtendArray<float*> &lktable, int seqlen, Model &model,
-                        int a, int b, int c, float adist, float bdist)
+inline void calcLkTableRow(float** lktable, int seqlen, 
+                           Model &model,
+                           int a, int b, int c, float adist, float bdist)
 {
     static Matrix<float> atransmat(4, 4);
     static Matrix<float> btransmat(4, 4);
@@ -337,6 +366,7 @@ inline void calcLkTable(ExtendArray<float*> &lktable, int seqlen, Model &model,
         }
     }
     
+    // get relevant rows from lktable
     float *lktablea = lktable[a];
     float *lktableb = lktable[b];
     float *lktablec = lktable[c];
@@ -344,57 +374,43 @@ inline void calcLkTable(ExtendArray<float*> &lktable, int seqlen, Model &model,
     // iterate over sites
     for (int j=0; j<seqlen; j++) {
         float terma[4];
-        float termb[4];       
+        float termb[4];
         
         for (int x=0; x<4; x++) {
-            terma[x] = lktablea[matind(4, j, x)]; //expf(lktablea[matind(4, j, x)]);
-            termb[x] = lktableb[matind(4, j, x)]; //expf(lktableb[matind(4, j, x)]);
-        }
-    
+            terma[x] = lktablea[matind(4, j, x)];
+            termb[x] = lktableb[matind(4, j, x)];
+        }    
         
         for (int k=0; k<4; k++) {
-            //float prob1 = 0.0, prob2 = 0.0;                
-
-            //for (int x=0; x<4; x++) {
             float *aptr = atransmat[k];
             float *bptr = btransmat[k];
             
+            // sum_x P(x|k, t_a) lktable[a][j,x]
             float prob1 = aptr[0] * terma[0] +
                           aptr[1] * terma[1] +
                           aptr[2] * terma[2] +
                           aptr[3] * terma[3];
+
+            // sum_y P(y|k, t_b) lktable[b][j,y]
             float prob2 = bptr[0] * termb[0] +
                           bptr[1] * termb[1] +
                           bptr[2] * termb[2] +
                           bptr[3] * termb[3];
             
 
-            lktablec[matind(4, j, k)] = prob1 * prob2; //logf(prob1 * prob2);
+            lktablec[matind(4, j, k)] = prob1 * prob2;
         }
-        
-        /*
-        for (int k=0; k<4; k++) {
-            float prob1 = 0.0, prob2 = 0.0;                
-
-            for (int x=0; x<4; x++) {                
-                prob1 += atransmat[k][x] * terma[x];
-                prob2 += btransmat[k][x] * termb[x];
-            }
-
-            lktable[c][matind(4, j, k)] = logf(prob1 * prob2);
-        }*/
-        
     }
 }
 
 
 // initialize the condition likelihood table
 template <class Model>
-void initCondLkTable(ExtendArray<float*> &lktable, Tree *tree, 
-                     int nseqs, int seqlen, char **seqs, Model &model)
+void calcLkTable(float** lktable, Tree *tree, 
+                 int nseqs, int seqlen, char **seqs, Model &model)
 {
     // recursively calculate cond. lk. of internal nodes
-    ExtendArray<Node*> nodes;
+    ExtendArray<Node*> nodes(0, tree->nnodes);
     getTreePostOrder(tree, &nodes);
     
     for (int l=0; l<nodes.size(); l++) {
@@ -410,48 +426,56 @@ void initCondLkTable(ExtendArray<float*> &lktable, Tree *tree,
 
                 if (base == -1) {
                     // handle gaps
-                    lktable[i][matind(4, j, 0)] = 1.0; // 0.0;
-                    lktable[i][matind(4, j, 1)] = 1.0; // 0.0;
-                    lktable[i][matind(4, j, 2)] = 1.0; // 0.0;
-                    lktable[i][matind(4, j, 3)] = 1.0; // 0.0;
-                } else 
-                    lktable[i][matind(4, j, base)] = 1.0; // 0.0;
+                    lktable[i][matind(4, j, 0)] = 1.0;
+                    lktable[i][matind(4, j, 1)] = 1.0;
+                    lktable[i][matind(4, j, 2)] = 1.0;
+                    lktable[i][matind(4, j, 3)] = 1.0;
+                } else {
+                    lktable[i][matind(4, j, 0)] = 0.0;
+                    lktable[i][matind(4, j, 1)] = 0.0;
+                    lktable[i][matind(4, j, 2)] = 0.0;
+                    lktable[i][matind(4, j, 3)] = 0.0;
+
+                    lktable[i][matind(4, j, base)] = 1.0;
+                }
             }
         } else {
             // compute internal nodes from children
             Node *node1 = node->children[0];
             Node *node2 = node->children[1];
             
-            calcLkTable(lktable, seqlen, model, node1->name, node2->name, i,
-                        node1->dist, node2->dist);
+            calcLkTableRow(lktable, seqlen, model, 
+                           node1->name, node2->name, node->name,
+                           node1->dist, node2->dist);
         }
     }
 }
 
 
-// calculate P(D | T, B)
+// calculate log(P(D | T, B))
 template <class Model>
-float getTotalLikelihood(ExtendArray<float*> &lktable, Tree *tree, 
+float getTotalLikelihood(float** lktable, Tree *tree, 
                          int seqlen, Model &model, const float *bgfreq)
 {
-    // find total likelihood
-    calcLkTable(lktable, seqlen, model, 
-                tree->root->children[0]->name, 
-                tree->root->children[1]->name, 
-                tree->root->name,
-                tree->root->children[0]->dist, 
-                tree->root->children[1]->dist);
+    // recompute the root node row in lktable
+    calcLkTableRow(lktable, seqlen, model, 
+                   tree->root->children[0]->name, 
+                   tree->root->children[1]->name, 
+                   tree->root->name,
+                   tree->root->children[0]->dist, 
+                   tree->root->children[1]->dist);
     
+    // integrate over the background base frequency
+    const float *rootseq = lktable[tree->root->name];
     float lk = 0.0;
     for (int k=0; k<seqlen; k++) {
         float prob = 0.0;
-        for (int x=0; x<4; x++) {
-            prob += bgfreq[x] * 
-                    lktable[tree->root->name][matind(4, k, x)];
-                    //expf(lktable[tree->root->name][matind(4, k, x)]);
-        }
+        for (int x=0; x<4; x++)
+            prob += bgfreq[x] * rootseq[matind(4, k, x)];
         lk += logf(prob);
     }
+
+    // return log likelihood
     return lk;
 }
 
@@ -467,12 +491,10 @@ float calcSeqProb(Tree *tree, int nseqs, char **seqs,
     ExtendArray<float*> lktable(tree->nnodes);
     for (int i=0; i<tree->nnodes; i++) {
         lktable[i] = new float [4 * seqlen];
-        for (int j=0; j<4*seqlen; j++)
-            lktable[i][j] = 0.0; //-INFINITY;
     }
     
     // initialize the condition likelihood table
-    initCondLkTable(lktable, tree, nseqs, seqlen, seqs, model);
+    calcLkTable(lktable, tree, nseqs, seqlen, seqs, model);
     float logl = getTotalLikelihood(lktable, tree, seqlen, model, bgfreq);
     
     // cleanup
@@ -482,6 +504,7 @@ float calcSeqProb(Tree *tree, int nseqs, char **seqs,
     return logl;
 }
 
+extern "C" {
 
 float calcHkySeqProb(Tree *tree, int nseqs, char **seqs, 
                      const float *bgfreq, float ratio)
@@ -490,6 +513,7 @@ float calcHkySeqProb(Tree *tree, int nseqs, char **seqs,
     return calcSeqProb(tree, nseqs, seqs, bgfreq, hky);
 }
 
+} // extern "C"
 
 
 //=============================================================================
@@ -549,18 +573,19 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
     
     
     // allocate conditional likelihood dynamic programming table
-    ExtendArray<float*> lktable(tree->nnodes);
-    for (int i=0; i<tree->nnodes; i++) {
-        lktable[i] = new float [4 * seqlen];
-        for (int j=0; j<4*seqlen; j++)
-            lktable[i][j] = 0.0; //-INFINITY;
-    }
+    LikelihoodTable table(tree->nnodes, seqlen);
+    float **lktable = table.lktable;
+
+    //ExtendArray<float*> lktable(tree->nnodes);
+    //for (int i=0; i<tree->nnodes; i++) {
+    //    lktable[i] = new float [4 * seqlen];
+    //}
     
     // allocate auxiliary likelihood table
     ExtendArray<float> probs3(seqlen*4*4);
     
     // initialize the condition likelihood table
-    initCondLkTable(lktable, tree, nseqs, seqlen, seqs, model);
+    calcLkTable(lktable, tree, nseqs, seqlen, seqs, model);
     
     // remember original rooting for restoring later
     Node *origroot1 = tree->root->children[0];
@@ -606,12 +631,12 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
             // walk up to root of tree, rebuilding conditional likelihoods
             for (; ptr->parent; ptr = ptr->parent) {
                 if (!ptr->isLeaf())
-                    calcLkTable(lktable, seqlen, model, 
-                                ptr->children[0]->name, 
-                                ptr->children[1]->name, 
-                                ptr->name,
-                                ptr->children[0]->dist, 
-                                ptr->children[1]->dist);
+                    calcLkTableRow(lktable, seqlen, model, 
+                                   ptr->children[0]->name, 
+                                   ptr->children[1]->name, 
+                                   ptr->name,
+                                   ptr->children[0]->dist, 
+                                   ptr->children[1]->dist);
             }
 
             // get total probability before branch length change
@@ -628,21 +653,22 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
                                     bgfreq, model, 
                                     max(initdist*.95, 0.0), 
                                     max(initdist*1.05, 0.001),
-                                    .001, probs3, samples);
+                                    .0001, probs3, samples);
             node1->dist = mle / 2.0;
             node2->dist = mle / 2.0;
 
-            // get total probability after bracnh change
+            // get total probability after branch change
             logl = getTotalLikelihood(lktable, tree, 
                                       seqlen, model, bgfreq);
 
             // don't accept a new branch length if it lowers total likelihood
-            if (logl < loglBefore) {
+            /* if (logl < loglBefore) {
                 // revert
                 node1->dist = initdist / 2.0;
                 node2->dist = initdist / 2.0;
                 logl = loglBefore;
-            }
+                //assert(0);
+            } */
             
             printLog(LOG_HIGH, "hky: lk=%f\n", logl);        
         }
@@ -672,8 +698,8 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
     
     
     // cleanup
-    for (int i=0; i<tree->nnodes; i++)
-        delete [] lktable[i];
+    //for (int i=0; i<tree->nnodes; i++)
+    //    delete [] lktable[i];
     
     printLog(LOG_MEDIUM, "mldist time: %f\n", (clock() - startTime) /
              float(CLOCKS_PER_SEC));    
@@ -691,6 +717,9 @@ float findMLBranchLengthsHky(Tree *tree, int nseqs, char **seqs,
 }
 
 
+
+extern "C" {
+
 float findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs, 
                              float *dists, const float *bgfreq, float ratio, 
                              int maxiter, bool parsinit)
@@ -700,7 +729,8 @@ float findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs,
     // create tree objects
     Tree tree(nnodes);
     ptree2tree(nnodes, ptree, &tree);
-    
+    tree.setDists(dists);
+
     if (parsinit)
         parsimony(&tree, nseqs, seqs);
     
@@ -710,6 +740,9 @@ float findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs,
     
     return logl;
 }
+
+
+} // extern C
 
 
 } // namespace spidir

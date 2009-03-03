@@ -67,7 +67,7 @@ LIBSPIDIR_OBJS = $(SPIDIR_OBJS)
 # python files
 PYTHON_MODULE = python/spidir/pyspidir.so
 PYTHON_MODULE_OBJS = \
-    python/src/pyspidir.o \
+    python-src/pyspidir.o \
     $(SPIDIR_OBJS)  
 PYTHON_MODULE_LIBS = -lpython$(PYTHON_VERSION)
 #-lpython2.4 

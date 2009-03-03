@@ -6,13 +6,6 @@
 
 namespace spidir {
 
-float calcHkySeqProb(Tree *tree, int nseqs, char **seqs, 
-                     const float *bgfreq, float ratio);
-
-
-float findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs, 
-                             float *dists, const float *bgfreq, float ratio, 
-                             int maxiter, bool parsinit=false);
 
 float findMLBranchLengthsHky(Tree *tree, int nseqs, char **seqs, 
                             const float *bgfreq, float ratio, 
@@ -26,6 +19,13 @@ float getTotalLikelihood(ExtendArray<float*> &lktable, Tree *tree,
 extern "C" {
 
 void makeHkyMatrix(const float *bgfreq, float ratio, float t, float *matrix);
+
+float calcHkySeqProb(Tree *tree, int nseqs, char **seqs, 
+                     const float *bgfreq, float ratio);
+
+float findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs, 
+                             float *dists, const float *bgfreq, float ratio, 
+                             int maxiter, bool parsinit=false);
 
 } // extern "C"
 
