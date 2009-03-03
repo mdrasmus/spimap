@@ -487,19 +487,9 @@ float calcSeqProb(Tree *tree, int nseqs, char **seqs,
 {
     int seqlen = strlen(seqs[0]);
     
-    // allocate conditional likelihood dynamic programming table
-    ExtendArray<float*> lktable(tree->nnodes);
-    for (int i=0; i<tree->nnodes; i++) {
-        lktable[i] = new float [4 * seqlen];
-    }
-    
-    // initialize the condition likelihood table
-    calcLkTable(lktable, tree, nseqs, seqlen, seqs, model);
-    float logl = getTotalLikelihood(lktable, tree, seqlen, model, bgfreq);
-    
-    // cleanup
-    for (int i=0; i<tree->nnodes; i++)
-        delete [] lktable[i];
+    LikelihoodTable table(tree->nnodes, seqlen);
+    calcLkTable(table.lktable, tree, nseqs, seqlen, seqs, model);
+    float logl = getTotalLikelihood(table.lktable, tree, seqlen, model, bgfreq);
     
     return logl;
 }
@@ -576,10 +566,6 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
     LikelihoodTable table(tree->nnodes, seqlen);
     float **lktable = table.lktable;
 
-    //ExtendArray<float*> lktable(tree->nnodes);
-    //for (int i=0; i<tree->nnodes; i++) {
-    //    lktable[i] = new float [4 * seqlen];
-    //}
     
     // allocate auxiliary likelihood table
     ExtendArray<float> probs3(seqlen*4*4);
@@ -695,11 +681,6 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
         } else
             assert(0);
     }
-    
-    
-    // cleanup
-    //for (int i=0; i<tree->nnodes; i++)
-    //    delete [] lktable[i];
     
     printLog(LOG_MEDIUM, "mldist time: %f\n", (clock() - startTime) /
              float(CLOCKS_PER_SEC));    
