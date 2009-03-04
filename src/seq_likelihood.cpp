@@ -77,7 +77,7 @@ public:
 	calcLkTableRow(seqlen, *model, probs1, probs2, probs3, t, 0);
 
 	// g'(t, j)
-	calcDerivLkTableRow(seqlen, *model, *dmodel, probs1, probs2, probs4, t);
+	calcDerivLkTableRow(seqlen, *dmodel, probs1, probs2, probs4, t);
 
 
 	// interate over sequence
@@ -145,10 +145,10 @@ public:
 	calcLkTableRow(seqlen, *model, probs1, probs2, probs3, t, 0);
 
 	// g'(t, j)
-	calcDerivLkTableRow(seqlen, *model, *dmodel, probs1, probs2, probs4, t);
+	calcDerivLkTableRow(seqlen, *dmodel, probs1, probs2, probs4, t);
 
 	// g''(t, j)
-	calcDerivLkTableRow(seqlen, *model, *d2model, probs1, probs2, probs5, t);
+	calcDerivLkTableRow(seqlen, *d2model, probs1, probs2, probs5, t);
 
 
 	// interate over sequence
@@ -338,29 +338,24 @@ void calcLkTableRow(int seqlen, Model &model,
     
     // iterate over sites
     for (int j=0; j<seqlen; j++) {
-        float terma[4];
-        float termb[4];
-        
-        for (int x=0; x<4; x++) {
-            terma[x] = lktablea[matind(4, j, x)];
-            termb[x] = lktableb[matind(4, j, x)];
-        }    
+        const float *terma = &lktablea[matind(4, j, 0)];
+        const float *termb = &lktableb[matind(4, j, 0)];
         
         for (int k=0; k<4; k++) {
-            float *aptr = &atransmat[4*k];
-            float *bptr = &btransmat[4*k];
+            const float *aptr = &atransmat[4*k];
+            const float *bptr = &btransmat[4*k];
             
             // sum_x P(x|k, t_a) lktable[a][j,x]
-            float prob1 = aptr[0] * terma[0] +
-                          aptr[1] * terma[1] +
-                          aptr[2] * terma[2] +
-                          aptr[3] * terma[3];
+            const float prob1 = aptr[0] * terma[0] +
+                                aptr[1] * terma[1] +
+                                aptr[2] * terma[2] +
+                                aptr[3] * terma[3];
 
             // sum_y P(y|k, t_b) lktable[b][j,y]
-            float prob2 = bptr[0] * termb[0] +
-                          bptr[1] * termb[1] +
-                          bptr[2] * termb[2] +
-                          bptr[3] * termb[3];
+            const float prob2 = bptr[0] * termb[0] +
+                                bptr[1] * termb[1] +
+                                bptr[2] * termb[2] +
+                                bptr[3] * termb[3];
             
 
             lktablec[matind(4, j, k)] = prob1 * prob2;
@@ -370,46 +365,32 @@ void calcLkTableRow(int seqlen, Model &model,
 
 
 // conditional likelihood recurrence
-template <class Model, class DModel>
-void calcDerivLkTableRow(int seqlen, Model &model, DModel &dmodel,
+template <class DModel>
+void calcDerivLkTableRow(int seqlen, DModel &dmodel,
 			 float *lktablea, float *lktableb, float *lktablec, 
 			 float adist)
 {
-    float atransmat[16];
     float btransmat[16];
     
-    // build transition matrices
-    model.getMatrix(0.0, atransmat);
+    // build transition matrix
     dmodel.getMatrix(adist, btransmat);
     
     // iterate over sites
     for (int j=0; j<seqlen; j++) {
-        float terma[4];
-        float termb[4];
-        
-        for (int x=0; x<4; x++) {
-            terma[x] = lktablea[matind(4, j, x)];
-            termb[x] = lktableb[matind(4, j, x)];
-        }    
+        const float *terma = &lktablea[matind(4, j, 0)];
+        const float *termb = &lktableb[matind(4, j, 0)];
         
         for (int k=0; k<4; k++) {
-            float *aptr = &atransmat[4*k];
-            float *bptr = &btransmat[4*k];
+            //float *aptr = &atransmat[4*k];
+            const float *bptr = &btransmat[4*k];
             
-            // sum_x P(x|k, t_a) lktable[a][j,x]
-            float prob1 = aptr[0] * terma[0] +
-                          aptr[1] * terma[1] +
-                          aptr[2] * terma[2] +
-                          aptr[3] * terma[3];
-
             // sum_y P(y|k, t_b) lktable[b][j,y]
-            float prob2 = bptr[0] * termb[0] +
-                          bptr[1] * termb[1] +
-                          bptr[2] * termb[2] +
-                          bptr[3] * termb[3];
+            const float prob2 = bptr[0] * termb[0] +
+                                bptr[1] * termb[1] +
+                                bptr[2] * termb[2] +
+                                bptr[3] * termb[3];
             
-
-            lktablec[matind(4, j, k)] = prob1 * prob2;
+            lktablec[matind(4, j, k)] = terma[k] * prob2;
         }
     }
 }

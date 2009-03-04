@@ -89,11 +89,12 @@ class TestHKY (unittest.TestCase):
         nodes = sorted(tree.nodes.values(), key=lambda x: x.dist)
 
         util.tic("find ML")
-        l = spidir.find_ml_branch_lengths_hky(
-            tree,
-            util.mget(align, tree.leafNames()),
-            bgfreq, kappa,
-            maxiter=10)            
+        for i in xrange(10):
+            l = spidir.find_ml_branch_lengths_hky(
+                tree,
+                util.mget(align, tree.leafNames()),
+                bgfreq, kappa,
+                maxiter=10)            
         util.toc()
 
         dists.append([n.dist for n in nodes])
