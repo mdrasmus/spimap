@@ -40,6 +40,7 @@ SPIDIR_PROG = bin/spidir
 SPIDIR_SRC = \
     src/spidir.cpp \
     src/seq_likelihood.cpp \
+    src/hky.cpp \
     src/common.cpp \
     src/branch_prior.cpp \
     src/birthdeath.cpp \

@@ -1,5 +1,39 @@
 # DO NOT DELETE
 
+src/Sequences.o: src/spidir.h src/Sequences.h src/common.h
+src/Sequences.o: /usr/include/stdlib.h /usr/include/features.h
+src/Sequences.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/Sequences.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/Sequences.o: /usr/include/sys/types.h /usr/include/bits/types.h
+src/Sequences.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/Sequences.o: /usr/include/endian.h /usr/include/bits/endian.h
+src/Sequences.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/Sequences.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+src/Sequences.o: /usr/include/sys/sysmacros.h
+src/Sequences.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+src/Sequences.o: /usr/include/stdio.h /usr/include/libio.h
+src/Sequences.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/Sequences.o: /usr/include/bits/stdio_lim.h
+src/Sequences.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+src/Sequences.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+src/Sequences.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
+src/Sequences.o: /usr/include/string.h src/ExtendArray.h
+src/Tree.o: /usr/include/assert.h /usr/include/features.h
+src/Tree.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/Tree.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/Tree.o: /usr/include/stdio.h /usr/include/bits/types.h
+src/Tree.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+src/Tree.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/Tree.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+src/Tree.o: src/Tree.h /usr/include/stdlib.h /usr/include/sys/types.h
+src/Tree.o: /usr/include/time.h /usr/include/endian.h
+src/Tree.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+src/Tree.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/Tree.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+src/Tree.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+src/Tree.o: src/common.h /usr/include/math.h /usr/include/bits/huge_val.h
+src/Tree.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+src/Tree.o: /usr/include/string.h src/ExtendArray.h src/Matrix.h
 src/birthdeath.o: /usr/include/math.h /usr/include/features.h
 src/birthdeath.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
 src/birthdeath.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
@@ -54,6 +88,22 @@ src/common.o: /usr/include/stdio.h /usr/include/libio.h
 src/common.o: /usr/include/_G_config.h /usr/include/wchar.h
 src/common.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 src/common.o: /usr/include/string.h src/common.h src/ExtendArray.h
+src/hky.o: src/hky.h src/spidir.h /usr/include/assert.h
+src/hky.o: /usr/include/features.h /usr/include/sys/cdefs.h
+src/hky.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
+src/hky.o: /usr/include/gnu/stubs-32.h /usr/include/math.h
+src/hky.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+src/hky.o: /usr/include/bits/mathcalls.h src/common.h /usr/include/stdlib.h
+src/hky.o: /usr/include/sys/types.h /usr/include/bits/types.h
+src/hky.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/hky.o: /usr/include/endian.h /usr/include/bits/endian.h
+src/hky.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/hky.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+src/hky.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+src/hky.o: /usr/include/alloca.h /usr/include/stdio.h /usr/include/libio.h
+src/hky.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/hky.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
+src/hky.o: /usr/include/string.h src/ExtendArray.h
 src/matlab_interface.o: src/matlab_interface.h
 src/maxml.o: /usr/include/libgen.h /usr/include/features.h
 src/maxml.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
@@ -151,25 +201,7 @@ src/seq_likelihood.o: /usr/include/bits/stdio_lim.h
 src/seq_likelihood.o: /usr/include/bits/sys_errlist.h /usr/include/assert.h
 src/seq_likelihood.o: /usr/include/string.h src/ExtendArray.h src/Matrix.h
 src/seq_likelihood.o: src/seq_likelihood.h src/Tree.h src/parsimony.h
-src/seq_likelihood.o: src/spidir.h
-src/Sequences.o: src/spidir.h src/Sequences.h src/common.h
-src/Sequences.o: /usr/include/stdlib.h /usr/include/features.h
-src/Sequences.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
-src/Sequences.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/Sequences.o: /usr/include/sys/types.h /usr/include/bits/types.h
-src/Sequences.o: /usr/include/bits/typesizes.h /usr/include/time.h
-src/Sequences.o: /usr/include/endian.h /usr/include/bits/endian.h
-src/Sequences.o: /usr/include/sys/select.h /usr/include/bits/select.h
-src/Sequences.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
-src/Sequences.o: /usr/include/sys/sysmacros.h
-src/Sequences.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
-src/Sequences.o: /usr/include/stdio.h /usr/include/libio.h
-src/Sequences.o: /usr/include/_G_config.h /usr/include/wchar.h
-src/Sequences.o: /usr/include/bits/stdio_lim.h
-src/Sequences.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
-src/Sequences.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-src/Sequences.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
-src/Sequences.o: /usr/include/string.h src/ExtendArray.h
+src/seq_likelihood.o: src/spidir.h src/hky.h
 src/spidir.o: src/spidir.h src/phylogeny.h src/Tree.h /usr/include/stdlib.h
 src/spidir.o: /usr/include/features.h /usr/include/sys/cdefs.h
 src/spidir.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -207,22 +239,66 @@ src/spidir_main.o: /usr/include/assert.h /usr/include/string.h
 src/spidir_main.o: src/ExtendArray.h src/phylogeny.h src/Tree.h
 src/spidir_main.o: src/HashTable.h src/parsimony.h src/search.h src/spidir.h
 src/spidir_main.o: src/Matrix.h src/ConfigParam.h src/Sequences.h
-src/Tree.o: /usr/include/assert.h /usr/include/features.h
+src/ConfigParam.o: /usr/include/libgen.h /usr/include/features.h
+src/ConfigParam.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/ConfigParam.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/ConfigParam.o: /usr/include/stdlib.h /usr/include/sys/types.h
+src/ConfigParam.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+src/ConfigParam.o: /usr/include/time.h /usr/include/endian.h
+src/ConfigParam.o: /usr/include/bits/endian.h /usr/include/sys/select.h
+src/ConfigParam.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/ConfigParam.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
+src/ConfigParam.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+src/ConfigParam.o: /usr/include/stdio.h /usr/include/libio.h
+src/ConfigParam.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/ConfigParam.o: /usr/include/bits/stdio_lim.h
+src/ConfigParam.o: /usr/include/bits/sys_errlist.h
+src/ExtendArray.o: /usr/include/assert.h /usr/include/features.h
+src/ExtendArray.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/ExtendArray.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/Matrix.o: /usr/include/stdio.h /usr/include/features.h
+src/Matrix.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/Matrix.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/Matrix.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
+src/Matrix.o: /usr/include/libio.h /usr/include/_G_config.h
+src/Matrix.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+src/Matrix.o: /usr/include/bits/sys_errlist.h
+src/Sequences.o: src/common.h /usr/include/stdlib.h /usr/include/features.h
+src/Sequences.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/Sequences.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/Sequences.o: /usr/include/sys/types.h /usr/include/bits/types.h
+src/Sequences.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/Sequences.o: /usr/include/endian.h /usr/include/bits/endian.h
+src/Sequences.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/Sequences.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+src/Sequences.o: /usr/include/sys/sysmacros.h
+src/Sequences.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
+src/Sequences.o: /usr/include/stdio.h /usr/include/libio.h
+src/Sequences.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/Sequences.o: /usr/include/bits/stdio_lim.h
+src/Sequences.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+src/Sequences.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+src/Sequences.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
+src/Sequences.o: /usr/include/string.h src/ExtendArray.h
+src/Stack.o: src/ExtendArray.h /usr/include/assert.h /usr/include/features.h
+src/Stack.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/Stack.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/Tree.o: /usr/include/stdlib.h /usr/include/features.h
 src/Tree.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
 src/Tree.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/Tree.o: /usr/include/stdio.h /usr/include/bits/types.h
-src/Tree.o: /usr/include/bits/typesizes.h /usr/include/libio.h
-src/Tree.o: /usr/include/_G_config.h /usr/include/wchar.h
-src/Tree.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
-src/Tree.o: src/Tree.h /usr/include/stdlib.h /usr/include/sys/types.h
-src/Tree.o: /usr/include/time.h /usr/include/endian.h
-src/Tree.o: /usr/include/bits/endian.h /usr/include/sys/select.h
-src/Tree.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
-src/Tree.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
-src/Tree.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
-src/Tree.o: src/common.h /usr/include/math.h /usr/include/bits/huge_val.h
-src/Tree.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
-src/Tree.o: /usr/include/string.h src/ExtendArray.h src/Matrix.h
+src/Tree.o: /usr/include/sys/types.h /usr/include/bits/types.h
+src/Tree.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/Tree.o: /usr/include/endian.h /usr/include/bits/endian.h
+src/Tree.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/Tree.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
+src/Tree.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
+src/Tree.o: /usr/include/alloca.h src/common.h /usr/include/stdio.h
+src/Tree.o: /usr/include/libio.h /usr/include/_G_config.h
+src/Tree.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
+src/Tree.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
+src/Tree.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
+src/Tree.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
+src/Tree.o: /usr/include/string.h src/ExtendArray.h
 src/birthdeath.o: src/Tree.h /usr/include/stdlib.h /usr/include/features.h
 src/birthdeath.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
 src/birthdeath.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
@@ -273,30 +349,11 @@ src/common.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 src/common.o: /usr/include/math.h /usr/include/bits/huge_val.h
 src/common.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
 src/common.o: /usr/include/assert.h /usr/include/string.h src/ExtendArray.h
-src/ConfigParam.o: /usr/include/libgen.h /usr/include/features.h
-src/ConfigParam.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
-src/ConfigParam.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/ConfigParam.o: /usr/include/stdlib.h /usr/include/sys/types.h
-src/ConfigParam.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
-src/ConfigParam.o: /usr/include/time.h /usr/include/endian.h
-src/ConfigParam.o: /usr/include/bits/endian.h /usr/include/sys/select.h
-src/ConfigParam.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
-src/ConfigParam.o: /usr/include/bits/time.h /usr/include/sys/sysmacros.h
-src/ConfigParam.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
-src/ConfigParam.o: /usr/include/stdio.h /usr/include/libio.h
-src/ConfigParam.o: /usr/include/_G_config.h /usr/include/wchar.h
-src/ConfigParam.o: /usr/include/bits/stdio_lim.h
-src/ConfigParam.o: /usr/include/bits/sys_errlist.h
-src/ExtendArray.o: /usr/include/assert.h /usr/include/features.h
-src/ExtendArray.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
-src/ExtendArray.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/Matrix.o: /usr/include/stdio.h /usr/include/features.h
-src/Matrix.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
-src/Matrix.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/Matrix.o: /usr/include/bits/types.h /usr/include/bits/typesizes.h
-src/Matrix.o: /usr/include/libio.h /usr/include/_G_config.h
-src/Matrix.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
-src/Matrix.o: /usr/include/bits/sys_errlist.h
+src/hky.o: src/spidir.h /usr/include/assert.h /usr/include/features.h
+src/hky.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
+src/hky.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
+src/hky.o: /usr/include/math.h /usr/include/bits/huge_val.h
+src/hky.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
 src/mem.o: src/Stack.h src/ExtendArray.h /usr/include/assert.h
 src/mem.o: /usr/include/features.h /usr/include/sys/cdefs.h
 src/mem.o: /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h
@@ -354,39 +411,3 @@ src/seq_likelihood.o: /usr/include/bits/huge_val.h
 src/seq_likelihood.o: /usr/include/bits/mathdef.h
 src/seq_likelihood.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
 src/seq_likelihood.o: /usr/include/string.h src/ExtendArray.h
-src/Sequences.o: src/common.h /usr/include/stdlib.h /usr/include/features.h
-src/Sequences.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
-src/Sequences.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/Sequences.o: /usr/include/sys/types.h /usr/include/bits/types.h
-src/Sequences.o: /usr/include/bits/typesizes.h /usr/include/time.h
-src/Sequences.o: /usr/include/endian.h /usr/include/bits/endian.h
-src/Sequences.o: /usr/include/sys/select.h /usr/include/bits/select.h
-src/Sequences.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
-src/Sequences.o: /usr/include/sys/sysmacros.h
-src/Sequences.o: /usr/include/bits/pthreadtypes.h /usr/include/alloca.h
-src/Sequences.o: /usr/include/stdio.h /usr/include/libio.h
-src/Sequences.o: /usr/include/_G_config.h /usr/include/wchar.h
-src/Sequences.o: /usr/include/bits/stdio_lim.h
-src/Sequences.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
-src/Sequences.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-src/Sequences.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
-src/Sequences.o: /usr/include/string.h src/ExtendArray.h
-src/Stack.o: src/ExtendArray.h /usr/include/assert.h /usr/include/features.h
-src/Stack.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
-src/Stack.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/Tree.o: /usr/include/stdlib.h /usr/include/features.h
-src/Tree.o: /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h
-src/Tree.o: /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h
-src/Tree.o: /usr/include/sys/types.h /usr/include/bits/types.h
-src/Tree.o: /usr/include/bits/typesizes.h /usr/include/time.h
-src/Tree.o: /usr/include/endian.h /usr/include/bits/endian.h
-src/Tree.o: /usr/include/sys/select.h /usr/include/bits/select.h
-src/Tree.o: /usr/include/bits/sigset.h /usr/include/bits/time.h
-src/Tree.o: /usr/include/sys/sysmacros.h /usr/include/bits/pthreadtypes.h
-src/Tree.o: /usr/include/alloca.h src/common.h /usr/include/stdio.h
-src/Tree.o: /usr/include/libio.h /usr/include/_G_config.h
-src/Tree.o: /usr/include/wchar.h /usr/include/bits/stdio_lim.h
-src/Tree.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
-src/Tree.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-src/Tree.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
-src/Tree.o: /usr/include/string.h src/ExtendArray.h

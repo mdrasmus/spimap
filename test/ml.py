@@ -19,7 +19,7 @@ from rasmus.bio import phylo, fasta
 
 class TestHKY (unittest.TestCase):
     
-    def test_ml(self):
+    def _test_ml(self):
         """Test ML code"""
 
         # params
@@ -71,6 +71,33 @@ class TestHKY (unittest.TestCase):
                    ylab="log likelihood",
                    main="likelihood convergence")
         util.rplot_end(True)
+
+    def test_ml_speed(self):
+        
+        # params
+        bgfreq = [.258,.267,.266,.209]
+        kappa = 1.59
+
+        # data
+        tree = treelib.readTree("test/data/flies/0/0.tree")
+        align = fasta.readFasta("test/data/flies/0/0.align")
+
+
+        likes = []
+        dists = []
+
+        nodes = sorted(tree.nodes.values(), key=lambda x: x.dist)
+
+        util.tic("find ML")
+        l = spidir.find_ml_branch_lengths_hky(
+            tree,
+            util.mget(align, tree.leafNames()),
+            bgfreq, kappa,
+            maxiter=10)            
+        util.toc()
+
+        dists.append([n.dist for n in nodes])
+        likes.append(l)
 
 
 if __name__ == "__main__":

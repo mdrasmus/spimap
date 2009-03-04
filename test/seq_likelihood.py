@@ -150,7 +150,7 @@ class TestSeqLikelihood (unittest.TestCase):
         rplot_start("test/output/branch_likelihood/deriv2_branch_function.pdf")
         rplot("plot", x, d2y2, t="l",
               xlab="distance",
-              ylab="d/dt likelihood")
+              ylab="d^2/dt^2 likelihood")
         rp.lines([min(x), max(x)], [0,0], col="black")
         rp.lines(x, d2y, col="grey")
         #rp.lines([div, div], [-1e300, 0], col="green")
@@ -240,13 +240,34 @@ class TestSeqLikelihood (unittest.TestCase):
 
         bgfreq = [.25,.25,.25,.25]
         kappa = 1.59
+        seqlen = 100
 
-        probs1 = [0.0, 0.0, 1.0, 0.0] + \
-                 [1.0, 0.0, 0.0, 0.0] * 5
-        probs2 = [0.0, 0.0, 0.0, 1.0] + \
-                 [1.0, 0.0, 0.0, 0.0] * 5
+        # prep probabilities
+        div = .1
+        probs1 = []
+        probs2 = []
+        for i in xrange(seqlen):
+            if random.random() < div:
+                for j in xrange(4):
+                    probs1.append(.01)
+                    probs2.append(.01)
+                k = random.randint(1, 4)
+                probs1[-k] = 1.0
+                k = (k % 4) + 1
+                probs2[-k] = 1.0
+            else:
+                for j in xrange(4):
+                    probs1.append(.2)
+                    probs2.append(.2)
+                k = random.randint(1, 4)
+                probs1[-k] = 1.0
+                probs2[-k] = 1.0
 
-        seqlen = len(probs1) / 4
+        #probs1 = [0.0, 0.0, 1.0, 0.0] + \
+        #         [1.0, 0.0, 0.0, 0.0] * 5
+        #probs2 = [0.0, 0.0, 0.0, 1.0] + \
+        #         [1.0, 0.0, 0.0, 0.0] * 5
+        #seqlen = len(probs1) / 4
 
         x = list(frange(0, 1.0, .01))
 
