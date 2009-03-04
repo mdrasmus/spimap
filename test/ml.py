@@ -28,7 +28,7 @@ class TestHKY (unittest.TestCase):
 
         # data
         tree = treelib.readTree("test/data/0.nt.tree")
-        align = fasta.readFasta("test/data/0.nt.align")
+        align = fasta.readFasta("test/data/1.nt.align")
 
 
         likes = []

@@ -20,15 +20,20 @@ extern "C" {
 
 void makeHkyMatrix(const float *bgfreq, float ratio, float t, float *matrix);
 
+    void makeHkyDerivMatrix(const float *bgfreq, float ratio, float t, float *matrix);
+
 float branchLikelihoodHky(float *probs1, float *probs2, int seqlen, 
 			  const float *bgfreq, float kappa, float t);
 
-float deriveBranchLikelihoodHky(float *probs1, float *probs2, int seqlen, 
-				const float *bgfreq, float kappa, float t);
+float branchLikelihoodHkyDeriv(float *probs1, float *probs2, int seqlen, 
+                               const float *bgfreq, float kappa, float t);
+
+float branchLikelihoodHkyDeriv2(float *probs1, float *probs2, int seqlen, 
+                                const float *bgfreq, float kappa, float t);
 
 float mleDistanceHky(float *probs1, float *probs2, int seqlen, 
-		     const float *bgfreq, float ratio,
-		     float t0, float t1, float step);
+		     const float *bgfreq, float kappa,
+		     float t0, float t1);
 
 float calcSeqProbHky(Tree *tree, int nseqs, char **seqs, 
                      const float *bgfreq, float ratio);

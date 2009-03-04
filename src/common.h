@@ -128,48 +128,14 @@ float secantRoot(Func &f, float x0, float x1, int maxiter,
 // This is less efficient but is more robust than Newton's or Secant
 // x0 and x1 are initial estimates of the root
 template <class Func>
-float bisectRoot(Func &f, float x0, float x1, const int maxiter, 
-                 const float minx=.0001, const float maxx=10.0, 
-                 const float esp=.02, const float err=.001)
+float bisectRoot(Func &f, float x0, float x1, const float err=.001)
 {
-    // we expect f(x0) > 0 and f(x1) < 0
-    //printf("\n");
-    
-    /*
-    // move x0 left until f(x0) > 0
-    float f0 = f(x0);
-    while (f0 < 0) {
-        printf("low: %f %f\n", x0, f0);
-        x1 = x0;
-        x0 /= 1.5;
-        f0 = f(x0);
-        if (x0 < minx)
-            return x0;
-    }
-    
-    // move x1 right until f(x1) < 0
-    float f1 = f(x1);
-    assert(x1 >= 0.0);
-    while (f1 > 0) {
-        printf("hi:  %f %f\n", x1, f1);
-        x0 = x1;
-        f0 = f1;
-        x1 *= 1.5;
-        f1 = f(x1);
-        if (x1 > maxx)
-            return x1;
-    }
-    */
-
     float f0 = f(x0);
     float f1 = f(x1);
     
-    for (int i=0; i<maxiter; i++) {
+    while (fabs(x1 - x0) > 2 * err) {
         //printf("in:  %f %f; %f %f\n", x0, x1, f0, f1);
-        if (((x1 - x0)*2.0 / (x0+x1)) < esp || 
-            (x0 + x1)/2.0 < err)
-            return x0;
-        
+
         float x2 = (x0 + x1) / 2.0;
         float f2 = f(x2);
         

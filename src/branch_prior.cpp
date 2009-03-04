@@ -984,7 +984,7 @@ float maxPosteriorGeneRate(Tree *tree, SpeciesTree *stree,
     
     // find actual max posterior of gene rate
     GeneRateDerivative df(tree, stree, recon, events, params);
-    return bisectRoot(df, ming, maxg, 10, ming, maxg);
+    return bisectRoot(df, ming, maxg, (maxg - ming) / 1000.0);
 }
 
 

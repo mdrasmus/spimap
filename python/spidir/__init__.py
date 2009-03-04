@@ -69,13 +69,23 @@ export(spidir, "sampleDupTimes", c_int, [c_void_p, c_void_p,
 # sequence likelihood
 export(spidir, "makeHkyMatrix", c_void_p,
        [POINTER(c_float), c_float, c_float, POINTER(c_float)])
+export(spidir, "makeHkyDerivMatrix", c_void_p,
+       [POINTER(c_float), c_float, c_float, POINTER(c_float)])
+export(spidir, "makeHkyDeriv2Matrix", c_void_p,
+       [POINTER(c_float), c_float, c_float, POINTER(c_float)])
 export(spidir, "branchLikelihoodHky", c_float,
        [POINTER(c_float), POINTER(c_float), c_int, POINTER(c_float), c_float,
         c_float])
 # (float *probs1, float *probs2, int seqlen, 
 #  const float *bgfreq, float kappa, float t)
 
-export(spidir, "deriveBranchLikelihoodHky", c_float,
+export(spidir, "branchLikelihoodHkyDeriv", c_float,
+       [POINTER(c_float), POINTER(c_float), c_int, 
+        POINTER(c_float), c_float, c_float])       
+# (float *probs1, float *probs2, int seqlen, 
+#  const float *bgfreq, float kappa, float t)
+
+export(spidir, "branchLikelihoodHkyDeriv2", c_float,
        [POINTER(c_float), POINTER(c_float), c_int, 
         POINTER(c_float), c_float, c_float])       
 # (float *probs1, float *probs2, int seqlen, 
@@ -232,12 +242,50 @@ def make_hky_matrix(bgfreq, kappa, t):
             matrix[8:12],
             matrix[12:16]]
 
+def make_hky_deriv_matrix(bgfreq, kappa, t):
+    """
+    Returns a HKY Derivative matrix
+
+    bgfreq -- the background frequency A,C,G,T
+    kappa  -- is transition/transversion ratio
+    """
+    
+    matrix = [0.0] * 16
+    matrix = c_list(c_float, matrix)
+    makeHkyDerivMatrix(c_list(c_float, bgfreq), kappa, t, matrix)
+    return [matrix[0:4],
+            matrix[4:8],
+            matrix[8:12],
+            matrix[12:16]]
+
+def make_hky_deriv2_matrix(bgfreq, kappa, t):
+    """
+    Returns a HKY 2nd Derivative matrix
+
+    bgfreq -- the background frequency A,C,G,T
+    kappa  -- is transition/transversion ratio
+    """
+    
+    matrix = [0.0] * 16
+    matrix = c_list(c_float, matrix)
+    makeHkyDeriv2Matrix(c_list(c_float, bgfreq), kappa, t, matrix)
+    return [matrix[0:4],
+            matrix[4:8],
+            matrix[8:12],
+            matrix[12:16]]
+
+
 def branch_likelihood_hky(probs1, probs2, seqlen, bgfreq, kappa, time):
     return branchLikelihoodHky(c_list(c_float, probs1), c_list(c_float, probs2),
                                seqlen, c_list(c_float, bgfreq), kappa, time)
 
-def derive_branch_likelihood_hky(probs1, probs2, seqlen, bgfreq, kappa, time):
-    return deriveBranchLikelihoodHky(
+def branch_likelihood_hky_deriv(probs1, probs2, seqlen, bgfreq, kappa, time):
+    return branchLikelihoodHkyDeriv(
+        c_list(c_float, probs1), c_list(c_float, probs2), seqlen, 
+        c_list(c_float, bgfreq), kappa, time)
+
+def branch_likelihood_hky_deriv2(probs1, probs2, seqlen, bgfreq, kappa, time):
+    return branchLikelihoodHkyDeriv2(
         c_list(c_float, probs1), c_list(c_float, probs2), seqlen, 
         c_list(c_float, bgfreq), kappa, time)
 

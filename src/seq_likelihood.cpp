@@ -24,6 +24,14 @@
 
 namespace spidir {
 
+// prototype
+template <class Model>
+void calcLkTableRow(int seqlen, Model &model,
+		    float *lktablea, float *lktableb, float *lktablec, 
+		    float adist, float bdist);
+
+
+
 /*=============================================================================
     From: Felsenstein. Inferring Phylogenies. p 202.
 
@@ -70,10 +78,31 @@ namespace spidir {
 
 */
 
-class HkyModel
+
+/*
+
+  d/dt P(j|i,t,pi,R) = delta_ij(alpha_i + beta) exp(-(alpha_i+beta)t) +
+                       (pi_j e_ij /pi_ry) 
+		       [-beta exp(-beta t) + 
+		        (alpha_i+beta)exp(-(alpha_i + beta)t)] +
+		       pi_j beta exp(-beta t)
+
+*/
+
+
+/*
+
+  d^2/dt^2 P(j|i,t,pi,R) = 
+  \delta_{ij} (\alpha_i + \beta)^2 \exp(-(\alpha_i + \beta) t)  + 
+  (\pi_j e_{ij}/\pi_{ry}) [\beta^2 \exp(-\beta t) -
+          (\alpha_i + \beta)^2 \exp(-(\alpha_i + \beta) t) ] - 
+   \pi_j \beta^2 \exp(-\beta t))
+*/
+
+class HkyModelDeriv2
 {
 public:
-    HkyModel(const float *bgfreq, float ratio_kappa)
+    HkyModelDeriv2(const float *bgfreq, float ratio_kappa)
     {
         // set background base frequencies
         for (int i=0; i<4; i++)
@@ -86,6 +115,168 @@ public:
         // convert the usual ratio definition (kappa) to Felsenstein's 
         // definition (R)
         ratio = (pi[DNA_T]*pi[DNA_C] + pi[DNA_A]*pi[DNA_G]) * ratio_kappa / \
+                (pi_y * pi_r);
+        
+        // determine HKY parameters alpha_r, alpha_y, and beta
+        b = 1.0 / (2.0 * pi_r * pi_y * (1.0+ratio));
+        a_y = (pi_r*pi_y*ratio - 
+               pi[DNA_A]*pi[DNA_G] - 
+               pi[DNA_C]*pi[DNA_T]) / 
+              (2.0*(1+ratio)*(pi_y*pi[DNA_A]*pi[DNA_G]*rho + 
+                              pi_r*pi[DNA_C]*pi[DNA_T]));
+        a_r = rho * a_y;
+    }
+
+
+    // transition probability P'(j | i, t)
+    inline float operator()(int j, int i, float t)
+    {
+        swap(i, j);
+        
+        // convenience variables
+        // NOTE: it is ok to assign pi_ry, because it is only used when
+        // dnatype[i] == dnatype[j]
+        float a_i, pi_ry;
+        switch (dnatype[i]) {
+            case DNA_PURINE:
+                a_i = a_r;
+                pi_ry = pi_r;  
+                break;
+            case DNA_PRYMIDINE:
+                a_i = a_y;
+                pi_ry = pi_y;
+                break;
+            default:
+                assert(0);
+        }
+        int delta_ij = int(i == j);
+        int e_ij = int(dnatype[i] == dnatype[j]);
+        
+        // return transition probability
+	float ab = a_i + b;
+	float eabt = expf(-ab*t);
+        float ebt = expf(-b*t);
+        
+        float prob = delta_ij * ab*ab * eabt +
+	    (pi[j] * e_ij / pi_ry) * (b*b*ebt - ab*ab*eabt) -
+	    pi[j]*b*b*ebt;
+        return prob;
+    }
+    
+    // parameters
+    float ratio;
+    float pi[4];
+    float pi_r;
+    float pi_y;
+    float rho;
+    float b;
+    float a_y;
+    float a_r;
+};
+
+
+class HkyModelDeriv
+{
+public:
+    HkyModelDeriv(const float *bgfreq, float kappa) :
+        kappa(kappa)
+    {
+        // set background base frequencies
+        for (int i=0; i<4; i++)
+            pi[i] = bgfreq[i];
+
+        pi_r = pi[DNA_A] + pi[DNA_G];
+        pi_y = pi[DNA_C] + pi[DNA_T];
+        rho = pi_r / pi_y;
+
+        // convert the usual ratio definition (kappa) to Felsenstein's 
+        // definition (R)
+        ratio = (pi[DNA_T]*pi[DNA_C] + pi[DNA_A]*pi[DNA_G]) * kappa / \
+                (pi_y * pi_r);
+        
+        // determine HKY parameters alpha_r, alpha_y, and beta
+        b = 1.0 / (2.0 * pi_r * pi_y * (1.0+ratio));
+        a_y = (pi_r*pi_y*ratio - 
+               pi[DNA_A]*pi[DNA_G] - 
+               pi[DNA_C]*pi[DNA_T]) / 
+              (2.0*(1+ratio)*(pi_y*pi[DNA_A]*pi[DNA_G]*rho + 
+                              pi_r*pi[DNA_C]*pi[DNA_T]));
+        a_r = rho * a_y;
+    }
+
+
+    // transition probability P'(j | i, t)
+    inline float operator()(int j, int i, float t)
+    {
+        swap(i, j);
+        
+        // convenience variables
+        // NOTE: it is ok to assign pi_ry, because it is only used when
+        // dnatype[i] == dnatype[j]
+        float a_i, pi_ry;
+        switch (dnatype[i]) {
+            case DNA_PURINE:
+                a_i = a_r;
+                pi_ry = pi_r;  
+                break;
+            case DNA_PRYMIDINE:
+                a_i = a_y;
+                pi_ry = pi_y;
+                break;
+            default:
+                assert(0);
+        }
+        int delta_ij = int(i == j);
+        int e_ij = int(dnatype[i] == dnatype[j]);
+        
+        // return transition probability
+	float ab = a_i + b;
+	float eabt = expf(-ab*t);
+        float ebt = expf(-b*t);
+        
+        float prob = - delta_ij * ab * eabt +
+	    (pi[j] * e_ij / pi_ry) * (- b * ebt + ab * eabt) +
+	    pi[j] * b * ebt;
+        return prob;
+    }
+    
+    typedef HkyModelDeriv2 Deriv;
+
+    Deriv *deriv()
+    {
+        return new Deriv(pi, kappa);
+    }
+
+    // parameters
+    float kappa;
+    float ratio;
+    float pi[4];
+    float pi_r;
+    float pi_y;
+    float rho;
+    float b;
+    float a_y;
+    float a_r;
+};
+
+
+class HkyModel
+{
+public:
+    HkyModel(const float *bgfreq, float kappa) :
+        kappa(kappa)
+    {
+        // set background base frequencies
+        for (int i=0; i<4; i++)
+            pi[i] = bgfreq[i];        
+
+        pi_r = pi[DNA_A] + pi[DNA_G];
+        pi_y = pi[DNA_C] + pi[DNA_T];
+        rho = pi_r / pi_y;
+
+        // convert the usual ratio definition (kappa) to Felsenstein's 
+        // definition (R)
+        ratio = (pi[DNA_T]*pi[DNA_C] + pi[DNA_A]*pi[DNA_G]) * kappa / \
                 (pi_y * pi_r);
         
         // determine HKY parameters alpha_r, alpha_y, and beta
@@ -133,7 +324,15 @@ public:
         return prob;        
     }
     
+    typedef HkyModelDeriv Deriv;
+
+    Deriv *deriv()
+    {
+        return new Deriv(pi, kappa);
+    }
+
     // parameters
+    float kappa;
     float ratio;
     float pi[4];
     float pi_r;
@@ -145,90 +344,7 @@ public:
 };
 
 
-/*
 
-  d/dt P(j|i,t,pi,R) = delta_ij(alpha_i + beta) exp(-(alpha_i+beta)t) +
-                       (pi_j e_ij /pi_ry) 
-		       [-beta exp(-beta t) + 
-		        (alpha_i+beta)exp(-(alpha_i + beta)t)] +
-		       pi_j beta exp(-beta t)
-
-*/
-
-class HkyModelDeriv
-{
-public:
-    HkyModelDeriv(const float *bgfreq, float ratio_kappa)
-    {
-        // set background base frequencies
-        for (int i=0; i<4; i++)
-            pi[i] = bgfreq[i];
-
-        pi_r = pi[DNA_A] + pi[DNA_G];
-        pi_y = pi[DNA_C] + pi[DNA_T];
-        rho = pi_r / pi_y;
-
-        // convert the usual ratio definition (kappa) to Felsenstein's 
-        // definition (R)
-        ratio = (pi[DNA_T]*pi[DNA_C] + pi[DNA_A]*pi[DNA_G]) * ratio_kappa / \
-                (pi_y * pi_r);
-        
-        // determine HKY parameters alpha_r, alpha_y, and beta
-        b = 1.0 / (2.0 * pi_r * pi_y * (1.0+ratio));
-        a_y = (pi_r*pi_y*ratio - 
-               pi[DNA_A]*pi[DNA_G] - 
-               pi[DNA_C]*pi[DNA_T]) / 
-              (2.0*(1+ratio)*(pi_y*pi[DNA_A]*pi[DNA_G]*rho + 
-                              pi_r*pi[DNA_C]*pi[DNA_T]));
-        a_r = rho * a_y;
-    }
-
-
-    // transition probability P(j | i, t)
-    inline float operator()(int j, int i, float t)
-    {
-        swap(i, j);
-        
-        // convenience variables
-        // NOTE: it is ok to assign pi_ry, because it is only used when
-        // dnatype[i] == dnatype[j]
-        float a_i, pi_ry;
-        switch (dnatype[i]) {
-            case DNA_PURINE:
-                a_i = a_r;
-                pi_ry = pi_r;  
-                break;
-            case DNA_PRYMIDINE:
-                a_i = a_y;
-                pi_ry = pi_y;
-                break;
-            default:
-                assert(0);
-        }
-        int delta_ij = int(i == j);
-        int e_ij = int(dnatype[i] == dnatype[j]);
-        
-        // return transition probability
-	float ab = a_i + b;
-	float eabt = expf(-ab*t);
-        float ebt = expf(-b*t);
-        
-        float prob = - delta_ij * ab * eabt +
-	    (pi[j] * e_ij / pi_ry) * (- b * ebt + ab * eabt) +
-	    pi[j] * b * ebt;
-        return prob;
-    }
-    
-    // parameters
-    float ratio;
-    float pi[4];
-    float pi_r;
-    float pi_y;
-    float rho;
-    float b;
-    float a_y;
-    float a_r;
-};
 
 
 
@@ -237,6 +353,24 @@ extern "C" {
 void makeHkyMatrix(const float *bgfreq, float ratio, float t, float *matrix)
 {
     HkyModel model(bgfreq, ratio);
+    
+    for (int i=0; i<4; i++)
+        for (int j=0; j<4; j++)
+            matrix[4*i+j] = model(i, j, t);
+}
+
+void makeHkyDerivMatrix(const float *bgfreq, float ratio, float t, float *matrix)
+{
+    HkyModelDeriv model(bgfreq, ratio);
+    
+    for (int i=0; i<4; i++)
+        for (int j=0; j<4; j++)
+            matrix[4*i+j] = model(i, j, t);
+}
+
+void makeHkyDeriv2Matrix(const float *bgfreq, float ratio, float t, float *matrix)
+{
+    HkyModelDeriv2 model(bgfreq, ratio);
     
     for (int i=0; i<4; i++)
         for (int j=0; j<4; j++)
@@ -365,25 +499,30 @@ public:
 };
 
 
-template <class Model>
-class DistLikelihoodFunc2
+
+
+template <class Model, class DModel>
+class DistLikelihoodDeriv
 {
 public:
-    DistLikelihoodFunc2(float *probs1, float *probs2, int seqlen, 
-			const float *bgfreq, Model *model, float step=.001) :
+    DistLikelihoodDeriv(float *probs1, float *probs2, int seqlen, 
+			const float *bgfreq, 
+			Model *model, DModel *dmodel) :
         probs1(probs1),
         probs2(probs2),
         seqlen(seqlen),
         bgfreq(bgfreq),
         model(model),
-        step(step)
+	dmodel(dmodel)
     {
 	probs3 = new float [seqlen*4];
+	probs4 = new float [seqlen*4];
     }
     
-    ~DistLikelihoodFunc2()
+    ~DistLikelihoodDeriv()
     {
 	delete [] probs3;
+	delete [] probs4;
     }
 
 
@@ -392,40 +531,111 @@ public:
         // trivial case
         if (t < 0)
             return -INFINITY;
-	        
-	calcLkTableRow(seqlen, *model, probs1, probs2, probs3, t/2.0, t/2.0);
+	
+
+	// g(t, j)
+	calcLkTableRow(seqlen, *model, probs1, probs2, probs3, t, 0);
+
+	// g'(t, j)
+	calcDerivLkTableRow(seqlen, *model, *dmodel, probs1, probs2, probs4, t);
+
 
 	// interate over sequence
-	float logl = 0.0;
+	float dlogl = 0.0;
 	for (int j=0; j<seqlen; j++) {
-	    float sum = 0.0;
-	    for (int k=0; k<4; k++)
-		sum += bgfreq[k] * probs3[matind(4,j,k)];
-	    logl += logf(sum);
+	    float sum1 = 0.0, sum2 = 0.0;
+	    for (int k=0; k<4; k++) {
+		sum1 += bgfreq[k] * probs3[matind(4,j,k)];
+		sum2 += bgfreq[k] * probs4[matind(4,j,k)];
+	    }
+	    dlogl += sum2 / sum1;
 	}
 
-	calcLkTableRow(seqlen, *model, probs1, probs2, probs3, 
-		       (t+step)/2.0, (t+step)/2.0);
-
-	// interate over sequence
-	float logl2 = 0.0;
-	for (int j=0; j<seqlen; j++) {
-	    float sum = 0.0;
-	    for (int k=0; k<4; k++)
-		sum += bgfreq[k] * probs3[matind(4,j,k)];
-	    logl2 += logf(sum);
-	}
-
-	return (logl2 - logl) / step;
+	return dlogl;
     }
     
     float *probs1;
     float *probs2;
     float *probs3;
+    float *probs4;
     int seqlen;
     const float *bgfreq;
     Model *model;
-    float step;
+    DModel *dmodel;
+};
+
+
+
+template <class Model, class DModel, class D2Model>
+class DistLikelihoodDeriv2
+{
+public:
+    DistLikelihoodDeriv2(float *probs1, float *probs2, int seqlen, 
+			const float *bgfreq, 
+			Model *model, DModel *dmodel, D2Model *d2model) :
+        probs1(probs1),
+        probs2(probs2),
+        seqlen(seqlen),
+        bgfreq(bgfreq),
+        model(model),
+	dmodel(dmodel),
+        d2model(d2model)
+    {
+	probs3 = new float [seqlen*4];
+	probs4 = new float [seqlen*4];
+        probs5 = new float [seqlen*4];
+    }
+    
+    ~DistLikelihoodDeriv2()
+    {
+	delete [] probs3;
+	delete [] probs4;
+        delete [] probs5;
+    }
+
+
+    float operator()(float t)
+    {
+        // trivial case
+        if (t < 0)
+            return -INFINITY;
+	
+
+	// g(t, j)
+	calcLkTableRow(seqlen, *model, probs1, probs2, probs3, t, 0);
+
+	// g'(t, j)
+	calcDerivLkTableRow(seqlen, *model, *dmodel, probs1, probs2, probs4, t);
+
+	// g''(t, j)
+	calcDerivLkTableRow(seqlen, *model, *d2model, probs1, probs2, probs5, t);
+
+
+	// interate over sequence
+	float d2logl = 0.0;
+	for (int j=0; j<seqlen; j++) {
+	    float g = 0.0, dg = 0.0, d2g = 0.0;
+	    for (int k=0; k<4; k++) {
+		g += bgfreq[k] * probs3[matind(4,j,k)];
+		dg += bgfreq[k] * probs4[matind(4,j,k)];
+                d2g += bgfreq[k] * probs5[matind(4,j,k)];
+	    }
+	    d2logl += - dg*dg/(g*g) + d2g/g;
+	}
+
+	return d2logl;
+    }
+    
+    float *probs1;
+    float *probs2;
+    float *probs3;
+    float *probs4;
+    float *probs5;
+    int seqlen;
+    const float *bgfreq;
+    Model *model;
+    DModel *dmodel;
+    D2Model *d2model;
 };
 
 
@@ -438,22 +648,17 @@ public:
 template <class Model>
 float mleDistance(float *probs1, float *probs2, int seqlen, 
                   const float *bgfreq, Model &model, 
-                  float t0=.001, float t1=1, float step=.0001,
-                  float *probs3=NULL, int samples=500)
+                  float t0=.001, float t1=1, float step=.0001)
 {
-    //DistLikelihoodFunc<Model> df(probs1, probs2, seqlen, bgfreq, &model, step,
-    //                             samples, probs3);
-    DistLikelihoodFunc2<Model> df(probs1, probs2, seqlen, bgfreq, &model, step);
-    
-    const int maxiter = 50;
-    return bisectRoot(df, t0, t1, maxiter, 0, 100, .001, .001);
-}
+    typename Model::Deriv *dmodel = model.deriv();
 
-// prototype
-template <class Model>
-void calcLkTableRow(int seqlen, Model &model,
-		    float *lktablea, float *lktableb, float *lktablec, 
-		    float adist, float bdist);
+    DistLikelihoodDeriv<Model, typename Model::Deriv> df(
+        probs1, probs2, seqlen, bgfreq, &model, dmodel);
+    float mle = bisectRoot(df, t0, t1, .0001);
+
+    delete dmodel;
+    return mle;
+}
 
 extern "C" {
 
@@ -492,32 +697,37 @@ float branchLikelihoodHky(float *probs1, float *probs2, int seqlen,
 }
 
 
-float deriveBranchLikelihoodHky(float *probs1, float *probs2, int seqlen, 
-				const float *bgfreq, float kappa, float t)
+float branchLikelihoodHkyDeriv(float *probs1, float *probs2, int seqlen, 
+                               const float *bgfreq, float kappa, float t)
 {
-    //float *probs3 = NULL;
-    //const int samples = 0;
-    const float step = .001;
-
     HkyModel hky(bgfreq, kappa);
-    DistLikelihoodFunc2<HkyModel> df(probs1, probs2, seqlen, bgfreq, 
-				     &hky, step);
+    HkyModelDeriv dhky(bgfreq, kappa);
+    DistLikelihoodDeriv<HkyModel, HkyModelDeriv> df
+	(probs1, probs2, seqlen, bgfreq, &hky, &dhky);
     return df(t);
 }
 
-float mleDistanceHky(float *probs1, float *probs2, int seqlen, 
-		     const float *bgfreq, float ratio,
-		     float t0, float t1, float step)
+float branchLikelihoodHkyDeriv2(float *probs1, float *probs2, int seqlen, 
+                               const float *bgfreq, float kappa, float t)
 {
-    float *probs3 = NULL;
-    const int samples = 0;
+    HkyModel hky(bgfreq, kappa);
+    HkyModelDeriv dhky(bgfreq, kappa);
+    HkyModelDeriv2 d2hky(bgfreq, kappa);
+    DistLikelihoodDeriv2<HkyModel, HkyModelDeriv, HkyModelDeriv2> d2f
+	(probs1, probs2, seqlen, bgfreq, &hky, &dhky, &d2hky);
+    return d2f(t);
+}
 
-    HkyModel hky(bgfreq, ratio);
-    DistLikelihoodFunc<HkyModel> df(probs1, probs2, seqlen, bgfreq, &hky, step,
-				    samples, probs3);
+float mleDistanceHky(float *probs1, float *probs2, int seqlen, 
+		     const float *bgfreq, float kappa,
+		     float t0, float t1)
+{
+    HkyModel hky(bgfreq, kappa);
+    HkyModelDeriv dhky(bgfreq, kappa);
+    DistLikelihoodDeriv<HkyModel, HkyModelDeriv> df(
+        probs1, probs2, seqlen, bgfreq, &hky, &dhky);
     
-    const int maxiter = 20;
-    return bisectRoot(df, t0, t1, maxiter, 0, 100, .001, .0001);
+    return bisectRoot(df, t0, t1, .0001);
 }
 
 } // extern "C"
@@ -575,9 +785,9 @@ public:
 
 // conditional likelihood recurrence
 template <class Model>
-inline void calcLkTableRow(int seqlen, Model &model,
-                           float *lktablea, float *lktableb, float *lktablec, 
-			   float adist, float bdist)
+void calcLkTableRow(int seqlen, Model &model,
+		    float *lktablea, float *lktableb, float *lktablec, 
+		    float adist, float bdist)
 {
     static Matrix<float> atransmat(4, 4);
     static Matrix<float> btransmat(4, 4);
@@ -587,6 +797,56 @@ inline void calcLkTableRow(int seqlen, Model &model,
         for (int j=0; j<4; j++) {
             atransmat[i][j] = model(i, j, adist);
             btransmat[i][j] = model(i, j, bdist);
+        }
+    }
+    
+    // iterate over sites
+    for (int j=0; j<seqlen; j++) {
+        float terma[4];
+        float termb[4];
+        
+        for (int x=0; x<4; x++) {
+            terma[x] = lktablea[matind(4, j, x)];
+            termb[x] = lktableb[matind(4, j, x)];
+        }    
+        
+        for (int k=0; k<4; k++) {
+            float *aptr = atransmat[k];
+            float *bptr = btransmat[k];
+            
+            // sum_x P(x|k, t_a) lktable[a][j,x]
+            float prob1 = aptr[0] * terma[0] +
+                          aptr[1] * terma[1] +
+                          aptr[2] * terma[2] +
+                          aptr[3] * terma[3];
+
+            // sum_y P(y|k, t_b) lktable[b][j,y]
+            float prob2 = bptr[0] * termb[0] +
+                          bptr[1] * termb[1] +
+                          bptr[2] * termb[2] +
+                          bptr[3] * termb[3];
+            
+
+            lktablec[matind(4, j, k)] = prob1 * prob2;
+        }
+    }
+}
+
+
+// conditional likelihood recurrence
+template <class Model, class DModel>
+void calcDerivLkTableRow(int seqlen, Model &model, DModel &dmodel,
+			 float *lktablea, float *lktableb, float *lktablec, 
+			 float adist)
+{
+    static Matrix<float> atransmat(4, 4);
+    static Matrix<float> btransmat(4, 4);
+    
+    // build transition matrices
+    for (int i=0; i<4; i++) {
+        for (int j=0; j<4; j++) {
+            atransmat[i][j] = model(i, j, adist);
+            btransmat[i][j] = dmodel(i, j, 0.0);
         }
     }
     
@@ -773,7 +1033,6 @@ public:
 		      const float *bgfreq, Model &model,
 		      ExtendArray<Node*> &rootingOrder)
     {
-	const int samples = 0;
 	float logl = -INFINITY;
 	float **lktable = table.lktable;
     
@@ -817,14 +1076,13 @@ public:
 	    Node *node1 = tree->root->children[0];
 	    Node *node2 = tree->root->children[1];
 
-	    // find new MLE branch length for root branch
+	    // find new MLE branch length for root branch            
 	    float initdist = node1->dist + node2->dist;
 	    float mle = mleDistance(lktable[node1->name], 
 				    lktable[node2->name], 
-				    seqlen, bgfreq, model, 
-				    max(initdist*.95, 0.0), 
-				    max(initdist*1.05, 0.001),
-				    .01, probs3, samples);
+				    seqlen, bgfreq, model,
+				    max(initdist*0.0, 0.0), 
+				    max(initdist*10.0, 0.00001));
 	    node1->dist = mle / 2.0;
 	    node2->dist = mle / 2.0;
 	
