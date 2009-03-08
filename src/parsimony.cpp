@@ -235,6 +235,8 @@ void parsimony(Tree *tree, int nseqs, char **seqs,
 }
 
 
+extern "C" {
+
 void parsimony(int nnodes, int *ptree, int nseqs, char **seqs, 
                float *dists, bool buildAncestral, char **ancetralSeqs)
 {
@@ -250,6 +252,8 @@ void parsimony(int nnodes, int *ptree, int nseqs, char **seqs,
     parsimony(&tree, nseqs, seqs, buildAncestral, ancetralSeqs);
     tree.getDists(dists);
 }
+
+} // extern "C"
 
 
 } // namespace spidir

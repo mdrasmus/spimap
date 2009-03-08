@@ -9,12 +9,16 @@ namespace spidir {
 
 typedef void (*geneRateCallback) (float generate, Tree *tree, void *userdata);
 
+extern "C" {
+
 float treelk(int nnodes, int *ptree, float *dists,
              int nsnodes, int *pstree, 
              int *recon, int *events,
              float *mu, float *sigma, float generate, 
              float predupprob=1.0, float dupprob=1.0, float lossprob=1.0,
              float alpha=0, float beta=0, bool onlyduploss=false);
+
+} // extern "C"
 
 float treelk(Tree *tree,
              SpeciesTree *stree,

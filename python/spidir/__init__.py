@@ -11,10 +11,11 @@ import os
 from math import *
 from ctypes import *
 
+# rasmus imports
 from rasmus import treelib, util
 from rasmus.bio import fasta, phylo
 
-#import pyspidir
+#import spidir C lib
 libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
 spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
 
@@ -34,84 +35,121 @@ def c_list(c_type, lst):
 #    mat_type = row_type * len(mat)
 #    mat = mat_type(* [row_type(* row) for row in mat])
 #    return cast(mat, POINTER(POINTER(c_type)))
-    
+
 
 def export(lib, funcname, return_type, arg_types, scope=globals()):
-    """Exports a C function"""
+    """Exports a C function with documentation"""
 
-    scope[funcname] = lib.__getattr__(funcname)
-    scope[funcname].restype = return_type
-    scope[funcname].argtypes = arg_types
+    cfunc = lib.__getattr__(funcname)
+    cfunc.restype = return_type
+    cfunc.argtypes = arg_types[0::2]
+
+    def func(*args):
+        return cfunc(*args)
+
+    scope[funcname] = func
+
+    # set documentation
+    args_doc = arg_types[1::2]
+    scope[funcname].__doc__ = "%s(%s)" % (funcname, ",".join(args_doc))
+
+
+# additional C types
+c_float_p = POINTER(c_float)
+c_int_p = POINTER(c_int)
+c_char_p_p = POINTER(c_char_p)
 
 #=============================================================================
 # wrap functions from c library
 
-# birthdeath functions
-export(spidir, "inumHistories", c_int, [c_int])
-export(spidir, "numHistories", c_double, [c_int])
-export(spidir, "numTopologyHistories", c_double, [c_void_p])
-export(spidir, "birthDeathCount", c_float, [c_int, c_float, c_float, c_float])
-export(spidir, "makeTree", c_void_p, [c_int, POINTER(c_int)])
-export(spidir, "setTreeDists", c_void_p, [c_void_p, POINTER(c_float)])
-export(spidir, "deleteTree", c_int, [c_void_p])
-export(spidir, "calcDoomTable", c_int, [c_void_p, c_float, c_float,
-                                           c_int, POINTER(c_float)])
+# basic tree functions
+export(spidir, "deleteTree", c_int, [c_void_p, "tree"])
+export(spidir, "makeTree", c_void_p, [c_int, "nnodes",
+                                          c_int_p, "ptree"])
+export(spidir, "setTreeDists", c_void_p, [c_void_p, "tree",
+                                              c_float_p, "dists"])
+
+
+# topology prior birthdeath functions
+export(spidir, "inumHistories", c_int, [c_int, "nleaves"])
+export(spidir, "numHistories", c_double, [c_int, "nleaves"])
+export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
+export(spidir, "birthDeathCount", c_float,
+       [c_int, "ngenes", c_float, "time",
+        c_float, "birth", c_float, "death"])
+export(spidir, "calcDoomTable", c_int,
+       [c_void_p, "tree", c_float, "birth", c_float, "death",
+        c_int, "maxdoom", c_float_p, "doomtable"])
 export(spidir, "birthDeathTreePrior", c_float,
-       [c_void_p, c_void_p, POINTER(c_int), POINTER(c_int),
-        c_float, c_float, POINTER(c_float), c_int])
+       [c_void_p, "tree", c_void_p, "stree",
+        c_int_p, "recon", c_int_p, "events",
+        c_float, "birth", c_float, "death",
+        c_float_p, "doomtable", c_int, "maxdoom"])
 export(spidir, "birthDeathTreePriorFull", c_float,
-       [c_void_p, c_void_p, POINTER(c_int), POINTER(c_int),
-        c_float, c_float, POINTER(c_float), c_int])
-export(spidir, "sampleDupTimes", c_int, [c_void_p, c_void_p,
-                                         POINTER(c_int), POINTER(c_int),
-                                         c_float, c_float])
+       [c_void_p, "tree", c_void_p, "stree",
+        c_int_p, "recon", c_int_p, "events",
+        c_float, "birth", c_float, "death",
+        c_float_p, "doomtable", c_int, "maxdoom"])
+export(spidir, "sampleDupTimes", c_int,
+       [c_void_p, "tree", c_void_p, "stree",
+        c_int_p, "recon", c_int_p, "events",
+        c_float, "birth", c_float, "death"])
 
-# sequence likelihood
+# branch prior functions
+export(spidir, "treelk", c_float,
+       [c_int, "nnodes", c_int_p, "ptree", c_float_p, "dists",
+        c_int, "nsnodes", c_int_p, "pstree", 
+        c_int_p, "recon", c_int_p, "events",
+        c_float_p, "mu", c_float_p, "sigma",
+        c_float, "generate", 
+        c_float, "predupprob", c_float, "dupprob", c_float, "lossprob",
+        c_float, "alpha", c_float, "beta", c_int, "onlyduploss"])
+
+
+# parsimony
+export(spidir, "parsimony", c_void_p,
+       [c_int, "nnodes", c_int, "ptree", c_int, "nseqs",
+        c_char_p_p, "seqs", c_float, "dists",
+        c_int, "buildAncestral", c_char_p_p, "ancetralSeqs"])
+
+
+# sequence likelihood functions
 export(spidir, "makeHkyMatrix", c_void_p,
-       [POINTER(c_float), c_float, c_float, POINTER(c_float)])
+       [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
+        c_float_p, "matrix"])
 export(spidir, "makeHkyDerivMatrix", c_void_p,
-       [POINTER(c_float), c_float, c_float, POINTER(c_float)])
+       [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
+        c_float_p, "matrix"])
 export(spidir, "makeHkyDeriv2Matrix", c_void_p,
-       [POINTER(c_float), c_float, c_float, POINTER(c_float)])
+       [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
+        c_float_p, "matrix"])
 export(spidir, "branchLikelihoodHky", c_float,
-       [POINTER(c_float), POINTER(c_float), c_int, POINTER(c_float), c_float,
-        c_float])
-# (float *probs1, float *probs2, int seqlen, 
-#  const float *bgfreq, float kappa, float t)
-
+       [c_float_p, "probs1", c_float_p, "probs2",
+        c_int, "seqlen", c_float_p, "bgfreq", c_float, "kappa",
+        c_float, "time"])
 export(spidir, "branchLikelihoodHkyDeriv", c_float,
-       [POINTER(c_float), POINTER(c_float), c_int, 
-        POINTER(c_float), c_float, c_float])       
-# (float *probs1, float *probs2, int seqlen, 
-#  const float *bgfreq, float kappa, float t)
-
+       [c_float_p, "probs1", c_float_p, "probs2",
+        c_int, "seqlen", c_float_p, "bgfreq",
+        c_float, "kappa", c_float, "time"])       
 export(spidir, "branchLikelihoodHkyDeriv2", c_float,
-       [POINTER(c_float), POINTER(c_float), c_int, 
-        POINTER(c_float), c_float, c_float])       
-# (float *probs1, float *probs2, int seqlen, 
-#  const float *bgfreq, float kappa, float t)
-
+       [c_float_p, "probs1", c_float_p, "probs2",
+        c_int, "seqlen", c_float_p, "bgfreq",
+        c_float, "kappa", c_float, "time"])
 export(spidir, "mleDistanceHky", c_float,
-       [POINTER(c_float), POINTER(c_float), c_int, POINTER(c_float), c_float,
-        c_float, c_float, c_float])
-# (float *probs1, float *probs2, int seqlen, 
-#   const float *bgfreq, float ratio,
-#   float t0, float t1, float step)
-
+       [c_float_p, "probs1", c_float_p, "probs2",
+        c_int, "seqlen", c_float_p, "bgfreq",
+        c_float, "kappa", c_float, "t0", c_float, "t1"])
 export(spidir, "calcSeqProbHky", c_float,
-       [c_void_p, c_int, POINTER(c_char_p), POINTER(c_float), c_float])
-# (Tree *tree, int nseqs, char **seqs, 
-#  const float *bgfreq, float ratio);
-
+       [c_void_p, "tree", c_int, "nseqs", c_char_p_p, "seqs",
+        c_float_p, "bgfreq", c_float, "kappa"])
 export(spidir, "findMLBranchLengthsHky", c_float,
-       [c_int, POINTER(c_int), c_int, POINTER(c_char_p),
-        POINTER(c_float), POINTER(c_float), c_float, c_int, c_int])
-# (int nnodes, int *ptree, int nseqs, char **seqs, 
-#   float *dists, const float *bgfreq, float ratio, 
-#   int maxiter, bool parsinit)
+       [c_int, "nnodes", c_int_p, "ptree", c_int, "nseqs",
+        c_char_p_p, "seqs", c_float_p, "dists",
+        c_float_p, "bgfreq", c_float, "kappa",
+        c_int, "maxiter", c_int, "parsinit"])
 
 #=============================================================================
-# pure python interface
+# additional python interface
 
 
 def make_ptree(tree):
@@ -289,10 +327,10 @@ def branch_likelihood_hky_deriv2(probs1, probs2, seqlen, bgfreq, kappa, time):
         c_list(c_float, probs1), c_list(c_float, probs2), seqlen, 
         c_list(c_float, bgfreq), kappa, time)
 
-def mle_distance_hky(probs1, probs2, seqlen, bgfreq, kappa, t0, t1, step):    
+def mle_distance_hky(probs1, probs2, seqlen, bgfreq, kappa, t0, t1):    
     return mleDistanceHky(c_list(c_float, probs1), c_list(c_float, probs2),
                           seqlen, c_list(c_float, bgfreq), kappa,
-                          t0, t1, step)
+                          t0, t1)
 
 
 def calc_seq_likelihood_hky(tree, align, bgfreq, kappa):

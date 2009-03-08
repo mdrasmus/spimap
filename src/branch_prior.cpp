@@ -921,6 +921,7 @@ float treelk(Tree *tree,
 }
 
 
+extern "C" {
 
 // Calculate the likelihood of a tree
 float treelk(int nnodes, int *ptree, float *dists,
@@ -947,6 +948,8 @@ float treelk(int nnodes, int *ptree, float *dists,
                   generate, 
                   predupprob, dupprob, lossprob, onlyduploss);
 }
+
+} // extern "C"
 
 
 //=============================================================================

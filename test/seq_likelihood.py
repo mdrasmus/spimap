@@ -22,7 +22,7 @@ class TestSeqLikelihood (unittest.TestCase):
         pass        
         
 
-    def _test_calc_hky_seq_likelihood(self):
+    def test_calc_hky_seq_likelihood(self):
 
         bgfreq = [.258,.267,.266,.209]
         kappa = 1.59
@@ -84,7 +84,7 @@ class TestSeqLikelihood (unittest.TestCase):
 
         # estimate MLE
         mle = spidir.mle_distance_hky(probs1, probs2, seqlen, bgfreq, kappa,
-                                      t0, t1, step)
+                                      t0, t1)
 
         x = list(frange(0, .5, .01))
         y = [spidir.branch_likelihood_hky(probs1, probs2, seqlen,

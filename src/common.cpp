@@ -71,7 +71,7 @@ float poisson(int x, float lambda)
  * first edition of Numerical Recipes in C */
 double gammln(double xx)
 {
-    double x,tmp,ser;
+    double x, tmp, ser;
     const static double cof[6]={76.18009172947146,    -86.50532032941677,
                                 24.01409824083091,    -1.231739572450155,
                                 0.1208650973866179e-2,-0.5395239384953e-5};
@@ -88,6 +88,34 @@ double gammln(double xx)
     return -tmp+log(2.5066282746310005*ser);
 }
 
+//
+// Lanczos approximation to the gamma function. 
+// 
+// found on http://www.rskey.org/gamma.htm   
+//
+float gamm(float x) 
+{
+    float ret = (1.000000000190015 + 
+                 76.18009172947146 / (x + 1) +  
+                 -86.50532032941677 / (x + 2) + 
+                 24.01409824083091 / (x + 3) +  
+                 -1.231739572450155 / (x + 4) + 
+                 1.208650973866179e-3 / (x + 5) + 
+                 -5.395239384953e-6 / (x + 6));
+    
+    return ret * sqrt(2*M_PI)/x * pow(x + 5.5, x+.5) * exp(-x-5.5);
+}
+
+
+// polygamma function \psi^{(0)}(a)
+float polygamma0(float z, int nterms)
+{
+    float sum = 1.0 / z;
+    for (int k=1; k<nterms; k++)
+        sum += 1.0 / (z+k);
+    return -sum;
+}
+
 
 // natural log of the gamma distribution PDF
 float gammalog(float x, float a, float b)
@@ -97,6 +125,29 @@ float gammalog(float x, float a, float b)
     else
         return -x * b + (a - 1.0) * log(x) + a * log(b) - gammln(a);
 }
+
+float gammaDerivX(float x, float a, float b)
+{
+    const float ebx = expf(-b*x);
+    return pow(b, a) / gamm(a) * ((a-1)*pow(x, a-2)*ebx - 
+                                  b*pow(x, a-1)*ebx);
+}
+
+
+float gammaDerivA(float x, float a, float b)
+{
+    const int nterms = 30; // number of terms to use for polygamma approx
+    return exp(-b*x) / gamm(a) * pow(b, a) * pow(x, a-1) *
+        (logf(x) + logf(b) + polygamma0(a, nterms));
+}
+
+float gammaDerivB(float x, float a, float b)
+{
+    const float ebx = expf(-b*x);
+    return pow(b, a) / gamm(a) * (a*pow(b, a-1) * ebx -
+                                  x*pow(x, a)*ebx);
+}
+
 
 
 // Normal distribution.
@@ -180,8 +231,8 @@ float gammavariate(float alpha, float beta)
             if (p > 1.0)
                 if (u1 <= pow(x, (alpha - 1.0)))
                     break;
-            else if (u1 <= exp(-x))
-                break;
+                else if (u1 <= exp(-x))
+                    break;
         }
         return x * beta;
     }
