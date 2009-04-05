@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+# Make a branch length matrix from a list of trees
+
+import sys, optparse
+
+from rasmus.bio import phylo, genomeutil
+from rasmus import util, treelib
+
+
+o = optparse.OptionParser()
+o.set_defaults()
+
+o.add_option("-s", "--stree", dest="stree",
+             metavar="<species tree newick file>")
+o.add_option("-S", "--smap", dest="smap",
+             metavar="<gene to species file>")
+o.add_option("-l", "--lenmatrix", dest="lenmatrix",
+             metavar="<branch length matrix output file>")
+
+class TreeException (Exception):
+    pass
+
+
+def error(message, exit=1):
+    print >>sys.stderr, message
+    sys.exit(exit)
+
+def read_trees(infile):
+    """Read a data stream of trees in newick format"""
+    
+    tree = treelib.readTree(infile)
+    yield tree
+
+    # try to read more trees
+    while True:
+        try:
+            tree = treelib.readTree(infile)
+            yield tree
+        except Exception, e:
+            break
+
+def assert_one2one(tree, stree, recon):
+    """Ensure tree is one2one with species tree"""
+
+    snodes = set(tree.nodes.values())
+    nodes = recon.values()
+    nodes_set = set(snodes)
+
+    if len(nodes) != len(nodes_set):
+        raise TreeException("tree has multiple nodes from the same species")
+    elif nodes_set != snodes:
+        raise TreeException("tree does not have same species as the species tree")
+
+
+def reverse_recon(recon):
+    """Reverses a reconcile to map species nodes to gene nodes"""
+    rev = {}
+    for key, value in recon.iteritems():
+        rev[value] = key
+    return rev
+
+
+def iter_branch_lengths(trees, stree, snodes, gene2species):
+    """Iterate through the branch vectors for a stream of trees"""
+    
+    for tree in trees:
+        recon = phylo.reconcile(tree, stree, gene2species)
+        assert_one2one(tree, stree, recon)
+        revrecon = reverse_recon(recon)
+        
+        yield [revrecon[snode].dist for snode in snodes]
+
+
+def main(conf, args):
+
+    if conf.stree is None or conf.smap is None:
+        error("error: must specify species tree and mapping")
+
+    # read in species data
+    stree = treelib.readTree(conf.stree)
+    gene2species = genomeutil.readGene2species(conf.smap)
+
+    # species node order for matrix (exclude root)
+    snodes = [x for x in stree.postorder() if x.parent]
+
+    # open output
+    if conf.lenmatrix:
+        out = open(conf.lenmatrix, "w")
+    else:
+        out = sys.stdout
+    
+
+    # print header
+    out.write("\t".join([str(snode.name) for snode in snodes]) + "\n")
+
+    ntrees = 1
+    try:
+        for row in iter_branch_lengths(read_trees(sys.stdin),
+                                       stree, snodes, gene2species):
+            ntrees += 1
+            out.write("\t".join(map(str, row)) + "\n")
+    except TreeException:
+        error("error with tree %d:" % (ntrees+1) + str(e))
+
+
+conf, args = o.parse_args()
+main(conf, args)

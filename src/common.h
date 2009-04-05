@@ -70,14 +70,36 @@ inline float normallog(float x, float u, float s)
     //return log(1.0/(s * sqrt(2.0*M_PI)) * exp(- (x-u)*(x-u) / (2.0 * s*s)));
 }
 
+extern "C" {
+
 float poisson(int x, float lambda);
 double gammln(double xx);
+float gamm(float x);
 float gammalog(float x, float a, float b);
+float gammaPdf(float x, float a, float b);
+float invgamma(float x, float a, float b);
+float invgammaCdf(float x, float a, float b);
+double quantInvgamma(double p, double a, double b);
+
+// Drivative of Gamma distribution with respect to x
+float gammaDerivX(float x, float a, float b);
+    
+// Drivative of Gamma distribution with respect to a
+float gammaDerivA(float x, float a, float b);
+
+// Drivative of Gamma distribution with respect to b
+float gammaDerivB(float x, float a, float b);
+
 float normalvariate(float mu, float sigma);
 float gammavariate(float alpha, float beta);
+
+inline float invgammavariate(float alpha, float beta)
+{ return 1.0 / gammavariate(alpha, beta); }
+
 inline float expovariate(float lambda)
 { return -log(frand()) / lambda; }
 
+} // extern "C"
 
 template <class T>
 double variance(T *vals, int size)

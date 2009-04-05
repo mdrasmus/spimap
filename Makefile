@@ -61,13 +61,14 @@ SPIDIR_SRC = \
     src/phylogeny.cpp \
     src/search.cpp \
     src/Sequences.cpp \
-    src/Tree.cpp
+    src/Tree.cpp \
+    src/train.cpp
 
 SPIDIR_OBJS = $(SPIDIR_SRC:.cpp=.o)
 
 PROG_SRC = src/spidir_main.cpp 
 PROG_OBJS = src/spidir_main.o $(SPIDIR_OBJS)
-PROG_LIBS = 
+PROG_LIBS = -lgsl -lgslcblas src/igammaf/igammaf.a
 #`gsl-config --libs`
 
 #=======================
@@ -108,7 +109,7 @@ MATLAB_SRC = $(SPIDIR_SRC) src/matlab_interface.cpp
 all: $(SPIDIR_PROG) $(LIBSPIDIR)
 
 # SPIDIR stand-alone program
-$(SPIDIR_PROG): $(PROG_OBJS)
+$(SPIDIR_PROG): $(PROG_OBJS) src/igammaf/igammaf.a
 	$(CXX) $(CFLAGS) $(PROG_OBJS) $(PROG_LIBS) -o $(SPIDIR_PROG)
 
 # maximum likelihood program
@@ -122,9 +123,9 @@ $(LIBSPIDIR): $(LIBSPIDIR_OBJS)
 	mkdir -p lib
 	$(AR) -r $(LIBSPIDIR) $(LIBSPIDIR_OBJS)
 
-$(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS)
+$(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS) src/igammaf/igammaf.a
 	mkdir -p lib
-	$(CXX) -o $(LIBSPIDIR_SHARED) -shared $(LIBSPIDIR_OBJS)
+	$(CXX) -o $(LIBSPIDIR_SHARED) -shared $(LIBSPIDIR_OBJS) $(PROG_LIBS)
 
 
 # SPIDIR matlab interface
@@ -141,6 +142,12 @@ $(MATLAB_COMPILE_RULES): %.rule: %.cpp
 	echo $(MEX) $(MATLAB_SRC) $< -o $(@:%.rule=%) >> $(MATLAB_COMPILE)
 	touch $@
 
+
+#=============================================================================
+# igammaf rules
+
+src/igammaf/igammaf.a:
+	make -C src/igammaf
 
 #=============================================================================
 # basic rules

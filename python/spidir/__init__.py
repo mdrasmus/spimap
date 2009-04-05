@@ -11,9 +11,6 @@ import os
 from math import *
 from ctypes import *
 
-# rasmus imports
-from rasmus import treelib, util
-from rasmus.bio import fasta, phylo
 
 #import spidir C lib
 libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
@@ -28,39 +25,90 @@ def c_list(c_type, lst):
     list_type = c_type * len(lst)
     return list_type(* lst)
 
-#def c_matrix(c_type, mat):
-#    """Make a C matrix from a list of lists (mat)"""
-#
-#    row_type = c_type * len(mat[0])
-#    mat_type = row_type * len(mat)
-#    mat = mat_type(* [row_type(* row) for row in mat])
-#    return cast(mat, POINTER(POINTER(c_type)))
+def c_matrix(c_type, mat):
+    """Make a C matrix from a list of lists (mat)"""
+
+    row_type = c_type * len(mat[0])
+    mat_type = POINTER(c_type) * len(mat)
+    mat = mat_type(* [row_type(* row) for row in mat])
+    return cast(mat, POINTER(POINTER(c_type)))
 
 
-def export(lib, funcname, return_type, arg_types, scope=globals()):
+def export(lib, funcname, return_type, prototypes, scope=globals()):
     """Exports a C function with documentation"""
+
+    converts = []
+
+    # get c arguments
+    arg_types = prototypes[0::2]
+    for i, arg in enumerate(arg_types):
+        if isinstance(arg, tuple):
+            arg_types[i] = arg[0]
+            converts.append(arg[1])
+        else:
+            converts.append(lambda x: x)
 
     cfunc = lib.__getattr__(funcname)
     cfunc.restype = return_type
-    cfunc.argtypes = arg_types[0::2]
+    cfunc.argtypes = arg_types
 
     def func(*args):
-        return cfunc(*args)
+        # record array sizes
+        sizes = {}
+        for i, argtype in enumerate(prototypes[0::2]):
+            if argtype in (c_float_list, c_float_matrix):
+                sizes[i] = len(args[i])
+        
+        cargs = [f(a) for f, a in zip(converts, args)]
+        ret = cfunc(*cargs)
+
+        # pass back arguments
+        for i, size in sizes.iteritems():            
+            args[i][:] = cargs[i][:sizes[i]]
+
+        return ret
+
 
     scope[funcname] = func
 
     # set documentation
-    args_doc = arg_types[1::2]
+    args_doc = prototypes[1::2]
     scope[funcname].__doc__ = "%s(%s)" % (funcname, ",".join(args_doc))
 
 
 # additional C types
 c_float_p = POINTER(c_float)
+c_float_p_p = POINTER(POINTER(c_float))
 c_int_p = POINTER(c_int)
 c_char_p_p = POINTER(c_char_p)
 
+c_float_list = (c_float_p, lambda x: c_list(c_float, x))
+c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
+
+
 #=============================================================================
 # wrap functions from c library
+
+# common functions
+export(spidir, "gamm", c_float, [c_float, "a"])
+export(spidir, "invgamma", c_float,
+       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "invgammaCdf", c_float,
+       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "quantInvgamma", c_double,
+       [c_double, "p", c_double, "a", c_double, "b"])
+export(spidir, "gammalog", c_float,
+       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "gammaPdf", c_float,
+       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "gammaDerivX", c_float,
+       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "gammaDerivA", c_float,
+       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "gammaDerivB", c_float,
+       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "incompleteGammaC", c_double,
+       [c_double, "s", c_double, "x"])
 
 # basic tree functions
 export(spidir, "deleteTree", c_int, [c_void_p, "tree"])
@@ -148,9 +196,56 @@ export(spidir, "findMLBranchLengthsHky", c_float,
         c_float_p, "bgfreq", c_float, "kappa",
         c_int, "maxiter", c_int, "parsinit"])
 
+
+# training functions
+export(spidir, "train", c_void_p,
+       [c_int, "ntrees", c_int, "nspecies", c_float_matrix, "lengths",
+        c_float_list, "times",
+        c_float_list, "sp_alpha", c_float_list, "sp_beta",
+        c_float_list, "gene_alpha", c_float_list, "gene_beta",
+        c_int, "nrates", c_int, "max_iter"])
+export(spidir, "allocRatesEM", c_void_p,
+       [c_int, "ntrees", c_int, "nspecies", c_int, "nrates",
+        c_float_p_p, "lengths", c_float_p, "times",
+        c_float_p, "sp_alpha", c_float_p, "sp_beta", 
+        c_float, "gene_alpha", c_float, "gene_beta"])
+export(spidir, "freeRatesEM", c_void_p, [c_void_p, "em"])
+export(spidir, "RatesEM_Init", c_void_p, [c_void_p, "em"])
+export(spidir, "RatesEM_EStep", c_void_p, [c_void_p, "em"])
+export(spidir, "RatesEM_MStep", c_void_p, [c_void_p, "em"])
+export(spidir, "RatesEM_likelihood", c_float, [c_void_p, "em"])
+export(spidir, "RatesEM_getParams", c_void_p,
+       [c_void_p, "em", c_float_p, "params"])
+
 #=============================================================================
 # additional python interface
 
+def read_params(filename):
+    """Read SPIDIR model parameters to a file"""
+    
+    infile = file(filename)
+    params = {}
+    
+    for line in infile:
+        tokens = line.split("\t")
+        key = tokens[0]
+        values = tokens[1:]
+        if key[0].isdigit():
+            key = int(key)
+        params[key] = map(float, values)
+        
+    return params
+
+
+def write_params(filename, params):
+    """Write SPIDIR model parameters to a file"""
+    
+    out = open(filename, "w")
+    for key, value in params.iteritems():
+        out.write("\t".join(map(str, [key] + value)) + "\n")
+    out.close()
+
+    
 
 def make_ptree(tree):
     """Make parent tree array from tree"""
@@ -179,7 +274,9 @@ def make_ptree(tree):
     
     # bring leaves to front
     nodes.sort(cmp=leafsort)
-    nodelookup = util.list2lookup(nodes)
+    nodelookup = {}
+    for i, n in enumerate(nodes):
+        nodelookup[n] = i
     
     for node in nodes:
         if node == tree.root:
@@ -232,12 +329,15 @@ def make_events_array(nodes, events):
     mapping = {"gene": 0,
                "spec": 1,
                "dup": 2}
-    return util.mget(mapping, util.mget(events, nodes))
+    #return util.mget(mapping, util.mget(events, nodes))
+    return [mapping[events[i]] for i in nodes]
 
 
 
 def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
                               events=None):
+
+    from rasmus.bio import phylo
 
     assert birth != death, "birth and death must be different rates"
 
@@ -364,6 +464,65 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
     return l
 
 
+def train_params(length_matrix, times, species, nrates=10, max_iter=10):
+
+    ntrees = len(length_matrix)
+    nspecies = len(length_matrix[0])
+
+    sp_alpha = [1.0] * nspecies
+    sp_beta = [1.0] * nspecies
+    gene_alpha = [1.0]
+    gene_beta = [1.0]
+
+    train(ntrees, nspecies, length_matrix,
+          times,
+          sp_alpha, sp_beta, gene_alpha, gene_beta,
+          nrates, max_iter)
+
+    params = {}
+    params["baserate"] = [gene_alpha[0], gene_beta[0]]
+    for i, sp in enumerate(species):
+        params[sp] = [sp_alpha[i], sp_beta[i]]
+
+    return params
+
+def alloc_rates_em(length_matrix, times, species, nrates):
+
+    ntrees = len(length_matrix)
+    nspecies = len(length_matrix[0])
+
+    assert len(times) == nspecies
+    assert len(species) == nspecies
+
+    sp_alpha = [1.0] * nspecies
+    sp_beta = [1.0] * nspecies
+    gene_alpha = 1.0
+    gene_beta = 1.0
+    
+    return allocRatesEM(ntrees, nspecies, nrates,
+                        c_matrix(c_float, length_matrix),
+                        c_list(c_float, times),
+                        c_list(c_float, sp_alpha),
+                        c_list(c_float, sp_beta), 
+                        gene_alpha, gene_beta)
+
+
+def free_rates_em(em):
+    freeRatesEM(em)
+
+
+def rates_em_get_params(em, species):
+    c_params = c_list(c_float, [0.0] * (2*len(species) + 2))
+    RatesEM_getParams(em, c_params)
+
+    params = {"baserate": [c_params[0], c_params[1]]}
+    for i, sp in enumerate(species):
+        if isinstance(sp, basestring) and sp.isdigit():
+            sp = int(sp)
+        params[sp] = c_params[2+2*i:4+2*i]
+
+    return params
+    
 
 #=============================================================================
 # pyspidir (older code)

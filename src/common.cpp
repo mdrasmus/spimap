@@ -16,6 +16,11 @@
 #include <stdio.h>
 #include <string.h>
 
+// gsl
+#include <gsl/gsl_sf.h>
+
+#include "igammaf/igammaf.h"
+
 // spidir headers
 #include "common.h"
 
@@ -52,6 +57,8 @@ double fchoose(int n, int k)
     return t;
 }
 
+
+extern "C" {
 
 // probability density distribution of the Poisson
 float poisson(int x, float lambda)
@@ -107,14 +114,6 @@ float gamm(float x)
 }
 
 
-// polygamma function \psi^{(0)}(a)
-float polygamma0(float z, int nterms)
-{
-    float sum = 1.0 / z;
-    for (int k=1; k<nterms; k++)
-        sum += 1.0 / (z+k);
-    return -sum;
-}
 
 
 // natural log of the gamma distribution PDF
@@ -126,29 +125,56 @@ float gammalog(float x, float a, float b)
         return -x * b + (a - 1.0) * log(x) + a * log(b) - gammln(a);
 }
 
-float gammaDerivX(float x, float a, float b)
+// the gamma distribution PDF
+float gammaPdf(float x, float a, float b)
 {
-    const float ebx = expf(-b*x);
-    return pow(b, a) / gamm(a) * ((a-1)*pow(x, a-2)*ebx - 
-                                  b*pow(x, a-1)*ebx);
+    if (x <= 0 || a <= 0 || b <= 0)
+        return 0.0;
+    else
+        return exp(-x * b) * pow(x, a - 1.0) * pow(b, a) / gamm(a);
 }
 
 
+// Inverse gamma distribution PDF
+float invgamma(float x, float a, float b)
+{
+    return pow(b, a) / gamm(a) * pow(1/x, a+1) * exp(-b/x);
+}
+
+float invgammaCdf(float x, float a, float b)
+{
+    return incompletegammac(a, b / x) / gamm(a);
+}
+
+double quantInvgamma(double p, double a, double b)
+{
+    return b / invincompletegammac(a, gamm(a) * p);
+}
+
+
+// Drivative of Gamma distribution with respect to x
+float gammaDerivX(float x, float a, float b)
+{ 
+    return pow(b, a) / gamm(a) * exp(-b*x) * pow(x, a-2) * (a - b*x - 1);
+}
+    
+// Drivative of Gamma distribution with respect to a
 float gammaDerivA(float x, float a, float b)
 {
-    const int nterms = 30; // number of terms to use for polygamma approx
-    return exp(-b*x) / gamm(a) * pow(b, a) * pow(x, a-1) *
-        (logf(x) + logf(b) + polygamma0(a, nterms));
+    return exp(-b*x) * pow(x,a-1) * pow(b, a) / gamm(a) * 
+        (log(b) + log(x) - gsl_sf_psi_n(0, a));
 }
 
+// Drivative of Gamma distribution with respect to b
 float gammaDerivB(float x, float a, float b)
 {
-    const float ebx = expf(-b*x);
-    return pow(b, a) / gamm(a) * (a*pow(b, a-1) * ebx -
-                                  x*pow(x, a)*ebx);
+    return pow(x, a-1) / gamm(a) * exp(-b*x) * pow(b, a-1) * (a - x*b);
 }
 
-
+double incompleteGammaC(double s, double x)
+{
+    return incompletegammac(s, x);
+}
 
 // Normal distribution.
 //
@@ -239,6 +265,8 @@ float gammavariate(float alpha, float beta)
 }
 
 
+
+} // extern "C"
 
 // Invert a permutation
 void invertPerm(int *perm, int *inv, int size)
