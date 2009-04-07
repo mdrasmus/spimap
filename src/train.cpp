@@ -90,7 +90,7 @@ public:
         double sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
-                float lngamma = gammalog(em->gtab[j][k], gene_alpha, gene_beta);
+                double lngamma = gammalog(em->gtab[j][k], gene_alpha, gene_beta);
                 if (!isnan(lngamma))
                     sum += em->pgtab[j][k] * lngamma;
             }
@@ -116,9 +116,9 @@ public:
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
-                float g = em->gtab[j][k];
-                float lngamma = gammalog(g, gene_alpha, gene_beta);
-                float gamma = exp(lngamma);
+                double g = em->gtab[j][k];
+                double lngamma = gammalog(g, gene_alpha, gene_beta);
+                double gamma = exp(lngamma);
 
                 if (!isnan(gamma) && gamma != 0.0) {
                     alpha_sum += em->pgtab[j][k] * 
@@ -160,9 +160,9 @@ public:
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
-                float g = em->gtab[j][k];
-                float lngamma = gammalog(g, gene_alpha, gene_beta);
-                float gamma = exp(lngamma);
+                double g = em->gtab[j][k];
+                double lngamma = gammalog(g, gene_alpha, gene_beta);
+                double gamma = exp(lngamma);
                 
                 sum += em->pgtab[j][k] * lngamma;
                 
@@ -203,7 +203,7 @@ public:
         double sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
-                float lngamma = gammalog(em->lengths[j][i], sp_alpha_i, 
+                double lngamma = gammalog(em->lengths[j][i], sp_alpha_i, 
                                 sp_beta_i / (em->gtab[j][k] *
                                              em->times[i]));
                 if (!isnan(lngamma))
@@ -226,11 +226,11 @@ public:
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
-                float g = em->gtab[j][k];
-                float bgt = sp_beta_i / (g * em->times[i]);
-                float l = em->lengths[j][i];
-                float lngamma = gammalog(l, sp_alpha_i, bgt);
-                float gamma = exp(lngamma);
+                double g = em->gtab[j][k];
+                double bgt = sp_beta_i / (g * em->times[i]);
+                double l = em->lengths[j][i];
+                double lngamma = gammalog(l, sp_alpha_i, bgt);
+                double gamma = exp(lngamma);
 
                 if (gamma != 0.0) {
                     alpha_sum += em->pgtab[j][k] * 
@@ -259,11 +259,11 @@ public:
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
-                float g = em->gtab[j][k];
-                float bgt = sp_beta_i / (g * em->times[i]);
-                float l = em->lengths[j][i];
-                float lngamma = gammalog(l, sp_alpha_i, bgt);
-                float gamma = exp(lngamma);
+                double g = em->gtab[j][k];
+                double bgt = sp_beta_i / (g * em->times[i]);
+                double l = em->lengths[j][i];
+                double lngamma = gammalog(l, sp_alpha_i, bgt);
+                double gamma = exp(lngamma);
 
                 sum += em->pgtab[j][k] * lngamma;
                 
@@ -289,17 +289,15 @@ public:
 
     float likelihood()
     {
-        float logl = 0.0;
-
-        EStep();
-
+        double logl = 0.0;
+	
         for (int j=0; j<ntrees; j++) {
-            float sum = 0.0;
+            double sum = 0.0;
             for (int k=0; k<nrates; k++) {
-                float prod = 0.0;
+                double prod = 0.0;
                 for (int i=0; i<nspecies; i++)
                     prod += gammalog(lengths[j][i], sp_alpha[i], 
-                                     sp_beta[i] / (times[i] * gtab[j][k]));
+				     sp_beta[i] / (times[i] * gtab[j][k]));
                 sum += pgtab[j][k] * exp(prod);
             }
             logl += log(sum);

@@ -1,6 +1,6 @@
 
 CXX=g++
-CFLAGS=-I libs
+CFLAGS=-I libs -fPIC
 
 OBJS = gammaf.o \
        igammaf.o \
@@ -13,4 +13,5 @@ igammaf.a: $(OBJS)
 $(OBJS): %.o: %.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
 
-
+clean:
+	rm -rf $(OBJS) igammaf.a

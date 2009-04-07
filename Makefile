@@ -15,7 +15,7 @@ prefix = /usr
 # C++ compiler options
 CXX = g++
 
-CFLAGS = \
+CFLAGS := $(CFLAGS) \
     -Wall -fPIC \
     -Isrc
 
@@ -172,6 +172,7 @@ clean:
 	rm -f $(PROG_OBJS) $(SPIDIR_PROG) $(LIBSPIDIR) \
               $(MATLAB_OBJS) maxml maxml.o \
               $(MATLAB_COMPILE) $(MATLAB_COMPILE_RULES)
+	make -C src/igammaf clean
 
 #=============================================================================
 # dependencies

@@ -107,8 +107,8 @@ export(spidir, "gammaDerivA", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
 export(spidir, "gammaDerivB", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "incompleteGammaC", c_double,
-       [c_double, "s", c_double, "x"])
+#export(spidir, "incompleteGammaC", c_double,
+#       [c_double, "s", c_double, "x"])
 
 # basic tree functions
 export(spidir, "deleteTree", c_int, [c_void_p, "tree"])

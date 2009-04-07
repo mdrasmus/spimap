@@ -100,7 +100,9 @@ def main(conf, args):
             ntrees += 1
             out.write("\t".join(map(str, row)) + "\n")
     except TreeException:
-        error("error with tree %d:" % (ntrees+1) + str(e))
+        error("error with tree %d: " % (ntrees) + str(e))
+    except Exception, e:
+        error("error with tree %d: " % (ntrees) + str(e))
 
 
 conf, args = o.parse_args()
