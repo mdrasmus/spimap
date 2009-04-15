@@ -683,29 +683,11 @@ public:
         events(events),
         params(params)
     {
-        // make parent trees
-        ptree = new int [tree->nnodes];
-        tree2ptree(tree, ptree);
-
-        pstree = new int [stree->nnodes];
-        tree2ptree(stree, pstree);
-
-        // make forward tree
-        makeFtree(tree->nnodes, ptree, &ftree);
-
-        dists = new float [tree->nnodes];
-        tree->getDists(dists);
-
     }
     
     
     ~BranchPriorCalculator()
     {
-        // clean up
-        delete [] ptree;
-        delete [] pstree;
-        delete [] dists;
-        freeFtree(tree->nnodes, ftree);
     }
     
     
@@ -791,12 +773,7 @@ protected:
     SpeciesTree *stree;
     int *recon;
     int *events;
-    SpidirParams *params;
-    
-    int *ptree;
-    int *pstree;
-    int **ftree;
-    float *dists;
+    SpidirParams *params;    
 };
 
   
