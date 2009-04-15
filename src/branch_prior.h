@@ -111,7 +111,7 @@ float branchPrior(Tree *tree,
 
 void getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes);
 
-BranchParams getBranchParams(int node, int *ptree, ReconParams *reconparams);
+BranchParams getBranchParams(int node, Tree *tree, ReconParams *reconparams);
 
 // Reconcile a branch to the species tree
 void reconBranch(int node, 
@@ -124,8 +124,8 @@ void determineFreeBranches(Tree *tree, SpeciesTree *stree,
                            int *recon, int *events, float generate,
                            int *unfold, float *unfolddist, bool *freebranches);
 
-void setRandomMidpoints(int root, int *ptree,
-                        int *subnodes, int nsubnodes, 
+void setRandomMidpoints(int root, Tree *tree,
+                        Node **subnodes, int nsubnodes, 
                         int *recon, int *events, 
                         ReconParams *reconparams);
 

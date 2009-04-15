@@ -64,7 +64,7 @@ void genSubtree(Tree *tree, Node *root,
             reconBranch(root->name, tree, stree,
 			recon, events, params,
                         reconparams);
-            BranchParams bparam = getBranchParams(root->name, ptree, reconparams);            
+            BranchParams bparam = getBranchParams(root->name, tree, reconparams);            
             root->dist = genBranch(generate, bparam.alpha, bparam.beta);
         } else {
             // set branch length above sroot by exponential
@@ -78,11 +78,7 @@ void genSubtree(Tree *tree, Node *root,
         // set reconparams by traversing subtree
         ExtendArray<Node*> subnodes(0, tree->nnodes);
         getSubtree(root, events, &subnodes);
-        
-        ExtendArray<int> subnames(subnodes.size());
-        for (int i=0; i<subnodes.size(); i++)
-            subnames[i] = subnodes[i]->name;
-        
+                
         
         for (int i=0; i<subnodes.size(); i++) {
             reconBranch(subnodes[i]->name, tree, stree,
@@ -92,7 +88,7 @@ void genSubtree(Tree *tree, Node *root,
         
         // propose a setting of midpoints
         reconparams->midpoints[root->name] = 1.0; // TODO: need to understand why this is here
-        setRandomMidpoints(root->name, ptree, subnames, subnodes.size(),
+        setRandomMidpoints(root->name, tree, subnodes, subnodes.size(),
                            recon, events, reconparams);
         
         // loop through all branches in subtree
@@ -100,7 +96,7 @@ void genSubtree(Tree *tree, Node *root,
             Node *node = subnodes[j];
 
             if (recon[node->name] != sroot) {
-                BranchParams bparam = getBranchParams(node->name, ptree, reconparams);
+                BranchParams bparam = getBranchParams(node->name, tree, reconparams);
                 node->dist = genBranch(generate, bparam.alpha, bparam.beta);
             } else {
                 // set branch length above sroot by exponential
