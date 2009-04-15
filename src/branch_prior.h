@@ -78,7 +78,7 @@ public:
     
     int nnodes;
     BranchParams *startparams;
-    BranchParams * midparams;
+    BranchParams *midparams;
     BranchParams *endparams;
     int *startfrac;
     int *endfrac;

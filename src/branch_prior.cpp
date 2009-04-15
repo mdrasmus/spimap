@@ -345,6 +345,46 @@ void determineFreeBranches(Tree *tree, SpeciesTree *stree,
 
 
 
+// Generate a random sample of duplication points
+void setRandomMidpoints(int root, Tree *tree,
+                        Node **subnodes, int nsubnodes, 
+                        int *recon, int *events, 
+                        ReconParams *reconparams)
+{
+    const float esp = .0001;
+    
+    // this should not be here
+    //reconparams->midpoints[ptree[root]] = 1.0;
+    
+    for (int i=0; i<nsubnodes; i++) {
+        int node = subnodes[i]->name;
+        
+        if (events[node] == EVENT_DUP) {
+            float lastpoint;
+            
+            if (tree->nodes[node]->parent != NULL && 
+		recon[node] == recon[tree->nodes[node]->parent->name])
+                // if im the same species branch as my parent 
+                // then he is my last midpoint
+                lastpoint = reconparams->midpoints[tree->nodes[node]->parent->name];
+            else
+                // i'm the first on this branch so the last midpoint is zero
+                lastpoint = 0.0;
+            
+            // pick a midpoint uniformly after the last one
+            float remain = 1.0 - lastpoint;
+            reconparams->midpoints[node] = lastpoint + esp * remain +
+                                           (1.0-2*esp) * remain * frand();
+        } else {
+            // genes or speciations reconcile exactly to the end of the branch
+            // DEL: gene tree roots also reconcile exactly to the end of the branch
+            reconparams->midpoints[node] = 1.0;
+        }
+    }
+}
+
+
+
 // Reconcile a branch to the species tree
 void reconBranch(int node, Tree *tree, SpeciesTree *stree,
 		 int *recon, int *events, 
@@ -432,46 +472,6 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
         reconparams->midparams[node] = BranchParams(totmean, sqrt(totvar));
     }
 }
-
-
-// Generate a random sample of duplication points
-void setRandomMidpoints(int root, Tree *tree,
-                        Node **subnodes, int nsubnodes, 
-                        int *recon, int *events, 
-                        ReconParams *reconparams)
-{
-    const float esp = .0001;
-    
-    // this should not be here
-    //reconparams->midpoints[ptree[root]] = 1.0;
-    
-    for (int i=0; i<nsubnodes; i++) {
-        int node = subnodes[i]->name;
-        
-        if (events[node] == EVENT_DUP) {
-            float lastpoint;
-            
-            if (tree->nodes[node]->parent != NULL && 
-		recon[node] == recon[tree->nodes[node]->parent->name])
-                // if im the same species branch as my parent 
-                // then he is my last midpoint
-                lastpoint = reconparams->midpoints[tree->nodes[node]->parent->name];
-            else
-                // i'm the first on this branch so the last midpoint is zero
-                lastpoint = 0.0;
-            
-            // pick a midpoint uniformly after the last one
-            float remain = 1.0 - lastpoint;
-            reconparams->midpoints[node] = lastpoint + esp * remain +
-                                           (1.0-2*esp) * remain * frand();
-        } else {
-            // genes or speciations reconcile exactly to the end of the branch
-            // DEL: gene tree roots also reconcile exactly to the end of the branch
-            reconparams->midpoints[node] = 1.0;
-        }
-    }
-}
-
 
 
 BranchParams getBranchParams(int node, Tree *tree, ReconParams *reconparams)
