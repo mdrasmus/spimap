@@ -52,7 +52,7 @@ public:
         unfolddist(0)
     {
         startparams = new BranchParams [nnodes];
-        midparams = new BranchParams [nnodes];
+        midparams = new ExtendArray<BranchParams> [nnodes];
         endparams = new BranchParams [nnodes];
         
         startfrac = new int [nnodes];
@@ -78,7 +78,7 @@ public:
     
     int nnodes;
     BranchParams *startparams;
-    BranchParams *midparams;
+    ExtendArray<BranchParams> *midparams;
     BranchParams *endparams;
     int *startfrac;
     int *endfrac;

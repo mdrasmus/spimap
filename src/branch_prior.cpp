@@ -441,9 +441,11 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
     if (recon[node] == recon[nodes[node]->parent->name]) {
         // we begin and end on same branch
         // there are no midparams
-        reconparams->midparams[node] = NULL_PARAM;
+	reconparams->midparams[node].clear();
     } else {
         // we begin and end on different branches
+	reconparams->midparams[node].clear();
+
         float totmean = 0.0;
         float totvar = 0.0;
         int snode;
@@ -464,12 +466,11 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
             parent_snode = -1;
 	
         while (snode != parent_snode && snodes[snode]->parent != NULL) {
-            totmean += params->sp_alpha[snode];
-            totvar += params->sp_beta[snode] * params->sp_beta[snode];
+	    reconparams->midparams[node].
+		append(BranchParams(params->sp_alpha[snode],
+				    params->sp_beta[snode]));
             snode = snodes[snode]->parent->name;
         }
-        
-        reconparams->midparams[node] = BranchParams(totmean, sqrt(totvar));
     }
 }
 
@@ -499,15 +500,10 @@ BranchParams getBranchParams(int node, Tree *tree, ReconParams *reconparams)
     }
     // startfrac == FRAC_NONE, do nothing
     
-    bparam = reconparams->midparams[node];
-    if (!bparam.isNull()) {
-        if (bparam.alpha < 0) {
-            fprintf(stderr, "bparam %f\n", bparam.alpha);
-            fprintf(stderr, "node %d\n", node);
-            assert(0);
-        }
-        totmean += bparam.alpha;
-        totvar  += bparam.beta * bparam.beta;
+    ExtendArray<BranchParams> &bparams = reconparams->midparams[node];
+    for (int i=0; i<bparams.size(); i++) {	
+	totmean += bparams[i].alpha;
+	totvar  += bparams[i].beta * bparams[i].beta;
     }
     
     int endfrac = reconparams->endfrac[node];
