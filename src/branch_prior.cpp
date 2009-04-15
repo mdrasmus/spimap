@@ -344,7 +344,9 @@ void determineFreeBranches(Tree *tree, SpeciesTree *stree,
 }
 
 
-void reconBranch(int node, int *ptree, int *pstree, int *recon, int *events, 
+void reconBranch(int node, 
+		 Tree *tree, SpeciesTree *stree,
+		 int *ptree, int *pstree, int *recon, int *events, 
                  SpidirParams *params,
                  ReconParams *reconparams)
 {
@@ -728,7 +730,8 @@ float subtreeprior(Tree *tree, SpeciesTree *stree,
 	assert(recon[root] != sroot);
 
 	// no midpoints, no integration needed
-	reconBranch(root, ptree, pstree, recon, events, params,
+	reconBranch(root, tree, stree,
+		    ptree, pstree, recon, events, params,
 		    reconparams);
 	return branchlk(dists[root] / generate, 
 			root, ptree, reconparams);
@@ -744,7 +747,7 @@ float subtreeprior(Tree *tree, SpeciesTree *stree,
         
     // reconcile each branch
     for (int i=0; i<subnodes.size(); i++)
-	reconBranch(subnodes[i], ptree, pstree, 
+	reconBranch(subnodes[i], tree, stree, ptree, pstree, 
 		    recon, events, params, reconparams);
     
     if (events[root] != EVENT_DUP) {
