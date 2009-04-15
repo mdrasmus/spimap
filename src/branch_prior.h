@@ -107,7 +107,7 @@ float branchPrior(Tree *tree,
 		  float predupprob, float dupprob, float lossprob);
 
 // get nodes in preorder (starting with given node)
-void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes);
+//void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes);
 
 void getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes);
 
@@ -116,7 +116,6 @@ BranchParams getBranchParams(int node, int *ptree, ReconParams *reconparams);
 // Reconcile a branch to the species tree
 void reconBranch(int node, 
 		 Tree *tree, SpeciesTree *stree, 
-		 int *ptree, int *pstree, 
 		 int *recon, int *events, 
                  SpidirParams *params,
                  ReconParams *reconparams);
