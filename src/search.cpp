@@ -683,10 +683,10 @@ float SpidirBranchLikelihoodFunc::likelihood(Tree *tree) {
     else
         generate = -99;
         
-    return treelk(tree, stree,
-                  recon, events, params,
-                  generate, predupprob, dupprob, lossprob, onlyduploss,
-                  oldduploss);
+    return branchPrior(tree, stree,
+		       recon, events, params,
+		       generate, predupprob, dupprob, lossprob, onlyduploss,
+		       oldduploss);
 }
 
 

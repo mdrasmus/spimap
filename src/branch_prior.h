@@ -11,22 +11,123 @@ typedef void (*geneRateCallback) (float generate, Tree *tree, void *userdata);
 
 extern "C" {
 
-float treelk(int nnodes, int *ptree, float *dists,
-             int nsnodes, int *pstree, 
-             int *recon, int *events,
-             float *mu, float *sigma, float generate, 
-             float predupprob=1.0, float dupprob=1.0, float lossprob=1.0,
-             float alpha=0, float beta=0, bool onlyduploss=false);
+
+
+// fractional branches
+enum {
+    FRAC_NONE,
+    FRAC_DIFF,
+    FRAC_PARENT,
+    FRAC_NODE
+};
+
+
+
+// Branch distribution parameters for one branch
+class BranchParams
+{
+public:
+    BranchParams(float _mu=-1.0, float _sigma=-1.0) :
+        mu(_mu),
+        sigma(_sigma)
+    {}
+    
+    bool isNull()
+    {
+        return mu == -1.0;
+    }
+    
+    float mu;
+    float sigma;
+};
+
+
+// Reconciliation parameters
+class ReconParams
+{
+public:
+    ReconParams(int nnodes) :
+        nnodes(nnodes),
+        unfold(-1),
+        unfolddist(0)
+    {
+        startparams = new BranchParams [nnodes];
+        midparams = new BranchParams [nnodes];
+        endparams = new BranchParams [nnodes];
+        
+        startfrac = new int [nnodes];
+        endfrac = new int [nnodes];
+        midpoints = new float [nnodes];
+        
+        freebranches = new bool [nnodes];
+    }
+    
+    ~ReconParams()
+    {
+        delete [] startparams;
+        delete [] midparams;
+        delete [] endparams;
+        
+        delete [] startfrac;
+        delete [] endfrac;
+        delete [] midpoints;
+        
+        delete [] freebranches;
+    }
+    
+    
+    int nnodes;
+    BranchParams *startparams;
+    BranchParams * midparams;
+    BranchParams *endparams;
+    int *startfrac;
+    int *endfrac;
+    float *midpoints;
+    bool *freebranches;
+    int unfold;
+    float unfolddist;
+};
+
+
+
+
+float branchPrior(int nnodes, int *ptree, float *dists,
+		  int nsnodes, int *pstree, float *sdists,
+		  int *recon, int *events,
+		  float *mu, float *sigma, float generate, 
+		  float predupprob=1.0, float dupprob=1.0, float lossprob=1.0,
+		  float alpha=0, float beta=0, bool onlyduploss=false);
 
 } // extern "C"
 
-float treelk(Tree *tree,
-             SpeciesTree *stree,
-             int *recon, int *events, SpidirParams *params,
-             float generate, 
-             float predupprob, float dupprob, float lossprob,
-             bool onlyduploss=false, bool oldduploss=false,
-             bool duploss=true);
+float branchPrior(Tree *tree,
+		  SpeciesTree *stree,
+		  int *recon, int *events, SpidirParams *params,
+		  float generate, 
+		  float predupprob, float dupprob, float lossprob,
+		  bool onlyduploss=false, bool oldduploss=false,
+		  bool duploss=true);
+
+// get nodes in preorder (starting with given node)
+void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes);
+
+void getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes);
+
+BranchParams getBranchParams(int node, int *ptree, ReconParams *reconparams);
+
+// Reconcile a branch to the species tree
+void reconBranch(int node, int *ptree, int *pstree, int *recon, int *events, 
+                 SpidirParams *params,
+                 ReconParams *reconparams);
+
+void determineFreeBranches(Tree *tree, SpeciesTree *stree, 
+                           int *recon, int *events, float generate,
+                           int *unfold, float *unfolddist, bool *freebranches);
+
+void setRandomMidpoints(int root, int *ptree,
+                        int *subnodes, int nsubnodes, 
+                        int *recon, int *events, 
+                        ReconParams *reconparams);
 
 
 float rareEventsLikelihood(Tree *tree, SpeciesTree *stree, int *recon, 
@@ -81,6 +182,9 @@ void generateBranchLengths(Tree *tree,
                            SpidirParams *params,
                            float generate=-1.0, 
                            int subnode=-1, int subchild=-1);
+
+
+
 
 
 } // namespace spidir

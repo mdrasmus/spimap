@@ -82,6 +82,7 @@ c_float_p_p = POINTER(POINTER(c_float))
 c_int_p = POINTER(c_int)
 c_char_p_p = POINTER(c_char_p)
 
+c_int_list = (c_int_p, lambda x: c_list(c_int, x))
 c_float_list = (c_float_p, lambda x: c_list(c_float, x))
 c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
 
@@ -107,6 +108,15 @@ export(spidir, "gammaDerivA", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
 export(spidir, "gammaDerivB", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "gammaDerivV", c_float,
+       [c_float, "x", c_float, "v"])
+export(spidir, "gammaDerivV2", c_double,
+       [c_float, "x", c_float, "v"])
+export(spidir, "gammaSumPdf", c_double,
+       [c_double, "y", c_int, "n", c_float_list, "alpha",
+        c_float_list, "beta", 
+        c_float, "tol"])
+
 #export(spidir, "incompleteGammaC", c_double,
 #       [c_double, "s", c_double, "x"])
 
@@ -144,11 +154,11 @@ export(spidir, "sampleDupTimes", c_int,
         c_float, "birth", c_float, "death"])
 
 # branch prior functions
-export(spidir, "treelk", c_float,
-       [c_int, "nnodes", c_int_p, "ptree", c_float_p, "dists",
-        c_int, "nsnodes", c_int_p, "pstree", 
-        c_int_p, "recon", c_int_p, "events",
-        c_float_p, "mu", c_float_p, "sigma",
+export(spidir, "branchPrior", c_float,
+       [c_int, "nnodes", c_int_list, "ptree", c_float_list, "dists",
+        c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
+        c_int_list, "recon", c_int_list, "events",
+        c_float_list, "mu", c_float_list, "sigma",
         c_float, "generate", 
         c_float, "predupprob", c_float, "dupprob", c_float, "lossprob",
         c_float, "alpha", c_float, "beta", c_int, "onlyduploss"])
@@ -335,7 +345,7 @@ def make_events_array(nodes, events):
 
 
 def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
-                              events=None):
+                           events=None):
 
     from rasmus.bio import phylo
 
@@ -363,6 +373,38 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
     deleteTree(cstree)
 
     return p
+
+
+def branch_prior(tree, stree, recon, events, params, birth, death):
+
+    ptree, nodes, nodelookup = make_ptree(tree)
+    pstree, snodes, snodelookup = make_ptree(stree)
+    recon2 = make_recon_array(tree, recon, nodes, snodelookup)
+    events2 = make_events_array(nodes, events)
+
+    dists = [x.dist for x in nodes]
+    sdists = [x.dist for x in snodes]
+
+    nnodes = len(nodes)
+    nsnodes = len(snodes)
+
+    mu = [params[x.name][0] for x in snodes]
+    sigma = [params[x.name][1] for x in snodes]
+
+    generate = -1
+    predupprob = .01
+    
+    p = branchPrior(nnodes, ptree, dists, nsnodes, pstree, sdists,
+                    recon2, events2,
+                    mu, sigma,
+                    generate,
+                    predupprob, birth, death,
+                    params["baserate"][0],
+                    params["baserate"][1],
+                    0)
+    return p
+
+
 
 def make_hky_matrix(bgfreq, kappa, t):
     """

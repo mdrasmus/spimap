@@ -56,6 +56,7 @@ SPIDIR_SRC = \
     src/hky.cpp \
     src/common.cpp \
     src/branch_prior.cpp \
+    src/branch_sample.cpp \
     src/birthdeath.cpp \
     src/parsimony.cpp \
     src/phylogeny.cpp \

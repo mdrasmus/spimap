@@ -100,9 +100,9 @@ double gammln(double xx)
 // 
 // found on http://www.rskey.org/gamma.htm   
 //
-float gamm(float x) 
+double gamm(double x) 
 {
-    float ret = (1.000000000190015 + 
+    double ret = (1.000000000190015 + 
                  76.18009172947146 / (x + 1) +  
                  -86.50532032941677 / (x + 2) + 
                  24.01409824083091 / (x + 3) +  
@@ -152,29 +152,148 @@ double quantInvgamma(double p, double a, double b)
 }
 
 
-// Drivative of Gamma distribution with respect to x
+// Derivative of Gamma distribution with respect to x
 float gammaDerivX(float x, float a, float b)
 { 
     return pow(b, a) / gamm(a) * exp(-b*x) * pow(x, a-2) * (a - b*x - 1);
 }
     
-// Drivative of Gamma distribution with respect to a
+// Derivative of Gamma distribution with respect to a
 float gammaDerivA(float x, float a, float b)
 {
     return exp(-b*x) * pow(x,a-1) * pow(b, a) / gamm(a) * 
         (log(b) + log(x) - gsl_sf_psi_n(0, a));
 }
 
-// Drivative of Gamma distribution with respect to b
+// Derivative of Gamma distribution with respect to b
 float gammaDerivB(float x, float a, float b)
 {
     return pow(x, a-1) / gamm(a) * exp(-b*x) * pow(b, a-1) * (a - x*b);
 }
 
+// Derivative of Gamma distribution with respect to nu (its variance)
+float gammaDerivV(float x, float v)
+{
+    float q = 1.0 / v;
+    
+    double w = log(q)*(q+2) + log(x)*(q-1) -x * q - gammln(q);
+    double z = 1 - x + log(q) + log(x) - gsl_sf_psi_n(0, q);
+
+    if (z > 0)
+	return -exp(w + log(z));
+    else
+	return exp(w + log(-z));
+    
+
+    //return - pow(q, q+2) * pow(x, q-1) * exp(-x * q) / gamm(q) * 
+    //	(1 - x + log(q) + log(x) - gsl_sf_psi_n(0, q));
+}
+
+// Second Derivative of Gamma distribution with respect to nu (its variance)
+double gammaDerivV2(float x, float v)
+{
+    float q = 1.0 / v;
+    float lnx = log(x);
+    float lnq = log(q);
+    float A = 1.0 + v - x + lnx;
+    float psi0 = gsl_sf_psi_n(0, q);
+    float psi1 = gsl_sf_psi_n(1, q);
+
+    double w = -x*q + lnq*(q+4) + lnx*(q-1) - gammln(q);
+    double z = 1 + 3*v - 2*x - 2*v*x + x*x + lnq*lnq - lnx*lnx +
+	2*A*lnx + 2*A*lnq -
+	2*(A+lnq)*psi0 + psi0*psi0 - psi1;
+    double y;
+
+    if (z > 0.0)
+	y = exp(w + log(z));
+    else
+	y = -exp(w + log(-z));
+    
+    //printf("x=%f, v=%f, y=%f %f; %f %f\n", x, v, y, gammln(q), w, z);
+
+    //assert(y < INFINITY);
+    //assert(y > -INFINITY);
+    //assert(!isnan(y));
+
+    return y;
+
+    /*
+    return exp(-x*q) * pow(q,q+4)*pow(x,q-1)/gamm(q) *
+	(1 + 3*v - 2*x - 2*v*x + x*x + lnq*lnq - lnx*lnx +
+	 2*A*lnx + 2*A*lnq -
+	 2*(A+lnq)*psi0 + psi0*psi0 - psi1);
+    */
+}
+
+
 double incompleteGammaC(double s, double x)
 {
     return incompletegammac(s, x);
 }
+
+
+// PDF of a sum of n gamma variables
+double gammaSumPdf(double y, int n, float *alpha, float *beta, 
+		   float tol)
+{
+    const int nterms = 100; // maximum number of terms to compute
+
+    // y must be positive
+    if (y <= 0.0)
+        return 0.0;
+
+    double b1 = 1.0 / beta[0];
+    double beta2[n];
+    for (int i=0; i<n; i++) {
+
+	// convert betas into their reciprocals
+	beta2[i] = 1.0 / beta[i];
+
+	// find min beta (b1)
+	if (beta2[i] < b1)
+	    b1 = beta2[i];
+    }
+
+    // compute terms C and p
+    double C = 1.0;
+    double p = 0.0;
+    for (int i=0; i<n; i++) {
+	C *= pow(b1 / beta2[i], alpha[i]);
+	p += alpha[i];	
+    }
+
+
+    double prob = 0.0, prob2 = 0.0;
+    double gammas[nterms]; // originally 1-indexed
+    double deltas[nterms]; // zero-indexed
+    deltas[0] = 1.0;
+    for (int i=0; i<nterms-1; i++) {
+        int k = i + 1;
+        gammas[i] = 0.0;
+	for (int j=0; j<n; j++)
+            gammas[i] += alpha[j] * pow(1.0 - b1 / beta2[j], k) / k;
+	
+        k = i;
+        deltas[k+1] = 0.0;
+	for (int j=1; j<k+2; j++)
+	    deltas[k+1] += j * gammas[j-1] * deltas[k+1-j];
+	deltas[k+1] /= (k+1);
+
+        prob2 = deltas[k] * pow(y, p+k-1) * exp(-y/b1) /
+	    (gamm(p+k) * pow(b1, p+k));
+
+        prob += prob2;
+
+	// test for convergence
+	if (prob2 / prob < tol)
+	    break;
+    }
+
+    return C * prob;
+}
+
+
 
 // Normal distribution.
 //

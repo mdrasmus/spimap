@@ -74,21 +74,31 @@ extern "C" {
 
 float poisson(int x, float lambda);
 double gammln(double xx);
-float gamm(float x);
+double gamm(double x);
 float gammalog(float x, float a, float b);
 float gammaPdf(float x, float a, float b);
 float invgamma(float x, float a, float b);
 float invgammaCdf(float x, float a, float b);
 double quantInvgamma(double p, double a, double b);
 
-// Drivative of Gamma distribution with respect to x
+// Derivative of Gamma distribution with respect to x
 float gammaDerivX(float x, float a, float b);
     
-// Drivative of Gamma distribution with respect to a
+// Derivative of Gamma distribution with respect to a
 float gammaDerivA(float x, float a, float b);
 
-// Drivative of Gamma distribution with respect to b
+// Derivative of Gamma distribution with respect to b
 float gammaDerivB(float x, float a, float b);
+
+// Derivative of Gamma distribution with respect to nu (its variance)
+float gammaDerivV(float x, float v);
+
+// Second Derivative of Gamma distribution with respect to nu (its variance)
+double gammaDerivV2(float x, float v);
+
+// PDF of a sum of n gamma variables
+double gammaSumPdf(double y, int n, float *alpha, float *beta, 
+		   float tol);
 
 float normalvariate(float mu, float sigma);
 float gammavariate(float alpha, float beta);

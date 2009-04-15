@@ -13,6 +13,9 @@ import spidir
 from rasmus.common import *
 from test import *
 
+if os.system("xpdf") != 0:
+    rplot_set_viewer("display")
+
 
 def gamma_deriv_x(x, a, b):
     return b**a / gamma(a) * exp(-b*x) * pow(x, a-2) * (a - b*x - 1)
@@ -39,7 +42,7 @@ class TestTrain (unittest.TestCase):
         m = spidir.c_matrix(spidir.c_int, [[1,2,3],[4,5,6]])
         print m[1][1]
 
-    def test_train(self):
+    def _test_train(self):
 
         # read data
         stree = readTree("test/data/flies.norm.stree")
@@ -80,15 +83,23 @@ class TestTrain (unittest.TestCase):
         #spidir.write_params("test/output/train.fastleaf/flies.fastleaf.out.params", params)
         
     
-    def _test_gamma_deriv(self):
+    def test_gamma_deriv(self):
         """gamma derivatives"""
 
-        dx = .01
-        a = 2
-        b = 3
-        m = 2
-        x = list(frange(.1, 10, .1))
-        
+        dx = .001
+        a = 2.0
+        b = 3.0
+        m = 2.0
+        x = list(frange(.1, 10, .01))
+
+        def gammav(x, v):
+            return gammaPdf(x, (1.0/v, 1.0/v))
+
+        def dgammav(x, v, dx):
+            return (gammav(x, v+dx) - gammav(x, v)) / dx
+
+
+        '''
         dy = [(gammaPdf(i+dx, (a,b)) - gammaPdf(i, (a,b))) / dx for i in x]
         dy2 = [gamma_deriv_x(i, a, b) for i in x]
 
@@ -117,6 +128,30 @@ class TestTrain (unittest.TestCase):
         rplot("plot", x, dy, t="l")
         rp.lines(x, dy2, t="l", col="red")
         rplot_end(True)
+        '''
+
+        x = list(frange(.01, 1.5, .01))
+
+        dy = [(gammav(m, i+dx) - gammav(m, i)) / dx for i in x]
+        dy2 = [spidir.gammaDerivV(m, i) for i in x]
+        
+        rplot_start("test/output/train/gamma_dv.pdf")
+        rplot("plot", x, dy, t="l")
+        rp.lines(x, dy2, t="l", col="red")
+        rplot_end(True)
+        
+
+        #dy = [(dgammav(m, i+dx, dx/2.0) - dgammav(m, i, dx/2.0))/dx
+        #      for i in x]
+        dy = [(spidir.gammaDerivV(m, i+dx) - spidir.gammaDerivV(m, i)) / dx
+              for i in x]
+        dy2 = [spidir.gammaDerivV2(m, i) for i in x]
+        
+        rplot_start("test/output/train/gamma_dv2.pdf")
+        rplot("plot", x, dy, t="l")
+        rp.lines(x, dy2, t="l", col="red")
+        rplot_end(True)
+
 
 
     def _test_invgamma(self):

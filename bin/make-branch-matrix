@@ -16,6 +16,9 @@ o.add_option("-S", "--smap", dest="smap",
              metavar="<gene to species file>")
 o.add_option("-l", "--lenmatrix", dest="lenmatrix",
              metavar="<branch length matrix output file>")
+o.add_option("-r", "--reroot", dest="reroot",
+             action="store_true")
+
 
 class TreeException (Exception):
     pass
@@ -71,6 +74,39 @@ def iter_branch_lengths(trees, stree, snodes, gene2species):
         yield [revrecon[snode].dist for snode in snodes]
 
 
+def reroot(tree, stree, gene2species):
+    """Moves the root of a tree to match the times of the species tree"""
+    
+    recon  = phylo.reconcile(tree, stree, gene2species)
+    
+    assert len(stree.root.children) == 2, "wrong number of children of root"
+
+    # get species distances
+    a = stree.root.children[0].dist
+    b = stree.root.children[1].dist
+    t = a + b
+    a /= t
+    b /= t
+
+    # get tree distances
+    x = tree.root.children[0].dist
+    y = tree.root.children[1].dist
+    t2 = x + y
+
+    # reroot
+    if recon[tree.root.children[0]] == stree.root.children[0]:
+        tree.root.children[0].dist = a * t2
+        tree.root.children[1].dist = b * t2
+    elif recon[tree.root.children[0]] == stree.root.children[1]:
+        tree.root.children[0].dist = b * t2
+        tree.root.children[1].dist = a * t2
+    else:
+        raise TreeException("Could not reroot tree")
+
+    return tree
+    
+
+
 def main(conf, args):
 
     if conf.stree is None or conf.smap is None:
@@ -95,8 +131,13 @@ def main(conf, args):
 
     ntrees = 1
     try:
-        for row in iter_branch_lengths(read_trees(sys.stdin),
-                                       stree, snodes, gene2species):
+        trees = read_trees(sys.stdin)
+
+        if conf.reroot:
+            trees = (reroot(tree, stree, gene2species)
+                     for tree in trees)
+        
+        for row in iter_branch_lengths(trees, stree, snodes, gene2species):
             ntrees += 1
             out.write("\t".join(map(str, row)) + "\n")
     except TreeException:
