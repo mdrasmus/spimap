@@ -384,6 +384,62 @@ void setRandomMidpoints(int root, Tree *tree,
 }
 
 
+// TODO: remove eventually
+// older method, only used by sampler method
+BranchParams getBranchParams(int node, Tree *tree, 
+			     ReconParams *reconparams)
+{
+    SpidirParams *params = reconparams->params;
+    float totmean = 0.0;
+    float totvar = 0.0;
+    int snode;
+    
+    
+    float *k = reconparams->midpoints;
+    
+    int startfrac = reconparams->startfrac[node];
+    snode = reconparams->startspecies[node];
+    if (startfrac == FRAC_DIFF) {    
+        totmean += (k[node] - k[tree->nodes[node]->parent->name]) * 
+	    params->sp_alpha[snode];
+        totvar  += (k[node] - k[tree->nodes[node]->parent->name]) * 
+	    params->sp_beta[snode] * params->sp_beta[snode];
+    } else if (startfrac == FRAC_PARENT) {
+        float kp = 0;
+        
+        if (!reconparams->freebranches[node])
+            kp = k[tree->nodes[node]->parent->name];
+    
+        totmean += (1.0 - kp) * params->sp_alpha[snode];
+        totvar  += (1.0 - kp) * params->sp_beta[snode] * params->sp_beta[snode];
+    }
+    // startfrac == FRAC_NONE, do nothing
+    
+    ExtendArray<int> &path = reconparams->midspecies[node];
+    for (int i=0; i<path.size(); i++) {	
+	totmean += params->sp_alpha[path[i]];
+	float b = params->sp_beta[path[i]];
+	totvar += b * b;
+    }
+    
+    int endfrac = reconparams->endfrac[node];
+    snode = reconparams->endspecies[node];    
+    if (endfrac == FRAC_PARENT) {    
+        totmean += (1.0 - k[tree->nodes[node]->parent->name]) * 
+	    params->sp_alpha[snode];
+        totvar  += (1.0 - k[tree->nodes[node]->parent->name]) * 
+	    params->sp_beta[snode] * params->sp_beta[snode];
+    } else if (endfrac == FRAC_NODE) {
+        totmean += k[node] * params->sp_alpha[snode];
+        totvar  += k[node] * params->sp_beta[snode] * params->sp_beta[snode];
+    }
+    // endfrac == FRAC_NONE, do nothing
+    
+    return BranchParams(totmean, sqrt(totvar));
+}
+
+
+
 
 // Reconcile a branch to the species tree
 void reconBranch(int node, Tree *tree, SpeciesTree *stree,
@@ -467,67 +523,85 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
 }
 
 
-BranchParams getBranchParams(int node, Tree *tree, 
-			     ReconParams *reconparams)
+
+
+// get times vector from midpoints
+void getReconTimes(int node, Tree *tree, 
+		   ReconParams *reconparams,
+		   ExtendArray<float> &times)
 {
-    SpidirParams *params = reconparams->params;
-    float totmean = 0.0;
-    float totvar = 0.0;
-    int snode;
-    
-    
     float *k = reconparams->midpoints;
+
+    times.clear();   
+
     
+    // start times
     int startfrac = reconparams->startfrac[node];
-    snode = reconparams->startspecies[node];
     if (startfrac == FRAC_DIFF) {    
-        totmean += (k[node] - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_alpha[snode];
-        totvar  += (k[node] - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_beta[snode] * params->sp_beta[snode];
+        times.append(k[node] - k[tree->nodes[node]->parent->name]);
     } else if (startfrac == FRAC_PARENT) {
         float kp = 0;
-        
         if (!reconparams->freebranches[node])
-            kp = k[tree->nodes[node]->parent->name];
-    
-        totmean += (1.0 - kp) * params->sp_alpha[snode];
-        totvar  += (1.0 - kp) * params->sp_beta[snode] * params->sp_beta[snode];
+            kp = k[tree->nodes[node]->parent->name];    
+        times.append(1.0 - kp);
+    } else {
+	// startfrac == FRAC_NONE, do nothing
+	times.append(-1.0);
     }
-    // startfrac == FRAC_NONE, do nothing
-    
+
+    // mid times
     ExtendArray<int> &path = reconparams->midspecies[node];
-    for (int i=0; i<path.size(); i++) {	
-	totmean += params->sp_alpha[path[i]];
-	float b = params->sp_beta[path[i]];
-	totvar += b * b;
+    for (int i=0; i<path.size(); i++) {
+	times.append(1.0);
     }
     
+    // end time
     int endfrac = reconparams->endfrac[node];
-    snode = reconparams->endspecies[node];    
     if (endfrac == FRAC_PARENT) {    
-        totmean += (1.0 - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_alpha[snode];
-        totvar  += (1.0 - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_beta[snode] * params->sp_beta[snode];
+        times.append(1.0 - k[tree->nodes[node]->parent->name]);
     } else if (endfrac == FRAC_NODE) {
-        totmean += k[node] * params->sp_alpha[snode];
-        totvar  += k[node] * params->sp_beta[snode] * params->sp_beta[snode];
+        times.append(k[node]);
+    } else {
+	// endfrac == FRAC_NONE, do nothing
+	times.append(-1.0);
     }
-    // endfrac == FRAC_NONE, do nothing
-    
-    return BranchParams(totmean, sqrt(totvar));
 }
 
 
 
 // Calculate branch likelihood
-float branchlk(float dist, int node, Tree *tree, 
-	       ReconParams *reconparams)
+float branchprob(float dist, int node, Tree *tree, 
+		 ReconParams *reconparams)
 {
-    BranchParams bparam = getBranchParams(node, tree, reconparams);
-    float totmean = bparam.alpha;
-    float totsigma = bparam.beta;
+    ExtendArray<float> times(0, tree->nnodes);
+    getReconTimes(node, tree, reconparams, times);
+    int last = times.size() - 1;
+    
+    float totmean = 0.0;
+    float totvar = 0.0;
+    SpidirParams *params = reconparams->params;
+
+    if (times[0] >= 0.0) {
+	int snode = reconparams->startspecies[node];
+	totmean += times[0] * params->sp_alpha[snode];
+	totvar += times[0] * params->sp_beta[snode] * 
+	    params->sp_beta[snode];
+    }
+
+    for (int i=0; i<reconparams->midspecies[node].size(); i++) {
+	int snode = reconparams->midspecies[node][i];
+	totmean += times[1+i] * params->sp_alpha[snode];
+	totvar += times[1+i] * params->sp_beta[snode] * 
+	    params->sp_beta[snode];
+    }
+
+    if (times[last] >= 0.0) {
+	int snode = reconparams->endspecies[node];
+	totmean += times[last] * params->sp_alpha[snode];
+	totvar += times[last] * params->sp_alpha[snode] * 
+	    params->sp_beta[snode];
+    }
+    
     
     // handle partially-free branches and unfold
     if (reconparams->unfold == node)
@@ -540,18 +614,17 @@ float branchlk(float dist, int node, Tree *tree,
     }
     
     // TODO: should skip this branch in the first place
-    if (totsigma == 0.0)
+    if (totvar == 0.0)
         return 0.0;
     
-    float logl = normallog(dist, totmean, totsigma);
+    float logl = normallog(dist, totmean, sqrt(totvar));
     
     if (isnan(logl)) {
-	printf("dist=%f, totmean=%f, totsigma=%f\n", dist, totmean, totsigma);
+	printf("dist=%f, totmean=%f, totvar=%f\n", dist, totmean, totvar);
 	assert(0);
     }
     return logl;
 }
-
 
 
 
@@ -599,8 +672,8 @@ float subtreeprior_cond(Tree *tree, SpeciesTree *stree,
 	int node = subnodes[j]->name;
 	
 	if (recon[node] != sroot) {
-	    logp += branchlk(tree->nodes[node]->dist / generate, 
-			     node, tree, reconparams);
+	    logp += branchprob(tree->nodes[node]->dist / generate, 
+			       node, tree, reconparams);
 	}
     }
             
@@ -630,8 +703,8 @@ float subtreeprior(Tree *tree, SpeciesTree *stree,
     
     if (events[root] != EVENT_DUP) {
 	// single branch case
-	return branchlk(tree->nodes[root]->dist / generate, 
-			root, tree, reconparams);
+	return branchprob(tree->nodes[root]->dist / generate, 
+			  root, tree, reconparams);
     } else {
         
         // choose number of samples based on number of nodes to integrate over
@@ -1243,6 +1316,41 @@ BranchParams getBranchParams(int node, int *ptree, ReconParams *reconparams)
     
     return BranchParams(totmean, sqrt(totvar));
 }
+
+
+
+
+// Calculate branch likelihood
+float branchlk(float dist, int node, Tree *tree, 
+	       ReconParams *reconparams)
+{
+    BranchParams bparam = getBranchParams(node, tree, reconparams);
+    float totmean = bparam.alpha;
+    float totsigma = bparam.beta;
+    
+    // handle partially-free branches and unfold
+    if (reconparams->unfold == node)
+        dist += reconparams->unfolddist;
+    
+    // augment a branch if it is partially free
+    if (reconparams->freebranches[node]) {
+        if (dist > totmean)
+            dist = totmean;
+    }
+    
+    // TODO: should skip this branch in the first place
+    if (totsigma == 0.0)
+        return 0.0;
+    
+    float logl = normallog(dist, totmean, totsigma);
+    
+    if (isnan(logl)) {
+	printf("dist=%f, totmean=%f, totsigma=%f\n", dist, totmean, totsigma);
+	assert(0);
+    }
+    return logl;
+}
+
 
 
 */
