@@ -114,7 +114,7 @@ void getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes);
 BranchParams getBranchParams(int node, int *ptree, ReconParams *reconparams);
 
 // Reconcile a branch to the species tree
-void reconBranch(int node, Tree *tree, SpeciesTree *stree, 
+void reconBranch(int node, int *ptree, int *pstree, //Tree *tree, SpeciesTree *stree, 
 		 int *recon, int *events, 
                  SpidirParams *params,
                  ReconParams *reconparams);

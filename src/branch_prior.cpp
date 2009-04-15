@@ -344,13 +344,97 @@ void determineFreeBranches(Tree *tree, SpeciesTree *stree,
 }
 
 
-
-// Reconcile a branch to the species tree
-void reconBranch(int node, Tree *tree, SpeciesTree *stree,
-		 // int *ptree, int *pstree, 
-		 int *recon, int *events, 
+void reconBranch(int node, int *ptree, int *pstree, int *recon, int *events, 
                  SpidirParams *params,
                  ReconParams *reconparams)
+{
+    // set fractional branches
+    if (recon[node] == recon[ptree[node]]) {
+        // start reconciles to a subportion of species branch
+        if (events[node] == EVENT_DUP)
+            // only case k's are dependent
+            reconparams->startfrac[node] = FRAC_DIFF;   // k[node] - k[node.parent]
+        else
+            reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
+        
+        reconparams->startparams[node] = 
+	    BranchParams(params->sp_alpha[recon[node]],
+			 params->sp_beta[recon[node]]);
+
+        // there is only one frac
+        reconparams->endfrac[node] = FRAC_NONE;
+        reconparams->endparams[node] = NULL_PARAM;
+    } else {
+        if (events[ptree[node]] == EVENT_DUP) {
+            // start reconciles to last part of species branch
+            reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
+            int snode = recon[ptree[node]];
+            reconparams->startparams[node] = 
+		BranchParams(params->sp_alpha[snode],
+			     params->sp_beta[snode]);
+        } else {
+            reconparams->startfrac[node] = FRAC_NONE;
+            reconparams->startparams[node] = NULL_PARAM;
+        }
+
+        if (events[node] == EVENT_DUP) {
+            // end reconciles to first part of species branch
+            reconparams->endfrac[node] = FRAC_NODE; // k[node]
+            reconparams->endparams[node] = 
+		BranchParams(params->sp_alpha[recon[node]],
+			     params->sp_beta[recon[node]]);
+        } else {
+            // end reconcile to at least one whole species branch
+            reconparams->endfrac[node] = FRAC_NONE;
+            reconparams->endparams[node] = NULL_PARAM;
+        }
+    }
+    
+    // set midparams
+    if (recon[node] == recon[ptree[node]]) {
+        // we begin and end on same branch
+        // there are no midparams
+        reconparams->midparams[node] = NULL_PARAM;
+    } else {
+        // we begin and end on different branches
+        float totmean = 0.0;
+        float totvar = 0.0;
+        int snode;
+
+        // determine most recent species branch which we fully recon to
+        if (events[node] == EVENT_DUP)
+            snode = pstree[recon[node]];
+        else
+            snode = recon[node];
+
+        // walk up species spath until starting species branch
+        // starting species branch is either fractional or NULL
+        
+        int parent_snode;
+        if (ptree[node] != -1)
+            parent_snode = recon[ptree[node]];
+        else
+            parent_snode = -1;
+	
+        while (snode != parent_snode && pstree[snode] != -1) {
+            totmean += params->sp_alpha[snode];
+            totvar += params->sp_beta[snode] * params->sp_beta[snode];
+            snode = pstree[snode];
+        }
+        
+        reconparams->midparams[node] = BranchParams(totmean, sqrt(totvar));
+    }
+}
+
+
+
+
+// Reconcile a branch to the species tree
+void reconBranch2(int node, Tree *tree, SpeciesTree *stree,
+		  // int *ptree, int *pstree, 
+		  int *recon, int *events, 
+		  SpidirParams *params,
+		  ReconParams *reconparams)
 {
     Node** nodes = tree->nodes.get();
     Node** snodes = stree->nodes.get();
@@ -644,7 +728,7 @@ float subtreeprior(Tree *tree, SpeciesTree *stree,
 	assert(recon[root] != sroot);
 
 	// no midpoints, no integration needed
-	reconBranch(root, tree, stree, recon, events, params,
+	reconBranch(root, ptree, pstree, recon, events, params,
 		    reconparams);
 	return branchlk(dists[root] / generate, 
 			root, ptree, reconparams);
@@ -660,7 +744,7 @@ float subtreeprior(Tree *tree, SpeciesTree *stree,
         
     // reconcile each branch
     for (int i=0; i<subnodes.size(); i++)
-	reconBranch(subnodes[i], tree, stree, 
+	reconBranch(subnodes[i], ptree, pstree, 
 		    recon, events, params, reconparams);
     
     if (events[root] != EVENT_DUP) {

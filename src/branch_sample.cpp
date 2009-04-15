@@ -61,7 +61,7 @@ void genSubtree(Tree *tree, Node *root,
                 
         if (recon[root->name] != sroot) {
             // no midpoints
-            reconBranch(root->name, tree, stree, recon, events, params,
+            reconBranch(root->name, ptree, pstree, recon, events, params,
                         reconparams);
             BranchParams bparam = getBranchParams(root->name, ptree, reconparams);            
             root->dist = genBranch(generate, bparam.alpha, bparam.beta);
@@ -84,7 +84,7 @@ void genSubtree(Tree *tree, Node *root,
         
         
         for (int i=0; i<subnodes.size(); i++) {
-            reconBranch(subnodes[i]->name, tree, stree, 
+            reconBranch(subnodes[i]->name, ptree, pstree, 
                         recon, events, params, reconparams);
         }
         
