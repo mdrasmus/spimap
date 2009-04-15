@@ -53,28 +53,29 @@ class SpidirParams
 {
 public:
     SpidirParams(int size, string *_names, 
-                 float *_mu, float *_sigma, float _alpha, float _beta) :
+                 float *_sp_alpha, float *_sp_beta, 
+		 float _gene_alpha, float _gene_beta) :
         nsnodes(size),
-        alpha(_alpha),
-        beta(_beta)
+        gene_alpha(_gene_alpha),
+        gene_beta(_gene_beta)
     {
         names = new string [nsnodes];
-        mu = new float [nsnodes];
-        sigma = new float [nsnodes];
+        sp_alpha = new float [nsnodes];
+        sp_beta = new float [nsnodes];
         
         for (int i=0; i<nsnodes; i++) {
             if (_names)
                 names[i] = _names[i];
-            mu[i] = _mu[i];
-            sigma[i] = _sigma[i];
+            sp_alpha[i] = _sp_alpha[i];
+            sp_beta[i] = _sp_beta[i];
         }
     }
     
     ~SpidirParams()
     {
         delete [] names;
-        delete [] mu;
-        delete [] sigma;
+        delete [] sp_alpha;
+        delete [] sp_beta;
     }
     
     // sorts the parameters to match newnames
@@ -82,10 +83,10 @@ public:
 
     int nsnodes;
     string *names;
-    float *mu;
-    float *sigma;
-    float alpha;
-    float beta;
+    float *sp_alpha;
+    float *sp_beta;
+    float gene_alpha;
+    float gene_beta;
 };
 
 

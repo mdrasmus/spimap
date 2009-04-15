@@ -214,8 +214,8 @@ bool SpidirParams::order(SpeciesTree *stree)
     invertPerm(invperm, perm, nsnodes);    
       
     permute(names, perm, nsnodes);
-    permute(mu, perm, nsnodes);
-    permute(sigma, perm, nsnodes);
+    permute(sp_alpha, perm, nsnodes);
+    permute(sp_beta, perm, nsnodes);
     
     return true;
 }

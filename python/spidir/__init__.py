@@ -158,10 +158,10 @@ export(spidir, "branchPrior", c_float,
        [c_int, "nnodes", c_int_list, "ptree", c_float_list, "dists",
         c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
         c_int_list, "recon", c_int_list, "events",
-        c_float_list, "mu", c_float_list, "sigma",
+        c_float_list, "sp_alpha", c_float_list, "sp_beta",
         c_float, "generate", 
         c_float, "predupprob", c_float, "dupprob", c_float, "lossprob",
-        c_float, "alpha", c_float, "beta", c_int, "onlyduploss"])
+        c_float, "gene_alpha", c_float, "gene_beta"])
 
 
 # parsimony
@@ -388,20 +388,19 @@ def branch_prior(tree, stree, recon, events, params, birth, death):
     nnodes = len(nodes)
     nsnodes = len(snodes)
 
-    mu = [params[x.name][0] for x in snodes]
-    sigma = [params[x.name][1] for x in snodes]
+    sp_alpha = [params[x.name][0] for x in snodes]
+    sp_beta = [params[x.name][1] for x in snodes]
 
     generate = -1
     predupprob = .01
     
     p = branchPrior(nnodes, ptree, dists, nsnodes, pstree, sdists,
                     recon2, events2,
-                    mu, sigma,
+                    sp_alpha, sp_beta,
                     generate,
                     predupprob, birth, death,
                     params["baserate"][0],
-                    params["baserate"][1],
-                    0)
+                    params["baserate"][1])
     return p
 
 

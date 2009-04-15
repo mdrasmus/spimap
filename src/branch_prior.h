@@ -27,18 +27,18 @@ enum {
 class BranchParams
 {
 public:
-    BranchParams(float _mu=-1.0, float _sigma=-1.0) :
-        mu(_mu),
-        sigma(_sigma)
+    BranchParams(float _alpha=-1.0, float _beta=-1.0) :
+        alpha(_alpha),
+        beta(_beta)
     {}
     
     bool isNull()
     {
-        return mu == -1.0;
+        return alpha == -1.0;
     }
     
-    float mu;
-    float sigma;
+    float alpha;
+    float beta;
 };
 
 
@@ -94,9 +94,9 @@ public:
 float branchPrior(int nnodes, int *ptree, float *dists,
 		  int nsnodes, int *pstree, float *sdists,
 		  int *recon, int *events,
-		  float *mu, float *sigma, float generate, 
+		  float *sp_alpha, float *sp_beta, float generate, 
 		  float predupprob=1.0, float dupprob=1.0, float lossprob=1.0,
-		  float alpha=0, float beta=0, bool onlyduploss=false);
+		  float gene_alpha=0, float gene_beta=0);
 
 } // extern "C"
 
@@ -104,9 +104,7 @@ float branchPrior(Tree *tree,
 		  SpeciesTree *stree,
 		  int *recon, int *events, SpidirParams *params,
 		  float generate, 
-		  float predupprob, float dupprob, float lossprob,
-		  bool onlyduploss=false, bool oldduploss=false,
-		  bool duploss=true);
+		  float predupprob, float dupprob, float lossprob);
 
 // get nodes in preorder (starting with given node)
 void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes);
@@ -116,7 +114,8 @@ void getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes);
 BranchParams getBranchParams(int node, int *ptree, ReconParams *reconparams);
 
 // Reconcile a branch to the species tree
-void reconBranch(int node, int *ptree, int *pstree, int *recon, int *events, 
+void reconBranch(int node, Tree *tree, SpeciesTree *stree, 
+		 int *recon, int *events, 
                  SpidirParams *params,
                  ReconParams *reconparams);
 

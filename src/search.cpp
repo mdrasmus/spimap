@@ -667,8 +667,8 @@ SpidirBranchLikelihoodFunc::SpidirBranchLikelihoodFunc(
     dupprob(dupprob),
     lossprob(lossprob),
     estGenerate(estGenerate),
-    onlyduploss(onlyduploss),
-    oldduploss(oldduploss)
+    onlyduploss(onlyduploss), // TODO: remove
+    oldduploss(oldduploss)    // TODO: remove
 {}
 
 
@@ -685,8 +685,7 @@ float SpidirBranchLikelihoodFunc::likelihood(Tree *tree) {
         
     return branchPrior(tree, stree,
 		       recon, events, params,
-		       generate, predupprob, dupprob, lossprob, onlyduploss,
-		       oldduploss);
+		       generate, predupprob, dupprob, lossprob);
 }
 
 

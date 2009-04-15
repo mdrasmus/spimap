@@ -61,10 +61,10 @@ void genSubtree(Tree *tree, Node *root,
                 
         if (recon[root->name] != sroot) {
             // no midpoints
-            reconBranch(root->name, ptree, pstree, recon, events, params,
+            reconBranch(root->name, tree, stree, recon, events, params,
                         reconparams);
             BranchParams bparam = getBranchParams(root->name, ptree, reconparams);            
-            root->dist = genBranch(generate, bparam.mu, bparam.sigma);
+            root->dist = genBranch(generate, bparam.alpha, bparam.beta);
         } else {
             // set branch length above sroot by exponential
             const float preratio = 0.05;
@@ -84,7 +84,7 @@ void genSubtree(Tree *tree, Node *root,
         
         
         for (int i=0; i<subnodes.size(); i++) {
-            reconBranch(subnodes[i]->name, ptree, pstree, 
+            reconBranch(subnodes[i]->name, tree, stree, 
                         recon, events, params, reconparams);
         }
         
@@ -100,7 +100,7 @@ void genSubtree(Tree *tree, Node *root,
 
             if (recon[node->name] != sroot) {
                 BranchParams bparam = getBranchParams(node->name, ptree, reconparams);
-                node->dist = genBranch(generate, bparam.mu, bparam.sigma);
+                node->dist = genBranch(generate, bparam.alpha, bparam.beta);
             } else {
                 // set branch length above sroot by exponential
                 const float preratio = 0.05;
@@ -130,7 +130,7 @@ void generateBranchLengths(Tree *tree,
 {
     // generate a gene rate if it is requested (i.e. generate < 0)
     if (generate < 0.0)
-        generate = gammavariate(params->alpha, params->beta);
+        generate = gammavariate(params->gene_alpha, params->gene_beta);
     
     
     // determine reconciliation parameters
