@@ -131,7 +131,7 @@ void generateBranchLengths(Tree *tree,
     
     
     // determine reconciliation parameters
-    ReconParams reconparams = ReconParams(tree->nnodes);
+    ReconParams reconparams = ReconParams(tree->nnodes, params);
     determineFreeBranches(tree, stree, recon, events, generate,
                           &reconparams.unfold, 
                           &reconparams.unfolddist, 

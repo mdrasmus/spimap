@@ -46,14 +46,15 @@ public:
 class ReconParams
 {
 public:
-    ReconParams(int nnodes) :
+    ReconParams(int nnodes, SpidirParams *params) :
         nnodes(nnodes),
+	params(params),
         unfold(-1),
         unfolddist(0)
     {
-        startparams = new BranchParams [nnodes];
-        midparams = new ExtendArray<BranchParams> [nnodes];
-        endparams = new BranchParams [nnodes];
+        startspecies = new int [nnodes];
+        midspecies = new ExtendArray<int> [nnodes];
+        endspecies = new int [nnodes];
         
         startfrac = new int [nnodes];
         endfrac = new int [nnodes];
@@ -64,9 +65,9 @@ public:
     
     ~ReconParams()
     {
-        delete [] startparams;
-        delete [] midparams;
-        delete [] endparams;
+        delete [] startspecies;
+        delete [] midspecies;
+        delete [] endspecies;
         
         delete [] startfrac;
         delete [] endfrac;
@@ -75,14 +76,17 @@ public:
         delete [] freebranches;
     }
     
-    
     int nnodes;
-    BranchParams *startparams;
-    ExtendArray<BranchParams> *midparams;
-    BranchParams *endparams;
+    SpidirParams *params;
+
+    int *startspecies;
+    ExtendArray<int> *midspecies;
+    int *endspecies;
+
     int *startfrac;
     int *endfrac;
     float *midpoints;
+
     bool *freebranches;
     int unfold;
     float unfolddist;
