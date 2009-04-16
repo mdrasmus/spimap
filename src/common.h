@@ -365,6 +365,11 @@ FILE *getLogFile();
 void setLogLevel(int level);
 bool isLogLevel(int level);
 
+inline float getTimeSince(clock_t last)
+{ 
+    return (clock() - last) / float(CLOCKS_PER_SEC); 
+}
+
 void printError(const char *fmt, ...);
 
 

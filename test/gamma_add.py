@@ -134,13 +134,25 @@ class TestGammaAdd (unittest.TestCase):
                                       params[0],
                                       params[1], tol)
                    for i in x]]
+
+            a, b = params
+            mu = sum(u/v for u,v in zip(a, b))
+            var = sum(u/v/v for u,v in zip(a, b))
+
+            # if alpha > 1
+            a2 = mu*mu/var
+            b2 = mu/var
+            m = (a2-1)/b2
             
+            #y3 = [normalPdf(i, (m, sqrt(var))) for i in x]
+            y3 = [gammaPdf(i, (a2, b2)) for i in x]
 
             rplot_start("test/output/gamma_add/%s.pdf" % name)
             rplot("plot", x, y, t="l")
             for i in xrange(len(y2)):
                 k = i/float(len(y2))
                 rp.lines(x, y2[i], col=rp.rgb(1-k, k, 0))
+            rp.lines(x, y3, col="blue")
             rplot_end(True)
 
         '''
@@ -158,6 +170,8 @@ class TestGammaAdd (unittest.TestCase):
                 for i in xrange(10000)]
         make_plot("3", data, params, [None])#, 5, 7, 10, 20])
         '''
+
+        #print spidir.gammaSumPdf(0.2, 1, [8.0], [30.5], .02)
         
         alphas = [1.0, 5.0, 3.0, 16.0]
         betas = [1.0, 2.0, 3.0, 7.0]
@@ -173,6 +187,29 @@ class TestGammaAdd (unittest.TestCase):
         data = [sum(sample_xs(alphas, betas))
                 for i in xrange(10000)]
         make_plot2("c", data, params, .02)
+
+        
+        alphas = [8.0, 8.0, 8.0, 8.0]
+        betas = [12.0, 10.0, 20.0, 3.0]
+        params = (alphas, betas)
+        data = [sum(sample_xs(alphas, betas))
+                for i in xrange(10000)]
+        make_plot2("c_large", data, params, .02)
+
+
+        alphas = [8.0]
+        betas = [313.0]
+        params = (alphas, betas)
+        data = [sum(sample_xs(alphas, betas))
+                for i in xrange(10000)]
+        make_plot2("c_large2", data, params, .02)
+
+        alphas = [8.0, 8.0]
+        betas = [2.13, 4.26]
+        params = (alphas, betas)
+        data = [sum(sample_xs(alphas, betas))
+                for i in xrange(10000)]
+        make_plot2("c_large3", data, params, .02)
 
         
 if __name__ == "__main__":

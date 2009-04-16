@@ -243,6 +243,10 @@ double gammaSumPdf(double y, int n, float *alpha, float *beta,
     if (y <= 0.0)
         return 0.0;
 
+    // handle case where a single gamma is present
+    if (n == 1)
+	return gammaPdf(y, alpha[0], beta[0]);
+
     double b1 = 1.0 / beta[0];
     double beta2[n];
     for (int i=0; i<n; i++) {

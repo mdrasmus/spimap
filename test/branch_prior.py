@@ -14,7 +14,7 @@ from rasmus.common import *
 from rasmus.bio import phylo
 from test import *
 
-if os.system("xpdf") != 0:
+if os.system("which xpdf") != 0:
     rplot_set_viewer("display")
 
 
@@ -32,21 +32,22 @@ class TestBranchPrior (unittest.TestCase):
         params = spidir.read_params("test/data/sample.param")
         birth = .4
         death = .39
-
-
+        
         
         recon = phylo.reconcile(tree, stree, gene2species)
         events = phylo.labelEvents(tree, recon)
-        p = spidir.branch_prior(tree, stree, recon, events,
-                                params, birth, death)
-        print p
+        p = [spidir.branch_prior(tree, stree, recon, events,
+                                 params, birth, death)
+             for i in xrange(30)]
+        print mean(p), sdev(p)
         
         recon2 = phylo.reconcile(tree2, stree, gene2species)
         events2 = phylo.labelEvents(tree2, recon2)
-        p = spidir.branch_prior(tree2, stree, recon2, events2,
-                                params, birth, death)
+        p = [spidir.branch_prior(tree2, stree, recon2, events2,
+                                 params, birth, death)
+             for i in xrange(30)]
         
-        print p
+        print mean(p), sdev(p)
         
         
 if __name__ == "__main__":

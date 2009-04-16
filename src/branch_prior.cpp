@@ -539,94 +539,146 @@ void getReconTimes(Tree *tree, SpeciesTree *stree,
     // start times
     int startfrac = reconparams->startfrac[node];
     if (startfrac == FRAC_DIFF) {    
-        times.append(k[node] - k[tree->nodes[node]->parent->name]);
+        times.append((k[node] - k[tree->nodes[node]->parent->name]) *
+		     stree->nodes[reconparams->startspecies[node]]->dist);
     } else if (startfrac == FRAC_PARENT) {
         float kp = 0;
         if (!reconparams->freebranches[node])
             kp = k[tree->nodes[node]->parent->name];    
-        times.append(1.0 - kp);
+        times.append((1.0 - kp) * 
+		     stree->nodes[reconparams->startspecies[node]]->dist);
     } else {
 	// startfrac == FRAC_NONE, do nothing
-	times.append(-1.0);
+	//times.append(-1.0);
     }
 
     // mid times
     ExtendArray<int> &path = reconparams->midspecies[node];
     for (int i=0; i<path.size(); i++) {
-	times.append(1.0);
+	times.append(stree->nodes[reconparams->midspecies[node][i]]->dist);
     }
     
     // end time
     int endfrac = reconparams->endfrac[node];
     if (endfrac == FRAC_PARENT) {    
-        times.append(1.0 - k[tree->nodes[node]->parent->name]);
+        times.append((1.0 - k[tree->nodes[node]->parent->name]) *
+		     stree->nodes[reconparams->endspecies[node]]->dist);
     } else if (endfrac == FRAC_NODE) {
-        times.append(k[node]);
+        times.append(k[node] *
+		     stree->nodes[reconparams->endspecies[node]]->dist);
     } else {
 	// endfrac == FRAC_NONE, do nothing
-	times.append(-1.0);
+	//times.append(-1.0);
     }
 }
 
 
 
-// Calculate branch likelihood
+
+// Calculate branch probability
 float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
-		 float generate, ReconParams *reconparams)
+		 float generate, ReconParams *reconparams,
+		 bool approx=true)
 {
+    const float tol = .001;
+    SpidirParams *params = reconparams->params;
     int n = node->name;
+
+    // get times
     ExtendArray<float> times(0, tree->nnodes);
     getReconTimes(tree, stree, n, reconparams, times);
-    int last = times.size() - 1;
-    
-    float totmean = 0.0;
-    float totvar = 0.0;
-    SpidirParams *params = reconparams->params;
+    int nparams = times.size();
 
-    if (times[0] >= 0.0) {
+    // get gammaSum terms 
+    float gs_alpha[nparams];
+    float gs_beta[nparams];
+    int j = 0;
+
+    if (reconparams->startfrac[n] != FRAC_NONE) {
 	int snode = reconparams->startspecies[n];
-	totmean += times[0] * params->sp_alpha[snode];
-	totvar += times[0] * params->sp_beta[snode] * 
-	    params->sp_beta[snode];
+	gs_alpha[j] = params->sp_alpha[snode];
+	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
+	j++;
     }
 
     for (int i=0; i<reconparams->midspecies[n].size(); i++) {
 	int snode = reconparams->midspecies[n][i];
-	totmean += times[1+i] * params->sp_alpha[snode];
-	totvar += times[1+i] * params->sp_beta[snode] * 
-	    params->sp_beta[snode];
+	gs_alpha[j] = params->sp_alpha[snode];
+	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
+	j++;
     }
 
-    if (times[last] >= 0.0) {
+    if (reconparams->endfrac[n] != FRAC_NONE) {
 	int snode = reconparams->endspecies[n];
-	totmean += times[last] * params->sp_alpha[snode];
-	totvar += times[last] * params->sp_alpha[snode] * 
-	    params->sp_beta[snode];
+	gs_alpha[j] = params->sp_alpha[snode];
+	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
+	j++;
+    }
+
+    assert(j == nparams);
+
+    // filter for extreme parameters
+    float mean = 0.0;
+    for (int i=0; i<nparams; i++) {
+	if (isinf(gs_beta[i]) || isnan(gs_beta[i])) {
+	    gs_alpha[i] = gs_alpha[--nparams];
+	    gs_beta[i] = gs_beta[nparams];
+	    i--;
+	} else {
+	    mean += gs_alpha[i] / gs_beta[i];
+	}
+    }
+
+    // remove params with effectively zero mean
+    const float minfrac = .01;
+    float mu = 0.0;
+    float var = 0.0;
+    for (int i=0; i<nparams; i++) {	
+	if (gs_alpha[i] / gs_beta[i] < minfrac * mean) {
+	    gs_alpha[i] = gs_alpha[--nparams];
+	    gs_beta[i] = gs_beta[nparams];
+	    i--;
+	} else {
+	    mu += gs_alpha[i] / gs_beta[i];
+	    var += gs_alpha[i] / gs_beta[i] / gs_beta[i];
+	}
+    }    
+    
+
+    // there is nothing to do
+    if (nparams == 0)
+	return -INFINITY;
+    
+    //float dist = node->dist / generate;
+    
+    float logp;
+    if (approx) {
+	// approximation
+	float a2 = mean*mean/var;
+	float b2 = mean/var;
+	logp = gammalog(node->dist, a2, b2);
+    } else {
+	logp = log(gammaSumPdf(node->dist, nparams, gs_alpha, gs_beta, tol));
     }
     
-    float dist = node->dist / generate;
-    
-    // handle partially-free branches and unfold
-    if (reconparams->unfold == n)
-        dist += reconparams->unfolddist;
-    
-    // augment a branch if it is partially free
-    if (reconparams->freebranches[n]) {
-        if (dist > totmean)
-            dist = totmean;
-    }
-    
-    // TODO: should skip this branch in the first place
-    if (totvar == 0.0)
-        return 0.0;
-    
-    float logl = normallog(dist, totmean, sqrt(totvar));
-    
-    if (isnan(logl)) {
-	printf("dist=%f, totmean=%f, totvar=%f\n", dist, totmean, totvar);
-	assert(0);
-    }
-    return logl;
+    //float diff = fabs(logp - logp2);
+
+    /*
+    if (diff > log(1.3)) {
+	printf("\n"
+	       "n=%d; l=%f; g=%f\n", n, node->dist, generate);
+	printf("t: "); printFloatArray(times, times.size());
+	printf("a: "); printFloatArray(gs_alpha, nparams);
+	printf("b: "); printFloatArray(gs_beta, nparams);
+        
+	printf("logp = %f\n", logp);
+	printf("logp2 = %f\n", logp2);
+	printf("diff = %f\n", diff);
+	}*/
+
+    if(isnan(logp))
+	logp = -INFINITY;
+    return logp;
 }
 
 
@@ -711,8 +763,9 @@ float subtreeprior(Tree *tree, SpeciesTree *stree,
     } else {
         
         // choose number of samples based on number of nodes to integrate over
-        nsamples = int(500*logf(subnodes.size())) + 200;
-        if (nsamples > 2000) nsamples = 2000;
+        //nsamples = int(500*logf(subnodes.size())) + 200;
+        //if (nsamples > 2000) nsamples = 2000;
+	nsamples = 1000;
         	
         // perform integration by sampling
         double prob = 0.0;
@@ -812,7 +865,7 @@ public:
         double logp = -INFINITY;       
         float gstart = params->gene_alpha / params->gene_beta * 0.05;
         float gend = params->gene_alpha / params->gene_beta * 3.0;
-        float step = (gend - gstart) / 5.0;
+        float step = (gend - gstart) / 20.0;
 
 
 	// integrate over gene rates
@@ -873,9 +926,8 @@ float branchPrior(Tree *tree,
         logl = priorcalc.calc();
     }
     
-    
-    printLog(LOG_MEDIUM, "branch prior time: %f\n", (clock() - startTime) /
-             float(CLOCKS_PER_SEC));
+    setLogLevel(LOG_MEDIUM);
+    printLog(LOG_MEDIUM, "branch prior time: %f\n", getTimeSince(startTime));
     
     return logl;
 }
@@ -901,6 +953,7 @@ float branchPrior(int nnodes, int *ptree, float *dists,
     stree.setDepths();
     stree.setDists(sdists);
 
+    srand(time(NULL));
     
     SpidirParams params(nsnodes, NULL, sp_alpha, sp_beta, 
 			gene_alpha, gene_beta);
