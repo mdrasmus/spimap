@@ -20,6 +20,9 @@ from rasmus import stats
 from rasmus.bio import phylo, birthdeath
 
 
+if os.system("which xpdf 2> /dev/null") != 0:
+    rplot_set_viewer("display")
+
 
 def birthDeathCount(ngenes, time, birthRate, deathRate):
     """
@@ -250,7 +253,49 @@ def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom,
 
 #=============================================================================
 
-class TestBirthDeath (unittest.TestCase):
+
+class TestBirthDeath2 (unittest.TestCase):
+
+    def setUp(self):
+        pass
+
+
+    def test_sample_birth(self):
+
+        prep_dir("test/output/birth_death_sample")
+
+        n = 1
+        T = 1.0
+        birth = 2.0
+        death = 0.5
+
+        tic("sampling")
+        samples = [birthdeath.sample_birth_wait_time(n, T, birth, death)
+                   for i in xrange(10000)]        
+        toc()
+
+        tic("samplingC")
+        samples2 = [spidir.sampleBirthWaitTime1(T, birth, death)
+                   for i in xrange(10000)]        
+        toc()
+
+        cond = 1.0 - birthdeath.prob_no_birth(n, T, birth, death)
+
+        x, y2 = distrib(samples, 20)
+        x2, y3 = distrib(samples2, 20)
+        y = [birthdeath.birth_wait_time(i, n, T, birth, death) / cond
+              for i in x]
+
+        rplot_start("test/output/birth_death_sample/sample.pdf")
+        rplot("plot", x, y, t="l")
+        rp.lines(x, y2, col="red")
+        rp.lines(x2, y3, col="blue")
+        rplot_end(True)
+              
+        
+
+
+class TestBirthDeath (object): #unittest.TestCase):
 
     def setUp(self):
         pass

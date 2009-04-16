@@ -87,9 +87,12 @@ void genSubtree(Tree *tree, Node *root,
         
         
         // propose a setting of midpoints
+	const float dupprob = .5, lossprob = .5;
         reconparams->midpoints[root->name] = 1.0; // TODO: need to understand why this is here
-        setRandomMidpoints(root->name, tree, subnodes, subnodes.size(),
-                           recon, events, reconparams);
+        setRandomMidpoints(root->name, tree, stree,
+			   subnodes, subnodes.size(),
+                           recon, events, reconparams,
+			   dupprob, lossprob);
         
         // loop through all branches in subtree
         for (int j=0; j<subnodes.size(); j++) {

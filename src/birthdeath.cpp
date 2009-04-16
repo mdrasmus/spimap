@@ -699,6 +699,150 @@ void setNodeTimes(Tree *tree, float *times)
 }
 
 
+
+//  Probability density for for next birth at time 't' given
+//  'n' lineages starting at time 0, evolving until time 'T' with a
+//  'birth' and 'death' rates for a reconstructed process.
+float birthWaitTime(float t, int n, float T, float birth, float death)
+{    
+    const float l = birth;
+    const float u = death;
+    const float r = l - u;
+    const float a = u / l;
+
+    return n * r * exp(-n*r*t) * \
+           pow(1.0 - a * exp(-r * (T - t)), n-1) / \
+	   pow(1.0 - a * exp(-r * T), n);
+}
+
+//  Probability density for for next birth at time 't' given
+//  'n' lineages starting at time 0, evolving until time 'T' with a
+//  'birth' and 'death' rates for a reconstructed process.
+float birthWaitTime_part(float t, int n, float T, float birth, float death,
+		    float denom)
+{    
+    const float l = birth;
+    const float u = death;
+    const float r = l - u;
+    const float a = u / l;
+
+    return n * r * exp(-n*r*t) * \
+           pow(1.0 - a * exp(-r * (T - t)), n-1) / denom;
+}
+
+//  Probability density for for next birth at time 't' given
+//  'n' lineages starting at time 0, evolving until time 'T' with a
+//  'birth' and 'death' rates for a reconstructed process.
+float birthWaitTimeDenom(int n, float T, float birth, float death)
+{    
+    const float l = birth;
+    const float u = death;
+    const float r = l - u;
+    const float a = u / l;
+
+    return pow(1.0 - a * exp(-r * T), n);
+}
+
+
+// Probability of no birth from 'n' lineages starting at time 0, 
+// evolving until time 'T' with 'birth' and 'death' rates
+// for a reconstructed process.
+float probNoBirth(int n, float T, float birth, float death) 
+{
+    const float l = birth;
+    const float u = death;
+    const float r = l - u;
+
+    return (1.0 - (l*(1.0 - exp(-r * T)))) / \
+	   pow(l - u * exp(-r * T), n);
+}
+
+
+// Sample the next birth event from a reconstructed birthdeath process.
+// Let there be 'n' lineages at time 0 that evolve until time 'T' with
+// 'birth' and 'death' rates.
+// Conditioned that a birth will occur
+float sampleBirthWaitTime(int n, float T, float birth, float death)
+{
+    
+    // TODO: could make this much more efficient (use straight line instead of
+    // flat line).
+    
+    // uses rejection sampling
+    float denom = birthWaitTimeDenom(n, T, birth, death);
+    float start_y = birthWaitTime_part(0, n, T, birth, death, denom);
+    float end_y = birthWaitTime_part(T, n, T, birth, death, denom);
+    float M = max(start_y, end_y);
+    
+    while (true) {
+        float t = frand(T);
+        float f = birthWaitTime_part(t, n, T, birth, death, denom);
+
+        if (frand() <= f / M)
+            return t;
+    }
+}
+
+
+
+
+//  Probability density for for next birth at time 't' given
+//  'n'=1 lineages starting at time 0, evolving until time 'T' with a
+//  'birth' and 'death' rates for a reconstructed process.
+float birthWaitTime1(float t, float T, float birth, float death,
+		    float denom)
+{    
+    const float l = birth;
+    const float u = death;
+    const float r = l - u;
+
+    return r * exp(-r*t) / denom;
+}
+
+//  Probability density for for next birth at time 't' given
+//  'n'=1 lineages starting at time 0, evolving until time 'T' with a
+//  'birth' and 'death' rates for a reconstructed process.
+float birthWaitTimeDenom1(float T, float birth, float death)
+{    
+    const float l = birth;
+    const float u = death;
+    const float r = l - u;
+    const float a = u / l;
+
+    return 1.0 - a * exp(-r * T);
+}
+
+
+// Sample the next birth event from a reconstructed birthdeath process.
+// Let there be 'n'=1 lineages at time 0 that evolve until time 'T' with
+// 'birth' and 'death' rates.
+// Conditioned that a birth will occur
+float sampleBirthWaitTime1(float T, float birth, float death)
+{
+    
+    // TODO: could make this much more efficient (use straight line instead of
+    // flat line).
+    
+    // uses rejection sampling
+    float denom = birthWaitTimeDenom1(T, birth, death);
+    float start_y = birthWaitTime1(0, T, birth, death, denom);
+    float end_y = birthWaitTime1(T, T, birth, death, denom);
+    float M = max(start_y, end_y);
+    
+    while (true) {
+        float t = frand(T);
+        float f = birthWaitTime1(t, T, birth, death, denom);
+
+        if (frand() <= f / M)
+            return t;
+    }
+}
+
+
+
+
+
+
 void sampleDupTimes_helper(Node *node, Tree *stree, 
                            int *recon, int *events,
                            float *times, float *stimes,
@@ -718,6 +862,7 @@ void sampleDupTimes_helper(Node *node, Tree *stree,
             const float start = times[node->parent->name];
             const float difftime = stimes[snode->name] - start;
             
+	    // TODO: should not use uniform birth time
             // sample a duplication time
             times[node->name] = start + frand(difftime);
         }

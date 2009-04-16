@@ -39,6 +39,9 @@ void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
                     float birthRate, float deathRate);
 
 
+float sampleBirthWaitTime1(float T, float birth, float death);
+
+
 }
 
 } // namespace spidir

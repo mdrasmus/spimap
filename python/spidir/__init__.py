@@ -152,6 +152,12 @@ export(spidir, "sampleDupTimes", c_int,
        [c_void_p, "tree", c_void_p, "stree",
         c_int_p, "recon", c_int_p, "events",
         c_float, "birth", c_float, "death"])
+export(spidir, "sampleBirthWaitTime", c_float,
+       [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
+export(spidir, "sampleBirthWaitTime1", c_float,
+       [c_float, "T", c_float, "birth", c_float, "death"])
+
+
 
 # branch prior functions
 export(spidir, "branchPrior", c_float,
@@ -161,7 +167,8 @@ export(spidir, "branchPrior", c_float,
         c_float_list, "sp_alpha", c_float_list, "sp_beta",
         c_float, "generate", 
         c_float, "predupprob", c_float, "dupprob", c_float, "lossprob",
-        c_float, "gene_alpha", c_float, "gene_beta"])
+        c_float, "gene_alpha", c_float, "gene_beta",
+        c_int, "nsamples", c_int, "approx"])
 
 
 # parsimony
@@ -375,7 +382,8 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
     return p
 
 
-def branch_prior(tree, stree, recon, events, params, birth, death):
+def branch_prior(tree, stree, recon, events, params, birth, death,
+                 nsamples=1000, approx=True):
 
     ptree, nodes, nodelookup = make_ptree(tree)
     pstree, snodes, snodelookup = make_ptree(stree)
@@ -400,7 +408,9 @@ def branch_prior(tree, stree, recon, events, params, birth, death):
                     generate,
                     predupprob, birth, death,
                     params["baserate"][0],
-                    params["baserate"][1])
+                    params["baserate"][1],
+                    nsamples,
+                    approx)
     return p
 
 

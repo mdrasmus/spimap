@@ -40,10 +40,12 @@ def rename_leaves(tree, stree, gene2species):
         spnames[sp] += 1
 
 
+
 class TestBirthDeathSim (unittest.TestCase):
 
     def setUp(self):
         pass
+
 
 
     def calc_fit(self, prefix, hist, probs, tabsize=100, pvalue=.01):

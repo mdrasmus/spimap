@@ -346,10 +346,11 @@ void determineFreeBranches(Tree *tree, SpeciesTree *stree,
 
 
 // Generate a random sample of duplication points
-void setRandomMidpoints(int root, Tree *tree,
+void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
                         Node **subnodes, int nsubnodes, 
                         int *recon, int *events, 
-                        ReconParams *reconparams)
+                        ReconParams *reconparams,
+			float birth, float death)
 {
     const float esp = .0001;
     
@@ -373,8 +374,14 @@ void setRandomMidpoints(int root, Tree *tree,
             
             // pick a midpoint uniformly after the last one
             float remain = 1.0 - lastpoint;
-            reconparams->midpoints[node] = lastpoint + esp * remain +
-                                           (1.0-2*esp) * remain * frand();
+            //reconparams->midpoints[node] = lastpoint + esp * remain +
+            //                               (1.0-2*esp) * remain * frand();
+
+	    float time = stree->nodes[recon[node]]->dist;
+	    reconparams->midpoints[node] = lastpoint + esp * remain +
+		sampleBirthWaitTime1(remain * time * (1.0 - esp), 
+				     birth, death) / time;
+
         } else {
             // genes or speciations reconcile exactly to the end of the branch
             // DEL: gene tree roots also reconcile exactly to the end of the branch
@@ -711,102 +718,25 @@ void getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes)
 }
 
 
-// subtree prior conditioned on divergence times
-float subtreeprior_cond(Tree *tree, SpeciesTree *stree,
-			int root,
-			int *recon, 
-			float generate,
-			ReconParams *reconparams,
-			ExtendArray<Node*> &subnodes)
-{
-    float logp = 0.0;
-    int sroot = stree->root->name;
-                    
-    // loop through all branches in subtree
-    for (int j=0; j<subnodes.size(); j++) {
-	int node = subnodes[j]->name;
-	
-	if (recon[node] != sroot) {
-	    logp += branchprob(tree, stree, tree->nodes[node],
-			       generate, reconparams);
-	}
-    }
-            
-
-    return logp;
-}
-
-
-// Calculate the likelihood of a subtree
-float subtreeprior(Tree *tree, SpeciesTree *stree,
-		   int root,
-		   int *recon, int *events, SpidirParams *params,
-		   float generate,
-		   ReconParams *reconparams,
-		   int nsamples=100)
-{
-   
-    // set reconparams by traversing subtree
-    ExtendArray<Node*> subnodes(0, tree->nnodes);
-    getSubtree(tree->nodes[root], events, &subnodes);
-    
-    // reconcile each branch
-    for (int i=0; i<subnodes.size(); i++)
-	if (subnodes[i] != tree->root)
-	    reconBranch(subnodes[i]->name, tree, stree, 
-			recon, events, params, reconparams);
-    
-    if (events[root] != EVENT_DUP) {
-	// single branch case
-	return branchprob(tree, stree, tree->nodes[root],
-			  generate, reconparams);
-    } else {
-        
-        // choose number of samples based on number of nodes to integrate over
-        //nsamples = int(500*logf(subnodes.size())) + 200;
-        //if (nsamples > 2000) nsamples = 2000;
-	nsamples = 1000;
-        	
-        // perform integration by sampling
-        double prob = 0.0;
-        for (int i=0; i<nsamples; i++) {
-            double sampleLogl = 0.0;
-            
-            // propose a setting of midpoints
-	    // TODO: need to understand why this is here
-            if (tree->nodes[root]->parent != NULL)
-                reconparams->midpoints[tree->nodes[root]->parent->name] = 1.0;
-            setRandomMidpoints(root, tree, subnodes, subnodes.size(),
-                               recon, events, reconparams);
-            
-
-	    sampleLogl = subtreeprior_cond(tree, stree,
-					   root,
-					   recon, 
-					   generate,
-					   reconparams,
-					   subnodes);
-	    
-            prob += exp(sampleLogl) / nsamples;
-        }
-        
-        return log(prob);
-    }
-}
-
-
 
 class BranchPriorCalculator
 {
 public:
     BranchPriorCalculator(Tree *tree,
-             SpeciesTree *stree,
-             int *recon, int *events, SpidirParams *params) :
+			  SpeciesTree *stree,
+			  int *recon, int *events, 
+			  SpidirParams *params,
+			  float brith, float death,
+			  int nsamples=1000, bool approx=true) :
         tree(tree),
         stree(stree),
         recon(recon),
         events(events),
-        params(params)
+        params(params),
+	birth(birth),
+	death(death),
+	nsamples(nsamples),
+	approx(approx)
     {
     }
     
@@ -815,6 +745,89 @@ public:
     {
     }
     
+
+
+    // subtree prior conditioned on divergence times
+    float subtreeprior_cond(Tree *tree, SpeciesTree *stree,
+			    int root,
+			    int *recon, 
+			    float generate,
+			    ReconParams *reconparams,
+			    ExtendArray<Node*> &subnodes)
+    {
+	float logp = 0.0;
+	int sroot = stree->root->name;
+                    
+	// loop through all branches in subtree
+	for (int j=0; j<subnodes.size(); j++) {
+	    int node = subnodes[j]->name;
+	
+	    if (recon[node] != sroot && node != tree->root->name) {
+		logp += branchprob(tree, stree, tree->nodes[node],
+				   generate, reconparams);
+	    }
+	}
+            
+
+	return logp;
+    }
+
+
+    // Calculate the likelihood of a subtree
+    float subtreeprior(int root, float generate, ReconParams *reconparams)
+    {
+   
+	// set reconparams by traversing subtree
+	ExtendArray<Node*> subnodes(0, tree->nnodes);
+	getSubtree(tree->nodes[root], events, &subnodes);
+    
+	// reconcile each branch
+	for (int i=0; i<subnodes.size(); i++)
+	    if (subnodes[i] != tree->root)
+		reconBranch(subnodes[i]->name, tree, stree, 
+			    recon, events, params, reconparams);
+    
+	if (events[root] != EVENT_DUP) {
+	    // single branch case
+	    return branchprob(tree, stree, tree->nodes[root],
+			      generate, reconparams);
+	} else {
+        
+	    // choose number of samples based on number of nodes 
+	    // to integrate over
+	    //nsamples = int(500*logf(subnodes.size())) + 200;
+	    //if (nsamples > 2000) nsamples = 2000;
+        	
+	    // perform integration by sampling
+	    double prob = 0.0;
+	    for (int i=0; i<nsamples; i++) {
+		double sampleLogl = 0.0;
+            
+		// propose a setting of midpoints
+		// TODO: need to understand why this is here
+		if (tree->nodes[root]->parent != NULL)
+		    reconparams->midpoints[tree->nodes[root]->parent->name] = 1.0;
+		setRandomMidpoints(root, tree, stree,
+				   subnodes, subnodes.size(),
+				   recon, events, reconparams,
+				   birth, death);
+            
+
+		sampleLogl = subtreeprior_cond(tree, stree,
+					       root,
+					       recon, 
+					       generate,
+					       reconparams,
+					       subnodes);
+	    
+		prob += exp(sampleLogl) / nsamples;
+	    }
+        
+	    return log(prob);
+	}
+    }
+
+
     
     double calc_cond(float generate)
     {
@@ -833,11 +846,7 @@ public:
 
 	// multiple the probability of each subtree
 	for (int i=0; i<rootnodes.size(); i++) {
-	    logp += subtreeprior(tree, stree,
-				 rootnodes[i]->name,
-				 recon, events, params,
-				 generate,
-				 &reconparams);
+	    logp += subtreeprior(rootnodes[i]->name, generate, &reconparams);
 	}
         
         // gene rate probability
@@ -898,7 +907,13 @@ protected:
     SpeciesTree *stree;
     int *recon;
     int *events;
-    SpidirParams *params;    
+    SpidirParams *params;  
+    float birth;
+    float death;
+
+    int nsamples;
+    bool approx;
+  
 };
 
   
@@ -908,7 +923,8 @@ float branchPrior(Tree *tree,
 		  SpeciesTree *stree,
 		  int *recon, int *events, SpidirParams *params,
 		  float generate,
-		  float predupprob, float dupprob, float lossprob)
+		  float predupprob, float birth, float death,
+		  int nsamples, bool approx)
 {
     float logl = 0.0; // log likelihood
         
@@ -917,7 +933,8 @@ float branchPrior(Tree *tree,
     
     //srand(time(NULL));
     
-    BranchPriorCalculator priorcalc(tree, stree, recon, events, params);
+    BranchPriorCalculator priorcalc(tree, stree, recon, events, params,
+				    birth, death, nsamples, approx);
     
     if (generate > 0) {
         // estimate with given generate
@@ -926,7 +943,7 @@ float branchPrior(Tree *tree,
         logl = priorcalc.calc();
     }
     
-    setLogLevel(LOG_MEDIUM);
+    //setLogLevel(LOG_MEDIUM);
     printLog(LOG_MEDIUM, "branch prior time: %f\n", getTimeSince(startTime));
     
     return logl;
@@ -940,8 +957,9 @@ float branchPrior(int nnodes, int *ptree, float *dists,
 		  int nsnodes, int *pstree, float *sdists,
 		  int *recon, int *events,
 		  float *sp_alpha, float *sp_beta, float generate,
-		  float predupprob, float dupprob, float lossprob,
-		  float gene_alpha, float gene_beta)
+		  float predupprob, float birth, float death,
+		  float gene_alpha, float gene_beta,
+		  int nsamples, bool approx)
 {
     // create tree objects
     Tree tree(nnodes);
@@ -961,7 +979,8 @@ float branchPrior(int nnodes, int *ptree, float *dists,
     return branchPrior(&tree, &stree,
 		       recon, events, &params, 
 		       generate, 
-		       predupprob, dupprob, lossprob);
+		       predupprob, birth, death,
+		       nsamples, approx);
 }
 
 } // extern "C"
@@ -984,7 +1003,7 @@ class GeneRateDerivative
 public:
     GeneRateDerivative(Tree *tree, SpeciesTree *stree,
                        int *recon, int *events, SpidirParams *params) :
-        lkcalc(tree, stree, recon, events, params)
+        lkcalc(tree, stree, recon, events, params, 0.0001, 0.0002)
     {
     }
     

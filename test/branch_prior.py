@@ -20,34 +20,42 @@ if os.system("which xpdf") != 0:
 
 class TestBranchPrior (unittest.TestCase):
 
-    def test_branch_prior(self):
+    def test_branch_prior_approx(self):
         """Test branch prior"""
 
         prep_dir("test/output/branch_prior")
+        #out = open("test/output/branch_prior/flies.nt.approx.txt", "w")
+        out = sys.stderr
+
+        treeids = os.listdir("test/data/flies.nt")[:1]
+        treeids = ["0"]
+
+        for treeid in treeids:
         
-        tree = readTree("test/data/sample.tree")
-        tree2 = readTree("test/data/sample2.tree")
-        stree = readTree("test/data/sample.stree")
-        gene2species = genomeutil.readGene2species("test/data/sample.smap")
-        params = spidir.read_params("test/data/sample.param")
-        birth = .4
-        death = .39
+            tree = readTree("test/data/flies.nt/%s/%s.tree" % (treeid, treeid))
+            stree = readTree("test/data/flies.norm.stree")
+            gene2species = genomeutil.readGene2species("test/data/flies.smap")
+            params = spidir.read_params("test/data/flies.nt.param")
+            birth = .4
+            death = .39
+            nsamples = 1000
+        
+            recon = phylo.reconcile(tree, stree, gene2species)
+            events = phylo.labelEvents(tree, recon)
+            p = [spidir.branch_prior(tree, stree, recon, events,
+                                     params, birth, death,
+                                     nsamples, True)
+                 for i in xrange(30)]
+            p2 = [spidir.branch_prior(tree, stree, recon, events,
+                                      params, birth, death,
+                                      nsamples, False)
+                 for i in xrange(30)]
+            print >>out, "\t".join(map(str, [treeid, mean(p), sdev(p),
+                                             mean(p2), sdev(p2)]))
+
+        #out.close()
         
         
-        recon = phylo.reconcile(tree, stree, gene2species)
-        events = phylo.labelEvents(tree, recon)
-        p = [spidir.branch_prior(tree, stree, recon, events,
-                                 params, birth, death)
-             for i in xrange(30)]
-        print mean(p), sdev(p)
-        
-        recon2 = phylo.reconcile(tree2, stree, gene2species)
-        events2 = phylo.labelEvents(tree2, recon2)
-        p = [spidir.branch_prior(tree2, stree, recon2, events2,
-                                 params, birth, death)
-             for i in xrange(30)]
-        
-        print mean(p), sdev(p)
         
         
 if __name__ == "__main__":

@@ -100,7 +100,8 @@ float branchPrior(int nnodes, int *ptree, float *dists,
 		  int *recon, int *events,
 		  float *sp_alpha, float *sp_beta, float generate, 
 		  float predupprob=1.0, float dupprob=1.0, float lossprob=1.0,
-		  float gene_alpha=0, float gene_beta=0);
+		  float gene_alpha=0, float gene_beta=0,
+		  int nsamples=1000, bool approx=true);
 
 } // extern "C"
 
@@ -108,7 +109,8 @@ float branchPrior(Tree *tree,
 		  SpeciesTree *stree,
 		  int *recon, int *events, SpidirParams *params,
 		  float generate, 
-		  float predupprob, float dupprob, float lossprob);
+		  float predupprob, float dupprob, float lossprob,
+		  int nsamples=1000, bool approx=true);
 
 // get nodes in preorder (starting with given node)
 //void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes);
@@ -128,10 +130,11 @@ void determineFreeBranches(Tree *tree, SpeciesTree *stree,
                            int *recon, int *events, float generate,
                            int *unfold, float *unfolddist, bool *freebranches);
 
-void setRandomMidpoints(int root, Tree *tree,
+void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
                         Node **subnodes, int nsubnodes, 
                         int *recon, int *events, 
-                        ReconParams *reconparams);
+                        ReconParams *reconparams,
+			float birth, float death);
 
 
 float rareEventsLikelihood(Tree *tree, SpeciesTree *stree, int *recon, 
