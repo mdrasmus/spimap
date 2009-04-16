@@ -526,7 +526,8 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
 
 
 // get times vector from midpoints
-void getReconTimes(int node, Tree *tree, 
+void getReconTimes(Tree *tree, SpeciesTree *stree, 
+		   int node, 
 		   ReconParams *reconparams,
 		   ExtendArray<float> &times)
 {
@@ -570,11 +571,12 @@ void getReconTimes(int node, Tree *tree,
 
 
 // Calculate branch likelihood
-float branchprob(float dist, int node, Tree *tree, 
-		 ReconParams *reconparams)
+float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
+		 float generate, ReconParams *reconparams)
 {
+    int n = node->name;
     ExtendArray<float> times(0, tree->nnodes);
-    getReconTimes(node, tree, reconparams, times);
+    getReconTimes(tree, stree, n, reconparams, times);
     int last = times.size() - 1;
     
     float totmean = 0.0;
@@ -582,33 +584,34 @@ float branchprob(float dist, int node, Tree *tree,
     SpidirParams *params = reconparams->params;
 
     if (times[0] >= 0.0) {
-	int snode = reconparams->startspecies[node];
+	int snode = reconparams->startspecies[n];
 	totmean += times[0] * params->sp_alpha[snode];
 	totvar += times[0] * params->sp_beta[snode] * 
 	    params->sp_beta[snode];
     }
 
-    for (int i=0; i<reconparams->midspecies[node].size(); i++) {
-	int snode = reconparams->midspecies[node][i];
+    for (int i=0; i<reconparams->midspecies[n].size(); i++) {
+	int snode = reconparams->midspecies[n][i];
 	totmean += times[1+i] * params->sp_alpha[snode];
 	totvar += times[1+i] * params->sp_beta[snode] * 
 	    params->sp_beta[snode];
     }
 
     if (times[last] >= 0.0) {
-	int snode = reconparams->endspecies[node];
+	int snode = reconparams->endspecies[n];
 	totmean += times[last] * params->sp_alpha[snode];
 	totvar += times[last] * params->sp_alpha[snode] * 
 	    params->sp_beta[snode];
     }
     
+    float dist = node->dist / generate;
     
     // handle partially-free branches and unfold
-    if (reconparams->unfold == node)
+    if (reconparams->unfold == n)
         dist += reconparams->unfolddist;
     
     // augment a branch if it is partially free
-    if (reconparams->freebranches[node]) {
+    if (reconparams->freebranches[n]) {
         if (dist > totmean)
             dist = totmean;
     }
@@ -672,8 +675,8 @@ float subtreeprior_cond(Tree *tree, SpeciesTree *stree,
 	int node = subnodes[j]->name;
 	
 	if (recon[node] != sroot) {
-	    logp += branchprob(tree->nodes[node]->dist / generate, 
-			       node, tree, reconparams);
+	    logp += branchprob(tree, stree, tree->nodes[node],
+			       generate, reconparams);
 	}
     }
             
@@ -703,8 +706,8 @@ float subtreeprior(Tree *tree, SpeciesTree *stree,
     
     if (events[root] != EVENT_DUP) {
 	// single branch case
-	return branchprob(tree->nodes[root]->dist / generate, 
-			  root, tree, reconparams);
+	return branchprob(tree, stree, tree->nodes[root],
+			  generate, reconparams);
     } else {
         
         // choose number of samples based on number of nodes to integrate over
