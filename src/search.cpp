@@ -569,7 +569,7 @@ float SpidirSample::findLengths(Tree *tree)
     reconcile(tree, stree, gene2species, recon);
     labelEvents(tree, recon, events);
     
-    generateBranchLengths(tree, stree, recon, events, params);
+    //generateBranchLengths(tree, stree, recon, events, params);
     return 0.0;
 }
 
@@ -586,7 +586,7 @@ float HkySpidirSample::findLengths(Tree *tree)
     float logl = -INFINITY;
     
     for (int i=0; i<maxiter; i++) {
-        generateBranchLengths(tree, stree, recon, events, params);
+        //generateBranchLengths(tree, stree, recon, events, params);
         logl = logadd(logl, calcSeqProbHky(tree, nseqs, seqs, bgfreq, tsvratio));
     }
     logl -= log(maxiter);

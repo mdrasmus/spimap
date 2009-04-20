@@ -62,8 +62,8 @@ SPIDIR_SRC = \
     src/search.cpp \
     src/Sequences.cpp \
     src/Tree.cpp \
-    src/train.cpp \
-    src/branch_sample.cpp 
+    src/train.cpp
+#    src/branch_sample.cpp 
 
 SPIDIR_OBJS = $(SPIDIR_SRC:.cpp=.o)
 

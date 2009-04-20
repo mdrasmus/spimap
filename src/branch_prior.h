@@ -58,6 +58,8 @@ public:
         
         startfrac = new int [nnodes];
         endfrac = new int [nnodes];
+	
+	
         midpoints = new float [nnodes];
         
         freebranches = new bool [nnodes];
@@ -115,7 +117,7 @@ float branchPrior(Tree *tree,
 // get nodes in preorder (starting with given node)
 //void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes);
 
-void getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes);
+bool getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes);
 
 BranchParams getBranchParams(int node, Tree *tree, ReconParams *reconparams);
 
