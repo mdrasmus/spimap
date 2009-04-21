@@ -290,60 +290,6 @@ float rareEventsLikelihood_old(Tree *tree, SpeciesTree *stree, int *recon,
 // likelihood functions
 
 
-
-// TODO: REMOVE this function.  Put logic into estGenerate
-void determineFreeBranches(Tree *tree, SpeciesTree *stree, 
-                           int *recon, int *events, float generate,
-                           int *unfold, float *unfolddist, bool *freebranches)
-{
-    /*
-      find free branches
-
-      A branch is a (partially) free branch if (1) its parent node reconciles to
-      the species tree root, (2) it parent node is a duplication, (3) and the
-      node it self reconciles not to the species tree root.
-
-      A top branch unfolds, if (1) its parent is the root, (2) its parent
-      reconciles to the species tree root, (3) its parent is a duplication, and
-      (4) itself does not reconcile to the species tree root. There is atmost one
-      unfolding branch per tree.
-
-      If a branch is free, augment its length to min(dist, mean)
-    */
-    
-    int sroot = stree->root->name;
-    
-    *unfold = -1;
-    *unfolddist = 0.0;
-    
-    for (int i=0; i<tree->nnodes; i++) {
-        if (tree->nodes[i]->parent &&
-            recon[tree->nodes[i]->parent->name] == sroot &&
-            events[tree->nodes[i]->parent->name] == EVENT_DUP &&
-            recon[i] != sroot)
-        {
-            freebranches[i] = true;
-        } else {
-            freebranches[i] = false;
-        }
-    }
-    
-    // find unfolding branch
-    if (tree->root->nchildren >= 2 &&
-        recon[tree->root->name] == sroot &&
-        events[tree->root->name] == EVENT_DUP)
-    {
-        if (recon[tree->root->children[0]->name] != sroot) {
-            *unfold = tree->root->children[0]->name;
-            *unfolddist = tree->root->children[1]->dist / generate;
-        } else {
-            *unfold = tree->root->children[1]->name;
-            *unfolddist = tree->root->children[0]->dist / generate;
-        }
-    }
-}
-
-
 float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
 		     bool approx)
 {
@@ -706,9 +652,13 @@ public:
         params(params),
 	birth(birth),
 	death(death),
+	reconparams(tree->nnodes, params),
+	rootnodes(0, tree->nnodes),
 	nsamples(nsamples),
 	approx(approx)
     {
+	// determine speciation subtrees	
+	getSpecSubtrees(tree, events, &rootnodes);
     }
     
     
@@ -816,18 +766,7 @@ public:
     double calc_cond(float generate)
     {
         double logp = 0.0;
-
-        // determine reconciliation parameters
-        ReconParams reconparams(tree->nnodes, params);
-        determineFreeBranches(tree, stree, recon, events, generate,
-                              &reconparams.unfold, 
-                              &reconparams.unfolddist, 
-                              reconparams.freebranches);
-
-	// determine speciation subtrees
-	ExtendArray<Node*> rootnodes(0, tree->nnodes);
-	getSpecSubtrees(tree, events, &rootnodes);
-
+	
 	// multiple the probability of each subtree
 	for (int i=0; i<rootnodes.size(); i++) {
 	    logp += subtreeprior(rootnodes[i]->name, generate, &reconparams);
@@ -893,7 +832,9 @@ protected:
     int *events;
     SpidirParams *params;  
     float birth;
-    float death;
+    float death;    
+    ReconParams reconparams;
+    ExtendArray<Node*> rootnodes;
 
     int nsamples;
     bool approx;

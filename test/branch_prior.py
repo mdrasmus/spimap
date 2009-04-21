@@ -82,10 +82,10 @@ class TestBranchPrior (unittest.TestCase):
 
         prep_dir("test/output/branch_prior")
         out = open("test/output/branch_prior/flies.nt.approx.txt", "w")
-        #out = sys.stderr
+        out = sys.stderr
 
         treeids = os.listdir("test/data/flies.nt")
-        #treeids = ["0"]
+        treeids = ["0"]
 
         for treeid in treeids:
         
