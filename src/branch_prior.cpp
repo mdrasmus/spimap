@@ -396,40 +396,50 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
     Node** nodes = tree->nodes.get();
     Node** snodes = stree->nodes.get();
     
+    ExtendArray<BranchPart> &parts = reconparams->parts[node];
+    parts.clear();
     
     // set fractional branches
     if (recon[node] == recon[nodes[node]->parent->name]) {
         // start reconciles to a subportion of species branch
-        if (events[node] == EVENT_DUP)
+        if (events[node] == EVENT_DUP) {
             // only case k's are dependent
-            reconparams->startfrac[node] = FRAC_DIFF;   // k[node] - k[node.parent]
-        else
-            reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
+            //reconparams->startfrac[node] = FRAC_DIFF;   // k[node] - k[node.parent]
+	    parts.append(BranchPart(recon[node], FRAC_DIFF));
+        } else {
+            //reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
+	    parts.append(BranchPart(recon[node], FRAC_PARENT));
+	}
         
-        reconparams->startspecies[node] = recon[node];
+        //reconparams->startspecies[node] = recon[node];
 
         // there is only one frac
-        reconparams->endfrac[node] = FRAC_NONE;
-        reconparams->endspecies[node] = -1;
+        //reconparams->endfrac[node] = FRAC_NONE;
+        //reconparams->endspecies[node] = -1;
+	//parts.append(BranchPart(-1, FRAC_NONE));
     } else {
         if (events[nodes[node]->parent->name] == EVENT_DUP) {
             // start reconciles to last part of species branch
-            reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
+            //reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
             int snode = recon[nodes[node]->parent->name];
-            reconparams->startspecies[node] = snode;
+            //reconparams->startspecies[node] = snode;
+	    parts.append(BranchPart(snode, FRAC_PARENT));
         } else {
-            reconparams->startfrac[node] = FRAC_NONE;
-            reconparams->startspecies[node] = -1;
+            //reconparams->startfrac[node] = FRAC_NONE;
+            //reconparams->startspecies[node] = -1;
+	    //parts.append(BranchPart(-1, FRAC_NONE));
         }
 
         if (events[node] == EVENT_DUP) {
             // end reconciles to first part of species branch
-            reconparams->endfrac[node] = FRAC_NODE; // k[node]
-            reconparams->endspecies[node] = recon[node];
+            //reconparams->endfrac[node] = FRAC_NODE; // k[node]
+            //reconparams->endspecies[node] = recon[node];
+	    parts.append(BranchPart(recon[node], FRAC_NODE));
         } else {
             // end reconcile to at least one whole species branch
-            reconparams->endfrac[node] = FRAC_NONE;
-            reconparams->endspecies[node] = -1;
+            //reconparams->endfrac[node] = FRAC_NONE;
+            //reconparams->endspecies[node] = -1;
+	    //parts.append(BranchPart(-1, FRAC_NONE));
         }
     }
     
@@ -455,7 +465,8 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
             parent_snode = -1;
 	
         while (snode != parent_snode && snodes[snode]->parent != NULL) {
-	    reconparams->midspecies[node].append(snode);
+	    //reconparams->midspecies[node].append(snode);
+	    parts.append(BranchPart(snode, FRAC_ONE));
             snode = snodes[snode]->parent->name;
         }
     } 
@@ -472,7 +483,7 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
 
 
 // get times vector from midpoints
-void getReconTimes(Tree *tree, SpeciesTree *stree, 
+void getReconTimes2(Tree *tree, SpeciesTree *stree, 
 		   int node, 
 		   ReconParams *reconparams,
 		   ExtendArray<float> &times)
@@ -489,7 +500,7 @@ void getReconTimes(Tree *tree, SpeciesTree *stree,
 		     stree->nodes[reconparams->startspecies[node]]->dist);
     } else if (startfrac == FRAC_PARENT) {
         float kp = 0;
-        if (!reconparams->freebranches[node])
+        //if (!reconparams->freebranches[node])
             kp = k[tree->nodes[node]->parent->name];    
         times.append((1.0 - kp) * 
 		     stree->nodes[reconparams->startspecies[node]]->dist);
@@ -498,12 +509,6 @@ void getReconTimes(Tree *tree, SpeciesTree *stree,
 	//times.append(-1.0);
     }
 
-    // mid times
-    ExtendArray<int> &path = reconparams->midspecies[node];
-    for (int i=0; i<path.size(); i++) {
-	times.append(stree->nodes[reconparams->midspecies[node][i]]->dist);
-    }
-    
     // end time
     int endfrac = reconparams->endfrac[node];
     if (endfrac == FRAC_PARENT) {    
@@ -516,8 +521,71 @@ void getReconTimes(Tree *tree, SpeciesTree *stree,
 	// endfrac == FRAC_NONE, do nothing
 	//times.append(-1.0);
     }
+
+    // mid times
+    ExtendArray<int> &path = reconparams->midspecies[node];
+    for (int i=0; i<path.size(); i++) {
+	times.append(stree->nodes[reconparams->midspecies[node][i]]->dist);
+    }
+    
+
 }
 
+// get times vector from midpoints
+void getReconTimes(Tree *tree, SpeciesTree *stree, 
+		   int node, 
+		   ReconParams *reconparams,
+		   ExtendArray<float> &times)
+{
+    float *k = reconparams->midpoints;
+    ExtendArray<BranchPart> &parts = reconparams->parts[node];
+
+
+    times.clear();   
+
+    for (int i=0; i<parts.size(); i++) {
+	float time = stree->nodes[parts[i].species]->dist;
+
+	switch (parts[i].frac) {
+	case FRAC_DIFF:
+	    times.append((k[node] - k[tree->nodes[node]->parent->name]) *
+			 time);
+	    break;
+
+	case FRAC_PARENT:
+	    float kp = k[tree->nodes[node]->parent->name];
+	    times.append((1.0 - kp) * time);
+	    break;
+
+	case FRAC_NODE:
+	    times.append(k[node] * time);
+	    break;
+
+	case FRAC_ONE:
+	    times.append(time);
+	    break;
+	}
+    }
+}
+
+
+// get gamma sum parameters
+void getReconParams(Tree *tree, Node *node, 
+		    ReconParams *reconparams,
+		    float generate,
+		    float *times,
+		    float *gs_alpha,
+		    float *gs_beta)
+{
+    SpidirParams *params = reconparams->params;
+    ExtendArray<BranchPart> &parts = reconparams->parts[node->name];
+
+    for (int j=0; j<parts.size(); j++) {
+	int snode = parts[j].species;
+	gs_alpha[j] = params->sp_alpha[snode];
+	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
+    }
+}
 
 
 
@@ -527,7 +595,6 @@ float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
 		 bool approx=true)
 {
     const float tol = .001;
-    SpidirParams *params = reconparams->params;
     int n = node->name;
 
     // get times
@@ -538,30 +605,10 @@ float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
     // get gammaSum terms 
     float gs_alpha[nparams];
     float gs_beta[nparams];
-    int j = 0;
 
-    if (reconparams->startfrac[n] != FRAC_NONE) {
-	int snode = reconparams->startspecies[n];
-	gs_alpha[j] = params->sp_alpha[snode];
-	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
-	j++;
-    }
+    getReconParams(tree, node, reconparams,
+		   generate, times, gs_alpha, gs_beta);
 
-    for (int i=0; i<reconparams->midspecies[n].size(); i++) {
-	int snode = reconparams->midspecies[n][i];
-	gs_alpha[j] = params->sp_alpha[snode];
-	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
-	j++;
-    }
-
-    if (reconparams->endfrac[n] != FRAC_NONE) {
-	int snode = reconparams->endspecies[n];
-	gs_alpha[j] = params->sp_alpha[snode];
-	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
-	j++;
-    }
-
-    assert(j == nparams);
 
     // filter for extreme parameters
     float mean = 0.0;
@@ -1240,199 +1287,6 @@ void samplePosteriorGeneRate_old(Tree *tree,
     }
 }
 
-
-
-/*
-// get nodes in preorder (starting with given node)
-void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes)
-{
-    subnodes->append(node);
-
-    // recurse
-    if (events[node] == EVENT_DUP) {
-        if (ftree[node][0] != -1)
-            getSubtree(ftree, ftree[node][0], events, subnodes);
-        if (ftree[node][1] != -1)
-            getSubtree(ftree, ftree[node][1], events, subnodes);
-    }
-}
-
-
-// Calculate branch likelihood
-float branchlk(float dist, int node, int *ptree, ReconParams *reconparams)
-{
-    BranchParams bparam = getBranchParams(node, ptree, reconparams);
-    float totmean = bparam.alpha;
-    float totsigma = bparam.beta;
-    
-    // handle partially-free branches and unfold
-    if (reconparams->unfold == node)
-        dist += reconparams->unfolddist;
-    
-    // augment a branch if it is partially free
-    if (reconparams->freebranches[node]) {
-        if (dist > totmean)
-            dist = totmean;
-    }
-    
-    // TODO: should skip this branch in the first place
-    if (totsigma == 0.0)
-        return 0.0;
-    
-    float logl = normallog(dist, totmean, totsigma);
-    
-    if (isnan(logl)) {
-	printf("dist=%f, totmean=%f, totsigma=%f\n", dist, totmean, totsigma);
-	assert(0);
-    }
-    return logl;
-}
-
-
-
-BranchParams getBranchParams(int node, int *ptree, ReconParams *reconparams)
-{
-    float totmean = 0.0;
-    float totvar = 0.0;
-    BranchParams bparam;
-    
-    
-    float *k = reconparams->midpoints;
-    
-    int startfrac = reconparams->startfrac[node];
-    bparam = reconparams->startparams[node];
-    if (startfrac == FRAC_DIFF) {    
-        totmean += (k[node] - k[ptree[node]]) * bparam.alpha;
-        totvar  += (k[node] - k[ptree[node]]) * bparam.beta * bparam.beta;
-    } else if (startfrac == FRAC_PARENT) {
-        float kp = 0;
-        
-        if (!reconparams->freebranches[node])
-            kp = k[ptree[node]];
-    
-        totmean += (1.0 - kp) * bparam.alpha;
-        totvar  += (1.0 - kp) * bparam.beta * bparam.beta;
-    }
-    // startfrac == FRAC_NONE, do nothing
-    
-    bparam = reconparams->midparams[node];
-    if (!bparam.isNull()) {
-        if (bparam.alpha < 0) {
-            fprintf(stderr, "bparam %f\n", bparam.alpha);
-            fprintf(stderr, "node %d\n", node);
-            assert(0);
-        }
-        totmean += bparam.alpha;
-        totvar  += bparam.beta * bparam.beta;
-    }
-    
-    int endfrac = reconparams->endfrac[node];
-    bparam = reconparams->endparams[node];    
-    if (endfrac == FRAC_PARENT) {    
-        totmean += (1.0 - k[ptree[node]]) * bparam.alpha;
-        totvar  += (1.0 - k[ptree[node]]) * bparam.beta * bparam.beta;
-    } else if (endfrac == FRAC_NODE) {
-        totmean += k[node] * bparam.alpha;
-        totvar  += k[node] * bparam.beta * bparam.beta;
-    }
-    // endfrac == FRAC_NONE, do nothing
-    
-    return BranchParams(totmean, sqrt(totvar));
-}
-
-
-
-
-// Calculate branch likelihood
-float branchlk(float dist, int node, Tree *tree, 
-	       ReconParams *reconparams)
-{
-    BranchParams bparam = getBranchParams(node, tree, reconparams);
-    float totmean = bparam.alpha;
-    float totsigma = bparam.beta;
-    
-    // handle partially-free branches and unfold
-    if (reconparams->unfold == node)
-        dist += reconparams->unfolddist;
-    
-    // augment a branch if it is partially free
-    if (reconparams->freebranches[node]) {
-        if (dist > totmean)
-            dist = totmean;
-    }
-    
-    // TODO: should skip this branch in the first place
-    if (totsigma == 0.0)
-        return 0.0;
-    
-    float logl = normallog(dist, totmean, totsigma);
-    
-    if (isnan(logl)) {
-	printf("dist=%f, totmean=%f, totsigma=%f\n", dist, totmean, totsigma);
-	assert(0);
-    }
-    return logl;
-}
-
-
-
-// TODO: remove eventually
-// older method, only used by sampler method
-BranchParams getBranchParams(int node, Tree *tree, 
-			     ReconParams *reconparams)
-{
-    SpidirParams *params = reconparams->params;
-    float totmean = 0.0;
-    float totvar = 0.0;
-    int snode;
-    
-    
-    float *k = reconparams->midpoints;
-    
-    int startfrac = reconparams->startfrac[node];
-    snode = reconparams->startspecies[node];
-    if (startfrac == FRAC_DIFF) {    
-        totmean += (k[node] - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_alpha[snode];
-        totvar  += (k[node] - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_beta[snode] * params->sp_beta[snode];
-    } else if (startfrac == FRAC_PARENT) {
-        float kp = 0;
-        
-        if (!reconparams->freebranches[node])
-            kp = k[tree->nodes[node]->parent->name];
-    
-        totmean += (1.0 - kp) * params->sp_alpha[snode];
-        totvar  += (1.0 - kp) * params->sp_beta[snode] * params->sp_beta[snode];
-    }
-    // startfrac == FRAC_NONE, do nothing
-    
-    ExtendArray<int> &path = reconparams->midspecies[node];
-    for (int i=0; i<path.size(); i++) {	
-	totmean += params->sp_alpha[path[i]];
-	float b = params->sp_beta[path[i]];
-	totvar += b * b;
-    }
-    
-    int endfrac = reconparams->endfrac[node];
-    snode = reconparams->endspecies[node];    
-    if (endfrac == FRAC_PARENT) {    
-        totmean += (1.0 - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_alpha[snode];
-        totvar  += (1.0 - k[tree->nodes[node]->parent->name]) * 
-	    params->sp_beta[snode] * params->sp_beta[snode];
-    } else if (endfrac == FRAC_NODE) {
-        totmean += k[node] * params->sp_alpha[snode];
-        totvar  += k[node] * params->sp_beta[snode] * params->sp_beta[snode];
-    }
-    // endfrac == FRAC_NONE, do nothing
-    
-    return BranchParams(totmean, sqrt(totvar));
-}
-
-
-
-*/
 
 
 

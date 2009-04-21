@@ -18,7 +18,8 @@ enum {
     FRAC_NONE,
     FRAC_DIFF,
     FRAC_PARENT,
-    FRAC_NODE
+    FRAC_NODE,
+    FRAC_ONE
 };
 
 
@@ -42,6 +43,18 @@ public:
 };
 
 
+class BranchPart
+{
+public:
+    BranchPart(int species=-1, int frac=-1) :
+	species(species),
+	frac(frac)
+    {}
+
+    int species;
+    int frac;
+};
+
 // Reconciliation parameters
 class ReconParams
 {
@@ -52,6 +65,8 @@ public:
         unfold(-1),
         unfolddist(0)
     {
+	parts = new ExtendArray<BranchPart> [nnodes];
+
         startspecies = new int [nnodes];
         midspecies = new ExtendArray<int> [nnodes];
         endspecies = new int [nnodes];
@@ -67,6 +82,8 @@ public:
     
     ~ReconParams()
     {
+	delete [] parts;
+
         delete [] startspecies;
         delete [] midspecies;
         delete [] endspecies;
@@ -80,6 +97,8 @@ public:
     
     int nnodes;
     SpidirParams *params;
+
+    ExtendArray<BranchPart> *parts;
 
     int *startspecies;
     ExtendArray<int> *midspecies;
