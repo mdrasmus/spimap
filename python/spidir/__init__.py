@@ -350,6 +350,27 @@ def make_events_array(nodes, events):
     return [mapping[events[i]] for i in nodes]
 
 
+def calc_joint_prob(align, tree, stree, recon, events, params,
+                    birth, death, pretime,
+                    bgfreq, kappa,
+                    maxdoom=20, nsamples=100, branch_approx=True,
+                    terms=False):
+    branchp = branch_prior(tree, stree, recon, events,
+                                  params, birth, death, pretime,
+                                  nsamples, approx=branch_approx)
+    topp = calc_birth_death_prior(tree, stree, recon,
+                                  birth, death, maxdoom,
+                                  events=events)
+    seqlk = calc_seq_likelihood_hky(tree, align, bgfreq, kappa)
+    
+    if terms:
+        return branchp, topp, seqlk
+    else:
+        return branchp + topp + seqlk
+
+
+#=============================================================================
+# topology prior
 
 def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
                            events=None):
@@ -381,6 +402,9 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
 
     return p
 
+
+#=============================================================================
+# branch prior
 
 def branch_prior(tree, stree, recon, events, params, birth, death,
                  pretime_lambda=1.0,
@@ -414,6 +438,8 @@ def branch_prior(tree, stree, recon, events, params, birth, death,
     return p
 
 
+#=============================================================================
+# sequence likelihood
 
 def make_hky_matrix(bgfreq, kappa, t):
     """
@@ -514,6 +540,9 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
     
     return l
 
+
+#=============================================================================
+# training
 
 def train_params(length_matrix, times, species, nrates=10, max_iter=10):
 

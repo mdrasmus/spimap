@@ -209,34 +209,39 @@ public:
 };
 
 
+//=============================================================================
 
-class BranchLikelihoodFunc
+
+class Prior
 {
 public:
-    BranchLikelihoodFunc() {}
-    virtual ~BranchLikelihoodFunc() {}
+    Prior() {}
+    virtual ~Prior() {}
     
-    virtual float likelihood(Tree *tree) { return 0.0; }
-    virtual float likelihood2(Tree *tree) { return 0.0; }
+    virtual float branchPrior(Tree *tree) { return 0.0; }
+    virtual float topologyPrior(Tree *tree) { return 0.0; }
+
     virtual SpeciesTree *getSpeciesTree() { return NULL; }
     virtual int *getGene2species() { return NULL; }    
 };
 
 
-class SpidirBranchLikelihoodFunc : public BranchLikelihoodFunc
+class SpidirPrior : public Prior
 {
 public:
-    SpidirBranchLikelihoodFunc(int nnodes, SpeciesTree *stree, 
-                               SpidirParams *params, 
-                               int *gene2species,
-                               float predupprob, float dupprob, float lossprob,
-                               bool estGenerate, bool onlyduploss=false,
-                               bool oldduploss=false);
-    virtual float likelihood(Tree *tree);
+    SpidirPrior(int nnodes, SpeciesTree *stree, 
+		SpidirParams *params, 
+		int *gene2species,
+		float predupprob, float dupprob, float lossprob,
+		bool estGenerate);
+
+    virtual ~SpidirPrior();
+
+    virtual float branchPrior(Tree *tree);
+    virtual float topologyPrior(Tree *tree);
 
     virtual SpeciesTree *getSpeciesTree() { return stree; }
     virtual int *getGene2species() { return gene2species; }
-    virtual float likelihood2(Tree *tree);
     
 protected:
     int nnodes;
@@ -249,11 +254,11 @@ protected:
     float dupprob;
     float lossprob;
     bool estGenerate;
-    bool onlyduploss;
-    bool oldduploss;
+    float *doomtable;
 };
 
 
+/*
 class HkyBranchLikelihoodFunc : public BranchLikelihoodFunc
 {
 public:
@@ -278,7 +283,7 @@ public:
     float tsvratio; 
 };
 
-
+*/
 
 class SampleFunc
 {
@@ -304,24 +309,60 @@ protected:
 };
 
 
+class TreeSearch
+{
+public:
+
+    TreeSearch()
+    {}
+
+    virtual ~TreeSearch()
+    {}
+
+    virtual Tree *search(Tree *initTree, 
+			 string *genes, 
+			 int nseqs, int seqlen, char **seqs)
+    { return NULL; }
+
+};
+
+
+class TreeSearchClimb : public TreeSearch
+{
+public:
+
+    TreeSearchClimb(Prior *prior,
+		    TopologyProposer *proposer,
+		    BranchLengthFitter *fitter);
+
+    virtual ~TreeSearchClimb();
+
+    virtual Tree *search(Tree *initTree, 
+			 string *genes, 
+			 int nseqs, int seqlen, char **seqs);
+
+
+protected:
+    Prior *prior;
+    TopologyProposer *proposer;
+    BranchLengthFitter *fitter;
+
+};
+
+
+
 
 Tree *getInitialTree(string *genes, int nseqs, int seqlen, char **seqs,
                      SpeciesTree *stree, int *gene2species);
 Tree *getInitialTree(string *genes, int nseqs, int seqlen, char **seqs);
 
 
-Tree *searchClimb(Tree *initTree, 
-                  string *genes, int nseqs, int seqlen, char **seqs,
-                  BranchLikelihoodFunc *lkfunc,
-                  TopologyProposer *proposer,
-                  BranchLengthFitter *fitter);
-
 
 
 Tree *searchMCMC(Tree *initTree, 
                  string *genes, int nseqs, int seqlen, char **seqs,
                  SampleFunc *samples,
-                 BranchLikelihoodFunc *lkfunc,
+                 Prior *lkfunc,
                  TopologyProposer *proposer,
                  BranchLengthFitter *fitter);
 

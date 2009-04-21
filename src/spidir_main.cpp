@@ -24,7 +24,7 @@
 
 
 #define VERSION_INFO  "\
-   ___    SPIDIR v0.9 (beta) 2008 \n\
+   ___    SPIDIR v2.0 2009 \n\
   /0 0\\   SPecies Informed DIstanced-base Reconstruction \n\
   \\___/   Matt Rasmussen \n\
  /// \\\\\\  CSAIL, MIT \n\
@@ -34,14 +34,123 @@
 using namespace std;
 using namespace spidir;
 
-
-
-int main(int argc, char **argv)
+class SpidirConfig
 {
-    // seed random number generator
-    srand(time(NULL));
+public:
+
+    SpidirConfig() 
+    {}
+
+    int parseArgs(int argc, char **argv)
+    {
+	// parse arguments
+	ConfigParser config;
+	config.add(new ConfigParam<string>
+		   ("-a", "--align", "<alignment fasta>", &alignfile, 
+		    "sequence alignment in fasta format"));
+	config.add(new ConfigParam<string>
+		   ("-S", "--smap", "<species map>", &smapfile, 
+		    "gene to species map"));
+	config.add(new ConfigParam<string>
+		   ("-s", "--stree", "<species tree>", &streefile, 
+		    "species tree file in newick format"));
+	config.add(new ConfigParam<string>
+		   ("-p", "--param", "<spidir params file>", &paramsfile, 
+		    "SPIDIR branch length parameters file"));
+	config.add(new ConfigParam<string>
+		   ("-o", "--output", "<output filename prefix>", 
+		    &outprefix, "spidir",
+		    "prefix for all output filenames"));
     
-    // parameters
+    
+	config.add(new ConfigParamComment("Sequence model evolution"));
+	//config.add(new ConfigParam<string>
+	//	   ("-l", "--lengths", "(hky|spidir|hky_spidir|parsimony|birthdeath)", 
+	//	    &lenfitter, "hky",
+	//	    "algorithm for determining branch lengths (default: hky)"));    
+	config.add(new ConfigParam<float>
+		   ("-r", "--tsvratio", "<transition/transversion ratio>", 
+		    &tsvratio, 1.0,
+		    "used for HKY model (default=1.0)"));
+	config.add(new ConfigParam<string>
+		   ("-f", "--bgfreq", "<A freq>,<C ferq>,<G freq>,<T freq>", 
+		    &bgfreqstr, ".25,.25,.25,.25",
+		    "background frequencies (default=0.25,0.25,0.25,0.25)"));
+
+    
+	config.add(new ConfigParamComment("Miscellaneous"));
+	config.add(new ConfigParam<string>
+		   ("", "--search", "mcmc|climb", &search, "mcmc", 
+		    "search algorithm"));
+	config.add(new ConfigParam<int>
+		   ("-i", "--niter", "<# iterations>", 
+		    &niter, 100, 
+		    "number of iterations"));
+	config.add(new ConfigParam<float>
+		   ("-D", "--dupprob", "<duplication probability>", 
+		    &dupprob, 0.0001,
+		    "probability of a node being a duplication (default=-1.0, do not use)"));
+	config.add(new ConfigParam<float>
+		   ("-L", "--lossprob", "<loss probability>", 
+		    &lossprob, 0.00001,
+		    "probability of loss (default=-1.0, do not use)"));
+	config.add(new ConfigParam<float>
+		   ("-P", "--predupprob", "<pre-duplication probability>", 
+		    &predupprob, 1.00,
+		    "probability of a node being a pre-duplication (default=0.01)"));
+	config.add(new ConfigParam<int>
+		   ("", "--quickiter", "<quick iterations>", 
+		    &quickiter, 50,
+		    "number of subproposals (default=50)"));
+	config.add(new ConfigSwitch
+		   ("-g", "--generate", &estGenerate, "estimate generate"));
+	config.add(new ConfigParam<string>
+		   ("-c", "--correct", "<correct tree file>", &correctFile, ""
+		    "check if correct tree is visited in search"));
+	config.add(new ConfigParam<string>
+		   ("", "--prior", "hky|spidir|duploss|birthdeath|none", 
+		    &prioropt, "spidir",
+		    "function for prior (branch and topology)"));
+	config.add(new ConfigParam<int>
+		   ("-b", "--boot", "<# bootstraps>", 
+		    &bootiter, 1,
+		    "number of bootstraps to perform (default: 1)"));
+
+	config.add(new ConfigParam<int>
+		   ("-V", "--verbose", "<verbosity level>", 
+		    &verbose, LOG_LOW, 
+		    "verbosity level 0=quiet, 1=low, 2=medium, 3=high"));
+	config.add(new ConfigParam<string>
+		   ("", "--log", "<log filename>", &logfile, "", 
+		    "log filename.  Use '-' to display on stdout."));
+	config.add(new ConfigSwitch
+		   ("-v", "--version", &version, "display version information"));
+	config.add(new ConfigSwitch
+		   ("-h", "--help", &help, 
+		    "display help information"));
+
+    
+    
+	if (!config.parse(argc, (const char**) argv)) {
+	    if (argc < 2)
+		config.printHelp();
+	    return 1;
+	}
+    
+	// display help
+	if (help) {
+	    config.printHelp();
+	    return 0;
+	}
+    
+	// display version info
+	if (version) {
+	    printf(VERSION_INFO);
+	    return 0;
+	}
+    	
+    }
+
     string alignfile;    
     string smapfile;
     string streefile;
@@ -49,140 +158,108 @@ int main(int argc, char **argv)
     string outprefix;
     string search;
     string correctFile;
-    string lkfuncopt;
-    int niter = 0;
-    string lenfitter;
+    string prioropt;
+    int niter;
+    //string lenfitter;
     float tsvratio;
     string bgfreqstr;
-    float predupprob = 0.01;
-    float dupprob = 1.0;
-    float lossprob = 1.0;
+    float predupprob;
+    float dupprob;
+    float lossprob;
     string logfile;
-    int verbose = LOG_QUIET;
-    bool help = false;
-    bool version = false;
-    bool estGenerate = false;
-    int bootiter = 1;
-    bool oldduploss = false;
+    int verbose;
+    bool help;
+    bool version;
+    bool estGenerate;
+    int bootiter;
     int quickiter;
-    
-    
-    // parse arguments
-    ConfigParser config;
-    config.add(new ConfigParam<string>(
-        "-a", "--align", "<alignment fasta>", &alignfile, 
-        "sequence alignment in fasta format"));
-    config.add(new ConfigParam<string>(
-        "-S", "--smap", "<species map>", &smapfile, 
-        "gene to species map"));
-    config.add(new ConfigParam<string>(
-        "-s", "--stree", "<species tree>", &streefile, 
-        "species tree file in newick format"));
-    config.add(new ConfigParam<string>(
-        "-p", "--param", "<spidir params file>", &paramsfile, 
-        "SPIDIR branch length parameters file"));
-    config.add(new ConfigParam<string>(
-        "-o", "--output", "<output filename prefix>", &outprefix, "spidir",
-        "prefix for all output filenames"));
-    
-    
-    config.add(new ConfigParamComment("Sequence model evolution"));
-    config.add(new ConfigParam<string>(
-        "-l", "--lengths", "(hky|spidir|hky_spidir|parsimony|birthdeath)", &lenfitter, "hky",
-        "algorithm for determining branch lengths (default: hky)"));    
-    config.add(new ConfigParam<float>(
-        "-r", "--tsvratio", "<transition/transversion ratio>", &tsvratio, 1.0,
-        "used for HKY model (default=1.0)"));
-    config.add(new ConfigParam<string>(
-        "-f", "--bgfreq", "<A freq>,<C ferq>,<G freq>,<T freq>", 
-        &bgfreqstr, ".25,.25,.25,.25",
-        "background frequencies (default=0.25,0.25,0.25,0.25)"));
+};
 
-    
-    config.add(new ConfigParamComment("Miscellaneous"));
-    config.add(new ConfigParam<string>(
-        "", "--search", "mcmc|climb", &search, "mcmc", 
-        "search algorithm"));
-    config.add(new ConfigParam<int>(
-        "-i", "--niter", "<# iterations>", &niter, 100, 
-        "number of iterations"));
-    config.add(new ConfigParam<float>(
-        "-D", "--dupprob", "<duplication probability>", &dupprob, -1.0,
-        "probability of a node being a duplication (default=-1.0, do not use)"));
-    config.add(new ConfigParam<float>(
-        "-L", "--lossprob", "<loss probability>", &lossprob, -1.0,
-        "probability of loss (default=-1.0, do not use)"));
-    config.add(new ConfigParam<float>(
-        "-P", "--predupprob", "<pre-duplication probability>", &predupprob, 0.01,
-        "probability of a node being a pre-duplication (default=0.01)"));
-    config.add(new ConfigParam<int>(
-        "", "--quickiter", "<quick iterations>", &quickiter, 50,
-        "number of subproposals (default=50)"));
-    config.add(new ConfigSwitch(
-        "", "--oldduploss", &oldduploss, "old-style dup/loss"));
-    config.add(new ConfigSwitch(
-        "-g", "--generate", &estGenerate, "estimate generate"));
-    config.add(new ConfigParam<string>(
-        "-c", "--correct", "<correct tree file>", &correctFile, ""
-        "check if correct tree is visited in search"));
-    config.add(new ConfigParam<string>(
-        "", "--lkfunc", "hky|spidir|duploss|birthdeath|none", &lkfuncopt, "spidir",
-        "function for branch length likelihood"));
-    config.add(new ConfigParam<int>(
-        "-b", "--boot", "<# bootstraps>", &bootiter,
-        "number of bootstraps to perform (default: 1)"));
 
-    config.add(new ConfigParam<int>(
-        "-V", "--verbose", "<verbosity level>", &verbose, LOG_LOW, 
-        "verbosity level 0=quiet, 1=low, 2=medium, 3=high"));
-    config.add(new ConfigParam<string>(
-        "", "--log", "<log filename>", &logfile, "", 
-        "log filename.  Use '-' to display on stdout."));
-    config.add(new ConfigSwitch(
-        "-v", "--version", &version, "display version information"));
-    config.add(new ConfigSwitch(
-        "-h", "--help", &help, "display help information"));
+// perform bootstrapping
+bool bootstrap(Sequences *aln, string *genes, TreeSearch *search,
+	       int bootiter, string outprefix)
+{
+    // bootstrap
+    if (bootiter > 1) {  
+	Tree *boottree;
+    
+	string bootFilename = outprefix + ".boot.trees";
+	string bootAlignFilename = outprefix + ".boot.align";
+	FILE *bootfile = NULL;
+	FILE *bootAlignfile = NULL;
+            
+	if (! (bootfile = fopen(bootFilename.c_str(), "w"))) {
+	    printError("cannot open '%s' for writing", bootFilename.c_str());
+	    return false;
+	}
+            
+	if (! (bootAlignfile = fopen(bootAlignFilename.c_str(), "w"))) {
+	    printError("cannot open '%s' for writing", bootAlignFilename.c_str());
+	    return false;
+	}
 
+	// create blank alignment for bootstrapping
+	Sequences aln2;
+	aln2.alloc(aln->nseqs, aln->seqlen);
+	for (int i=0; i<aln->nseqs; i++)
+	    aln2.names[i] = aln->names[i];
+
+	for (int i=1; i<bootiter; i++) {
+	    printLog(LOG_LOW, "bootstrap %d of %d\n", i, bootiter);
+	    resampleAlign(aln, &aln2);
+            
+	    boottree = search->search(NULL, genes, 
+				      aln2.nseqs, aln2.seqlen, aln2.seqs);
+
+	    boottree->setLeafNames(genes);
+	    boottree->writeNewick(bootfile, NULL, 0, true);
+	    fprintf(bootfile, "\n");
+	    fflush(bootfile);
+	    delete boottree;            
+
+	    // DEBUG
+	    writeFasta(bootAlignfile, &aln2);
+	}
+
+	fclose(bootfile);
+	fclose(bootAlignfile);
+    } 
     
-    
-    if (!config.parse(argc, (const char**) argv)) {
-        if (argc < 2)
-            config.printHelp();
-        return 1;
-    }
-    
-    // display help
-    if (help) {
-        config.printHelp();
-        return 0;
-    }
-    
-    // display version info
-    if (version) {
-        printf(VERSION_INFO);
-        return 0;
-    }
-    
+    return true;
+}
+
+
+
+int main(int argc, char **argv)
+{
+    // seed random number generator
+    srand(time(NULL));
+
+    SpidirConfig c;
+    int ret = c.parseArgs(argc, argv);
+    if (ret)
+	return ret;
     
     //============================================================
     // output filenames
-    string outtreeFilename = outprefix  + ".tree";
+    string outtreeFilename = c.outprefix  + ".tree";
     
     // use default log filename
-    if (logfile == "")
-        logfile = outprefix + ".log";
+    if (c.logfile == "")
+        c.logfile = c.outprefix + ".log";
     
-    if (logfile == "-") {
+    if (c.logfile == "-") {
         // use standard out
         openLogFile(stdout);
     } else {
-        if (!openLogFile(logfile.c_str())) {
-            printError("cannot open log file '%s'.", logfile.c_str());
+        if (!openLogFile(c.logfile.c_str())) {
+            printError("cannot open log file '%s'.", c.logfile.c_str());
             return 1;
         }
     }
     
-    setLogLevel(verbose);
+    setLogLevel(c.verbose);
     
     if (isLogLevel(LOG_LOW)) {
         printLog(LOG_LOW, "SPIDIR executed with the following arguments:\n");
@@ -196,8 +273,8 @@ int main(int argc, char **argv)
     //============================================================
     // read species tree
     SpeciesTree stree;
-    if (!stree.readNewick(streefile.c_str())) {
-        printError("error reading species tree '%s'", streefile.c_str());
+    if (!stree.readNewick(c.streefile.c_str())) {
+        printError("error reading species tree '%s'", c.streefile.c_str());
         return 1;
     }
     stree.setDepths();
@@ -206,7 +283,7 @@ int main(int argc, char **argv)
     // read sequences
     Sequences *aln;
     
-    if ((aln = readAlignFasta(alignfile.c_str())) == NULL ||
+    if ((aln = readAlignFasta(c.alignfile.c_str())) == NULL ||
         !checkSequences(aln->nseqs, aln->seqlen, aln->seqs)) {
         printError("bad alignment file");
         return 1;
@@ -220,9 +297,9 @@ int main(int argc, char **argv)
 
     // read SPIDIR parameters
     SpidirParams *params;
-    if ((params = readSpidirParams(paramsfile.c_str())) == NULL)
+    if ((params = readSpidirParams(c.paramsfile.c_str())) == NULL)
     {
-        printError("error reading parameters file '%s'", paramsfile.c_str());
+        printError("error reading parameters file '%s'", c.paramsfile.c_str());
         return 1;
     }
     
@@ -230,16 +307,11 @@ int main(int argc, char **argv)
         printError("parameters do not correspond to the given species tree");
         return 1;
     }
-    
-    // initialize species tree branch lengths
-    float generate = params->alpha / params->beta;
-    for (int i=0; i<stree.nnodes; i++)
-        stree.nodes[i]->dist = params->mu[i] * generate;
-    
+        
     
     // determine background base frequency
     float bgfreq[4];
-    vector<string> tokens = split(bgfreqstr.c_str(), ",");
+    vector<string> tokens = split(c.bgfreqstr.c_str(), ",");
     if (tokens.size() != 4) {
         printError("bgfreq requires four base frequencies e.g .25,.25,.25,.25");
         return 1;
@@ -256,8 +328,8 @@ int main(int argc, char **argv)
 
     // read gene2species map
     Gene2species mapping;
-    if (!mapping.read(smapfile.c_str())) {
-        printError("error reading gene2species mapping '%s'", smapfile.c_str());
+    if (!mapping.read(c.smapfile.c_str())) {
+        printError("error reading gene2species mapping '%s'", c.smapfile.c_str());
         return 1;
     }
 
@@ -274,30 +346,35 @@ int main(int argc, char **argv)
     
     //=====================================================
     // init likelihood function
-    BranchLikelihoodFunc *lkfunc;
+    Prior *prior;
     
-    if (lkfuncopt == "none")
-        lkfunc = new BranchLikelihoodFunc();
-    else if (lkfuncopt == "spidir")
+    if (c.prioropt == "none")
+        prior = new Prior();
+    
+    else if (c.prioropt == "spidir")
+        prior = new SpidirPrior(nnodes, &stree, params, 
+				gene2species,
+				c.predupprob, 
+				c.dupprob, 
+				c.lossprob,
+				c.estGenerate);
+    /*
+    else if (c.lkfuncopt == "duploss")
         lkfunc = new SpidirBranchLikelihoodFunc(nnodes, &stree, params, 
                                                 gene2species,
-                                                predupprob, dupprob, lossprob,
-                                                estGenerate,
-                                                false,
-                                                oldduploss);
-    else if (lkfuncopt == "duploss")
-        lkfunc = new SpidirBranchLikelihoodFunc(nnodes, &stree, params, 
-                                                gene2species,
-                                                predupprob, dupprob, lossprob, 
-                                                estGenerate,
+                                                c.predupprob, 
+						c.dupprob,
+						c.lossprob, 
+                                                c.estGenerate,
                                                 true);
-    else if (lkfuncopt == "hky") 
+    else if (c.lkfuncopt == "hky") 
         lkfunc = new HkyBranchLikelihoodFunc(aln->nseqs, aln->seqlen, aln->seqs, 
-                                             bgfreq, tsvratio);
-    else if (lkfuncopt == "birthdeath") 
+                                             bgfreq, c.tsvratio);
+    else if (c.lkfuncopt == "birthdeath") 
         lkfunc = new BranchLikelihoodFunc();
+    */
     else {
-        printError("unknown lkfunc '%s'", lkfuncopt.c_str());
+        printError("unknown prior '%s'", c.prioropt.c_str());
         return 1;
     }
     
@@ -307,30 +384,9 @@ int main(int argc, char **argv)
     
     // determine branch length algorithm
     BranchLengthFitter *fitter = NULL;
-    if (lenfitter == "parsimony") {
-        fitter = new ParsimonyFitter(aln->nseqs, aln->seqlen, aln->seqs);
-    }
-    else if (lenfitter == "hky") {
-        const int maxiter = 2;
-        fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs, 
-                               bgfreq, tsvratio, maxiter);
-    } else if (lenfitter == "spidir") {
-        fitter = new SpidirSample(&stree, params, gene2species);
-    } else if (lenfitter == "hky_spidir") {
-        const int maxiter = 1000;
-        fitter = new HkySpidirSample(&stree, params, gene2species,
-                                     aln->nseqs, aln->seqlen, aln->seqs, 
-                                     bgfreq, tsvratio, maxiter);
-    } else if (lenfitter == "birthdeath") {
-        fitter = new BirthDeathFitter(aln->nseqs, aln->seqlen, aln->seqs, 
-                                      bgfreq, tsvratio, 
-                                      &stree, gene2species,
-                                      dupprob, lossprob);
-    } else {
-        printError("unknown branch length fitting algorithm: '%s'", 
-                   lenfitter.c_str());
-        return 1;
-    }
+    const int maxiter = 2;
+    fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs, 
+			   bgfreq, c.tsvratio, maxiter);
     
     
     //========================================================
@@ -338,25 +394,32 @@ int main(int argc, char **argv)
     
     // init topology proposer
     const float sprRatio = .3;
-    SprNniProposer proposer2(&stree, gene2species, niter, sprRatio);
-    DupLossProposer proposer(&proposer2, &stree, gene2species, dupprob, lossprob,
-                             quickiter, niter);
+    SprNniProposer proposer2(&stree, gene2species, c.niter, sprRatio);
+    DupLossProposer proposer(&proposer2, &stree, gene2species, 
+			     c.dupprob, c.lossprob,
+                             c.quickiter, c.niter);
     
+
+    TreeSearch *search = NULL;
+    if (c.search == "climb") {
+	search = new TreeSearchClimb(prior, &proposer, fitter);
+    } else {
+        printError("unknown search '%s'", c.search.c_str());
+        return 1;
+    }
+
     // load correct tree
     Tree correctTree;    
-    if (correctFile != "") {
-        if (!correctTree.readNewick(correctFile.c_str())) {
-            printError("cannot read correct tree '%s'", correctFile.c_str());
+    if (c.correctFile != "") {
+        if (!correctTree.readNewick(c.correctFile.c_str())) {
+            printError("cannot read correct tree '%s'", c.correctFile.c_str());
             return 1;
         }
         // TODO: aborts if leaves mismatch, should catch error
         correctTree.reorderLeaves(genes);
         proposer.setCorrect(&correctTree);
-    }    
-    
-    Tree *tree = getInitialTree(genes, aln->nseqs, aln->seqlen, aln->seqs,
-                                &stree, gene2species);
-    
+    }
+       
     
     time_t startTime = time(NULL);
     
@@ -364,92 +427,18 @@ int main(int argc, char **argv)
     // search
     Tree *toptree;
     
-    
-    
-    if (search == "mcmc") {
-        string mcmcfilename = outprefix + ".mcmc";
-        FILE *mcmcfile = NULL;
-        
-        if (!(mcmcfile = fopen(mcmcfilename.c_str(), "w"))) {
-            printError("cannot open mcmc file '%s'", mcmcfilename.c_str());
-            return 1;
-        }
-        SampleFunc samples(mcmcfile);
-        
-        if (bootiter != 1) {
-            printError("Cannot use bootstrap with MCMC");
-            return 1;
-        }
-    
-        toptree = searchMCMC(tree, 
-                             genes, aln->nseqs, aln->seqlen, aln->seqs,
-                             &samples,
-                             lkfunc,
-                             &proposer,
-                             fitter);
-    } else if (search == "climb") {
-        toptree = searchClimb(tree, 
-                              genes, aln->nseqs, aln->seqlen, aln->seqs,
-                              lkfunc,
-                              &proposer,
-                              fitter);
-        
-        // bootstrap
-        if (bootiter > 1) {  
-            Tree *boottree;
-    
-            string bootFilename = outprefix + ".boot.trees";
-            string bootAlignFilename = outprefix + ".boot.align";
-            FILE *bootfile = NULL;
-            FILE *bootAlignfile = NULL;
-            
-            if (! (bootfile = fopen(bootFilename.c_str(), "w"))) {
-                printError("cannot open '%s' for writing", bootFilename.c_str());
-                return 1;
-            }
-            
-            if (! (bootAlignfile = fopen(bootAlignFilename.c_str(), "w"))) {
-                printError("cannot open '%s' for writing", bootAlignFilename.c_str());
-                return 1;
-            }
-            
-            // write first tree to boot file
-            toptree->setLeafNames(genes);
-            toptree->writeNewick(bootfile, NULL, 0, true);
-            fprintf(bootfile, "\n");
+    Tree *tree = getInitialTree(genes, aln->nseqs, aln->seqlen, aln->seqs,
+                                &stree, gene2species);
 
-            // create blank alignment for bootstrapping
-            Sequences aln2;
-            aln2.alloc(aln->nseqs, aln->seqlen);
-            for (int i=0; i<aln->nseqs; i++)
-                aln2.names[i] = aln->names[i];
-
-            for (int i=1; i<bootiter; i++) {
-                printLog(LOG_LOW, "bootstrap %d of %d\n", i, bootiter);
-                resampleAlign(aln, &aln2);
-                proposer.reset();
-                
-                boottree = searchClimb(NULL, 
-                                       genes, aln2.nseqs, aln2.seqlen, aln2.seqs,
-                                       lkfunc,
-                                       &proposer,
-                                       fitter);
-                boottree->setLeafNames(genes);
-                boottree->writeNewick(bootfile, NULL, 0, true);
-                fprintf(bootfile, "\n");
-                fflush(bootfile);
-                delete boottree;            
-
-                // DEBUG
-                writeFasta(bootAlignfile, &aln2);
-            }
-
-            fclose(bootfile);
-            fclose(bootAlignfile);
-        }
-    } else {
-        printError("unknown search '%s'", search.c_str());
-        return 1;
+    if (c.bootiter <= 1) {
+	toptree = search->search(tree, genes, 
+				 aln->nseqs, aln->seqlen, aln->seqs);
+    } else {        
+	toptree = search->search(tree, genes, 
+				 aln->nseqs, aln->seqlen, aln->seqs);
+	if (!bootstrap(aln, genes, search, c.bootiter, c.outprefix)) {
+	    return 1;
+	}
     }
     
     //========================================================
@@ -459,7 +448,7 @@ int main(int argc, char **argv)
     
     
     // log tree correctness
-    if (correctFile != "") {
+    if (c.correctFile != "") {
         if (proposer.seenCorrect()) {
             printLog(LOG_LOW, "SEARCH: correct visited\n");
         } else {
@@ -478,7 +467,8 @@ int main(int argc, char **argv)
     delete toptree;
     delete params;
     delete fitter;
-    delete lkfunc;
+    delete prior;
+    delete search;
     
     
     // log runtime
@@ -490,4 +480,31 @@ int main(int argc, char **argv)
 }
 
 
+//=============================================================================
+// OLD CODE
 
+    /*
+    if (c.search == "mcmc") {
+        string mcmcfilename = c.outprefix + ".mcmc";
+        FILE *mcmcfile = NULL;
+        
+        if (!(mcmcfile = fopen(mcmcfilename.c_str(), "w"))) {
+            printError("cannot open mcmc file '%s'", mcmcfilename.c_str());
+            return 1;
+        }
+        SampleFunc samples(mcmcfile);
+        
+        if (c.bootiter != 1) {
+            printError("Cannot use bootstrap with MCMC");
+            return 1;
+        }
+    
+        toptree = searchMCMC(tree, 
+                             genes, aln->nseqs, aln->seqlen, aln->seqs,
+                             &samples,
+                             lkfunc,
+                             &proposer,
+                             fitter);
+
+    } else 
+    */

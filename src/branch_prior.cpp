@@ -232,6 +232,8 @@ float estimateGeneRate(Tree *tree, SpeciesTree *stree,
 
 //=============================================================================
 // calculate the likelihood of rare events such as gene duplication
+
+// TODO: remove this code
 float rareEventsLikelihood(Tree *tree, SpeciesTree *stree, int *recon, 
                            int *events, float predupprob, float dupprob, 
                            float lossprob)
