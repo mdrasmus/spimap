@@ -291,7 +291,7 @@ float rareEventsLikelihood_old(Tree *tree, SpeciesTree *stree, int *recon,
 
 
 
-
+// TODO: REMOVE this function.  Put logic into estGenerate
 void determineFreeBranches(Tree *tree, SpeciesTree *stree, 
                            int *recon, int *events, float generate,
                            int *unfold, float *unfolddist, bool *freebranches)
@@ -424,6 +424,14 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
 {
     const float esp = .0001;
     
+    // deal with pre-duplications
+    if (root == tree->root->name) {
+	do {
+	    reconparams->pretime = 
+		expovariate(reconparams->params->pretime_lambda);
+	} while (reconparams->pretime <= 0.0);
+    }
+
     for (int i=0; i<nsubnodes; i++) {
 	Node *node = subnodes[i];
         
@@ -442,12 +450,17 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
             // pick a midpoint based on a DB process
             float remain = 1.0 - lastpoint;
 	    int snode = recon[node->name];
-	    
+	    float time;
+
 	    if (snode == stree->root->name) {
-		printf("predup %d\n", node->name);
+		// use preduplication time for pre-duplicates
+		time = reconparams->pretime;
+	    } else {
+		time = stree->nodes[snode]->dist;
 	    }
 
-	    float time = stree->nodes[snode]->dist;
+	    assert(time > 0.0);
+
 	    reconparams->midpoints[node->name] = lastpoint + esp * remain +
 		sampleBirthWaitTime1(remain * time * (1.0 - esp), 
 				     birth, death) / time;
@@ -500,7 +513,6 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
     }
     
     // set midparams
-    reconparams->midspecies[node].clear();
     if (recon[node] != recon[nodes[node]->parent->name]) {
         // we begin and end on different branches
         int snode;
@@ -535,15 +547,18 @@ void getReconTimes(Tree *tree, SpeciesTree *stree,
 		   ReconParams *reconparams,
 		   ExtendArray<float> &times)
 {
-    float *k = reconparams->midpoints;
-    int name = node->name;
-    ExtendArray<BranchPart> &parts = reconparams->parts[name];
+    const float *k = reconparams->midpoints;
+    const int name = node->name;
+    const ExtendArray<BranchPart> &parts = reconparams->parts[name];
 
 
     times.clear();   
 
     for (int i=0; i<parts.size(); i++) {
 	float time = stree->nodes[parts[i].species]->dist;
+	
+	if (parts[i].species == stree->root->name)
+	    time = reconparams->pretime;
 
 	switch (parts[i].frac) {
 	case FRAC_DIFF:
@@ -717,20 +732,24 @@ public:
 	for (int j=0; j<subnodes.size(); j++) {
 	    Node *node = subnodes[j];
 	
-	    // TODO: remove the sroot gaurd when free branches are implemented
-	    if (recon[node->name] != sroot && node != tree->root) {
-		if (unfold) {
-		    if (node == tree->root->children[1]) {
-			// skip left branch
-			continue;
-		    } else if (node == tree->root->children[0]) {
-			logp += branchprob_unfold(tree, stree,
-						  generate, reconparams);
-			continue;
-		    }
+	    //if (recon[node->name] == sroot)
+	    //	continue;
+
+	    if (node == tree->root)
+		continue;
+
+	    if (unfold) {
+		if (node == tree->root->children[1]) {
+		    // skip right branch
+		    continue;
+		} else if (node == tree->root->children[0]) {
+		    // unfold left branch
+		    logp += branchprob_unfold(tree, stree,
+					      generate, reconparams);
+		    continue;
 		}
-		logp += branchprob(tree, stree, node, generate, reconparams);
 	    }
+	    logp += branchprob(tree, stree, node, generate, reconparams);
 	}
             
 
@@ -799,7 +818,7 @@ public:
         double logp = 0.0;
 
         // determine reconciliation parameters
-        ReconParams reconparams = ReconParams(tree->nnodes, params);
+        ReconParams reconparams(tree->nnodes, params);
         determineFreeBranches(tree, stree, recon, events, generate,
                               &reconparams.unfold, 
                               &reconparams.unfolddist, 
@@ -883,12 +902,12 @@ protected:
 
   
 
-
+// TODO: move birth, death into param
 float branchPrior(Tree *tree,
 		  SpeciesTree *stree,
 		  int *recon, int *events, SpidirParams *params,
 		  float generate,
-		  float predupprob, float birth, float death,
+		  float pretime_lambda, float birth, float death,
 		  int nsamples, bool approx)
 {
     float logl = 0.0; // log likelihood
@@ -922,7 +941,7 @@ float branchPrior(int nnodes, int *ptree, float *dists,
 		  int nsnodes, int *pstree, float *sdists,
 		  int *recon, int *events,
 		  float *sp_alpha, float *sp_beta, float generate,
-		  float predupprob, float birth, float death,
+		  float pretime_lambda, float birth, float death,
 		  float gene_alpha, float gene_beta,
 		  int nsamples, bool approx)
 {
@@ -936,15 +955,20 @@ float branchPrior(int nnodes, int *ptree, float *dists,
     stree.setDepths();
     stree.setDists(sdists);
 
-    srand(time(NULL));
+    /*
+    static bool once = true;
+    if (once) {
+	srand(time(NULL));
+	once = false;
+	}*/
     
     SpidirParams params(nsnodes, NULL, sp_alpha, sp_beta, 
-			gene_alpha, gene_beta);
+			gene_alpha, gene_beta, pretime_lambda);
     
     return branchPrior(&tree, &stree,
 		       recon, events, &params, 
 		       generate, 
-		       predupprob, birth, death,
+		       pretime_lambda, birth, death,
 		       nsamples, approx);
 }
 

@@ -166,7 +166,7 @@ export(spidir, "branchPrior", c_float,
         c_int_list, "recon", c_int_list, "events",
         c_float_list, "sp_alpha", c_float_list, "sp_beta",
         c_float, "generate", 
-        c_float, "predupprob", c_float, "dupprob", c_float, "lossprob",
+        c_float, "pretime_lambda", c_float, "dupprob", c_float, "lossprob",
         c_float, "gene_alpha", c_float, "gene_beta",
         c_int, "nsamples", c_int, "approx"])
 
@@ -383,6 +383,7 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
 
 
 def branch_prior(tree, stree, recon, events, params, birth, death,
+                 pretime_lambda=1.0,
                  nsamples=1000, approx=True):
 
     ptree, nodes, nodelookup = make_ptree(tree)
@@ -400,13 +401,12 @@ def branch_prior(tree, stree, recon, events, params, birth, death,
     sp_beta = [params[x.name][1] for x in snodes]
 
     generate = -1
-    predupprob = .01
     
     p = branchPrior(nnodes, ptree, dists, nsnodes, pstree, sdists,
                     recon2, events2,
                     sp_alpha, sp_beta,
                     generate,
-                    predupprob, birth, death,
+                    pretime_lambda, birth, death,
                     params["baserate"][0],
                     params["baserate"][1],
                     nsamples,

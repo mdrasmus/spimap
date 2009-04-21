@@ -65,16 +65,7 @@ public:
         unfold(-1),
         unfolddist(0)
     {
-	parts = new ExtendArray<BranchPart> [nnodes];
-
-        startspecies = new int [nnodes];
-        midspecies = new ExtendArray<int> [nnodes];
-        endspecies = new int [nnodes];
-        
-        startfrac = new int [nnodes];
-        endfrac = new int [nnodes];
-	
-	
+	parts = new ExtendArray<BranchPart> [nnodes];	
         midpoints = new float [nnodes];
         
         freebranches = new bool [nnodes];
@@ -93,12 +84,7 @@ public:
 
     ExtendArray<BranchPart> *parts;
 
-    int *startspecies;
-    ExtendArray<int> *midspecies;
-    int *endspecies;
-
-    int *startfrac;
-    int *endfrac;
+    float pretime;
     float *midpoints;
 
     bool *freebranches;
