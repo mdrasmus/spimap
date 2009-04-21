@@ -426,7 +426,6 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
     
     for (int i=0; i<nsubnodes; i++) {
 	Node *node = subnodes[i];
-        //int node = subnodes[i]->name;
         
         if (events[node->name] == EVENT_DUP) {
             float lastpoint;
@@ -442,14 +441,19 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
             
             // pick a midpoint based on a DB process
             float remain = 1.0 - lastpoint;
-	    float time = stree->nodes[recon[node->name]]->dist;
+	    int snode = recon[node->name];
+	    
+	    if (snode == stree->root->name) {
+		printf("predup %d\n", node->name);
+	    }
+
+	    float time = stree->nodes[snode]->dist;
 	    reconparams->midpoints[node->name] = lastpoint + esp * remain +
 		sampleBirthWaitTime1(remain * time * (1.0 - esp), 
 				     birth, death) / time;
 
         } else {
             // genes or speciations reconcile exactly to the end of the branch
-            // DEL: gene tree roots also reconcile exactly to the end of the branch
             reconparams->midpoints[node->name] = 1.0;
         }
     }
@@ -599,7 +603,8 @@ float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
     float gs_beta[nparams];
     getReconParams(tree, node, reconparams,
 		   generate, times, gs_alpha, gs_beta);
-
+   
+    // compute gamma sum
     return approxGammaSum(nparams, node->dist, gs_alpha, gs_beta, approx);
 }
 
@@ -609,7 +614,6 @@ float branchprob_unfold(Tree *tree, SpeciesTree *stree,
 			float generate, ReconParams *reconparams,
 			bool approx=true)
 {
-    //printf("unfold\n");
     Node *node0 = tree->root->children[0];
     Node *node1 = tree->root->children[1];
 
@@ -620,7 +624,7 @@ float branchprob_unfold(Tree *tree, SpeciesTree *stree,
     getReconTimes(tree, stree, node1, reconparams, times1);
     int nparams = times0.size() + times1.size();
 
-    // get gammaSum terms 
+    // get gamma sum terms 
     float gs_alpha[nparams];
     float gs_beta[nparams];
     getReconParams(tree, node0, reconparams,
@@ -630,6 +634,7 @@ float branchprob_unfold(Tree *tree, SpeciesTree *stree,
 		   gs_alpha + times0.size(), 
 		   gs_beta + times0.size());
 
+    // compute gamma sum
     return approxGammaSum(nparams, node0->dist + node1->dist, 
 			  gs_alpha, gs_beta, approx);
 }
