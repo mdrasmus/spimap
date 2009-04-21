@@ -344,6 +344,76 @@ void determineFreeBranches(Tree *tree, SpeciesTree *stree,
 }
 
 
+float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
+		     bool approx)
+{
+    const float tol = .001;
+    const float minfrac = .01;
+
+    // filter for extreme parameters
+    float mean = 0.0;
+    for (int i=0; i<nparams; i++) {
+	if (isinf(gs_beta[i]) || isnan(gs_beta[i])) {
+	    gs_alpha[i] = gs_alpha[--nparams];
+	    gs_beta[i] = gs_beta[nparams];
+	    i--;
+	} else {
+	    mean += gs_alpha[i] / gs_beta[i];
+	}
+    }
+
+    // remove params with effectively zero mean
+    float mu = 0.0;
+    float var = 0.0;
+    for (int i=0; i<nparams; i++) {	
+	if (gs_alpha[i] / gs_beta[i] < minfrac * mean) {
+	    gs_alpha[i] = gs_alpha[--nparams];
+	    gs_beta[i] = gs_beta[nparams];
+	    i--;
+	} else {
+	    mu += gs_alpha[i] / gs_beta[i];
+	    var += gs_alpha[i] / gs_beta[i] / gs_beta[i];
+	}
+    }    
+    
+
+    // there is nothing to do
+    if (nparams == 0)
+	return -INFINITY;
+    
+    //float dist = node->dist / generate;
+    
+    float logp;
+    if (approx) {
+	// approximation
+	float a2 = mean*mean/var;
+	float b2 = mean/var;
+	logp = gammalog(x, a2, b2);
+    } else {
+	logp = log(gammaSumPdf(x, nparams, gs_alpha, gs_beta, tol));
+    }
+    
+    //float diff = fabs(logp - logp2);
+
+    /*
+    if (diff > log(1.3)) {
+	printf("\n"
+	       "n=%d; l=%f; g=%f\n", n, node->dist, generate);
+	printf("t: "); printFloatArray(times, times.size());
+	printf("a: "); printFloatArray(gs_alpha, nparams);
+	printf("b: "); printFloatArray(gs_beta, nparams);
+        
+	printf("logp = %f\n", logp);
+	printf("logp2 = %f\n", logp2);
+	printf("diff = %f\n", diff);
+	}*/
+
+    if(isnan(logp))
+	logp = -INFINITY;
+    return logp;
+}
+
+
 
 // Generate a random sample of duplication points
 void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
@@ -457,12 +527,13 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
 
 // get times vector from midpoints
 void getReconTimes(Tree *tree, SpeciesTree *stree, 
-		   int node, 
+		   Node *node, 
 		   ReconParams *reconparams,
 		   ExtendArray<float> &times)
 {
     float *k = reconparams->midpoints;
-    ExtendArray<BranchPart> &parts = reconparams->parts[node];
+    int name = node->name;
+    ExtendArray<BranchPart> &parts = reconparams->parts[name];
 
 
     times.clear();   
@@ -472,17 +543,17 @@ void getReconTimes(Tree *tree, SpeciesTree *stree,
 
 	switch (parts[i].frac) {
 	case FRAC_DIFF:
-	    times.append((k[node] - k[tree->nodes[node]->parent->name]) *
+	    times.append((k[name] - k[node->parent->name]) *
 			 time);
 	    break;
 
 	case FRAC_PARENT:
-	    float kp = k[tree->nodes[node]->parent->name];
+	    float kp = k[node->parent->name];
 	    times.append((1.0 - kp) * time);
 	    break;
 
 	case FRAC_NODE:
-	    times.append(k[node] * time);
+	    times.append(k[name] * time);
 	    break;
 
 	case FRAC_ONE:
@@ -518,98 +589,62 @@ float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
 		 float generate, ReconParams *reconparams,
 		 bool approx=true)
 {
-    const float tol = .001;
-    int n = node->name;
-
     // get times
     ExtendArray<float> times(0, tree->nnodes);
-    getReconTimes(tree, stree, n, reconparams, times);
+    getReconTimes(tree, stree, node, reconparams, times);
     int nparams = times.size();
 
     // get gammaSum terms 
     float gs_alpha[nparams];
     float gs_beta[nparams];
-
     getReconParams(tree, node, reconparams,
 		   generate, times, gs_alpha, gs_beta);
 
-
-    // filter for extreme parameters
-    float mean = 0.0;
-    for (int i=0; i<nparams; i++) {
-	if (isinf(gs_beta[i]) || isnan(gs_beta[i])) {
-	    gs_alpha[i] = gs_alpha[--nparams];
-	    gs_beta[i] = gs_beta[nparams];
-	    i--;
-	} else {
-	    mean += gs_alpha[i] / gs_beta[i];
-	}
-    }
-
-    // remove params with effectively zero mean
-    const float minfrac = .01;
-    float mu = 0.0;
-    float var = 0.0;
-    for (int i=0; i<nparams; i++) {	
-	if (gs_alpha[i] / gs_beta[i] < minfrac * mean) {
-	    gs_alpha[i] = gs_alpha[--nparams];
-	    gs_beta[i] = gs_beta[nparams];
-	    i--;
-	} else {
-	    mu += gs_alpha[i] / gs_beta[i];
-	    var += gs_alpha[i] / gs_beta[i] / gs_beta[i];
-	}
-    }    
-    
-
-    // there is nothing to do
-    if (nparams == 0)
-	return -INFINITY;
-    
-    //float dist = node->dist / generate;
-    
-    float logp;
-    if (approx) {
-	// approximation
-	float a2 = mean*mean/var;
-	float b2 = mean/var;
-	logp = gammalog(node->dist, a2, b2);
-    } else {
-	logp = log(gammaSumPdf(node->dist, nparams, gs_alpha, gs_beta, tol));
-    }
-    
-    //float diff = fabs(logp - logp2);
-
-    /*
-    if (diff > log(1.3)) {
-	printf("\n"
-	       "n=%d; l=%f; g=%f\n", n, node->dist, generate);
-	printf("t: "); printFloatArray(times, times.size());
-	printf("a: "); printFloatArray(gs_alpha, nparams);
-	printf("b: "); printFloatArray(gs_beta, nparams);
-        
-	printf("logp = %f\n", logp);
-	printf("logp2 = %f\n", logp2);
-	printf("diff = %f\n", diff);
-	}*/
-
-    if(isnan(logp))
-	logp = -INFINITY;
-    return logp;
+    return approxGammaSum(nparams, node->dist, gs_alpha, gs_beta, approx);
 }
 
+
+// Calculate branch probability
+float branchprob_unfold(Tree *tree, SpeciesTree *stree, 
+			float generate, ReconParams *reconparams,
+			bool approx=true)
+{
+    //printf("unfold\n");
+    Node *node0 = tree->root->children[0];
+    Node *node1 = tree->root->children[1];
+
+    // get times
+    ExtendArray<float> times0(0, tree->nnodes);
+    ExtendArray<float> times1(0, tree->nnodes);
+    getReconTimes(tree, stree, node0, reconparams, times0);
+    getReconTimes(tree, stree, node1, reconparams, times1);
+    int nparams = times0.size() + times1.size();
+
+    // get gammaSum terms 
+    float gs_alpha[nparams];
+    float gs_beta[nparams];
+    getReconParams(tree, node0, reconparams,
+		   generate, times0, gs_alpha, gs_beta);
+    getReconParams(tree, node1, reconparams,
+		   generate, times1, 
+		   gs_alpha + times0.size(), 
+		   gs_beta + times0.size());
+
+    return approxGammaSum(nparams, node0->dist + node1->dist, 
+			  gs_alpha, gs_beta, approx);
+}
 
 
 // get roots of speciation subtrees
 void getSpecSubtrees(Tree *tree, int *events, ExtendArray<Node*> *rootnodes)
 {
     for (int i=0; i<tree->nnodes; i++) {
-	if (events[i] == EVENT_SPEC) {
+	if (i == tree->root->name) {
+	    rootnodes->append(tree->nodes[i]);
+	} else if (events[i] == EVENT_SPEC) {
 	    for (int j=0; j<2; j++) {
 		rootnodes->append(tree->nodes[i]->children[j]);
 	    }
-	} else if (i == tree->root->name) {
-	    rootnodes->append(tree->nodes[i]);
 	}
     }
 }
@@ -665,22 +700,31 @@ public:
 
     // subtree prior conditioned on divergence times
     float subtreeprior_cond(Tree *tree, SpeciesTree *stree,
-			    int root,
-			    int *recon, 
-			    float generate,
+			    int *recon, float generate,
 			    ReconParams *reconparams,
-			    ExtendArray<Node*> &subnodes)
+			    ExtendArray<Node*> &subnodes,
+			    bool unfold)
     {
 	float logp = 0.0;
 	int sroot = stree->root->name;
-                    
+        
 	// loop through all branches in subtree
 	for (int j=0; j<subnodes.size(); j++) {
-	    int node = subnodes[j]->name;
+	    Node *node = subnodes[j];
 	
-	    if (recon[node] != sroot && node != tree->root->name) {
-		logp += branchprob(tree, stree, tree->nodes[node],
-				   generate, reconparams);
+	    // TODO: remove the sroot gaurd when free branches are implemented
+	    if (recon[node->name] != sroot && node != tree->root) {
+		if (unfold) {
+		    if (node == tree->root->children[1]) {
+			// skip left branch
+			continue;
+		    } else if (node == tree->root->children[0]) {
+			logp += branchprob_unfold(tree, stree,
+						  generate, reconparams);
+			continue;
+		    }
+		}
+		logp += branchprob(tree, stree, node, generate, reconparams);
 	    }
 	}
             
@@ -703,10 +747,15 @@ public:
 		reconBranch(subnodes[i]->name, tree, stree, 
 			    recon, events, params, reconparams);
 	
+	// root branch must be unfolded
+	bool unfold = (root == tree->root->name &&
+		       tree->root->nchildren == 2);
+
 	
 	if (!dupsPresent) {
-	    return subtreeprior_cond(tree, stree, root, recon, 
-				     generate, reconparams, subnodes);
+	    return subtreeprior_cond(tree, stree, recon, 
+				     generate, reconparams, subnodes,
+				     unfold);
 	} else {
         
 	    // choose number of samples based on number of nodes 
@@ -726,9 +775,10 @@ public:
 				   birth, death);
             
 
-		sampleLogl = subtreeprior_cond(tree, stree, root, recon, 
+		sampleLogl = subtreeprior_cond(tree, stree, recon, 
 					       generate, reconparams, 
-					       subnodes);
+					       subnodes,
+					       unfold);
 	    
 		prob += exp(sampleLogl) / nsamples;
 	    }
