@@ -83,13 +83,6 @@ public:
     ~ReconParams()
     {
 	delete [] parts;
-
-        delete [] startspecies;
-        delete [] midspecies;
-        delete [] endspecies;
-        
-        delete [] startfrac;
-        delete [] endfrac;
         delete [] midpoints;
         
         delete [] freebranches;

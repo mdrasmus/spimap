@@ -404,43 +404,25 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
         // start reconciles to a subportion of species branch
         if (events[node] == EVENT_DUP) {
             // only case k's are dependent
-            //reconparams->startfrac[node] = FRAC_DIFF;   // k[node] - k[node.parent]
 	    parts.append(BranchPart(recon[node], FRAC_DIFF));
         } else {
-            //reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
 	    parts.append(BranchPart(recon[node], FRAC_PARENT));
 	}
-        
-        //reconparams->startspecies[node] = recon[node];
 
-        // there is only one frac
-        //reconparams->endfrac[node] = FRAC_NONE;
-        //reconparams->endspecies[node] = -1;
-	//parts.append(BranchPart(-1, FRAC_NONE));
+	// end reconcilies to nothing
     } else {
         if (events[nodes[node]->parent->name] == EVENT_DUP) {
             // start reconciles to last part of species branch
-            //reconparams->startfrac[node] = FRAC_PARENT; // 1.0 - k[node.parent]
             int snode = recon[nodes[node]->parent->name];
-            //reconparams->startspecies[node] = snode;
 	    parts.append(BranchPart(snode, FRAC_PARENT));
-        } else {
-            //reconparams->startfrac[node] = FRAC_NONE;
-            //reconparams->startspecies[node] = -1;
-	    //parts.append(BranchPart(-1, FRAC_NONE));
         }
+	// else: start reconcilies to nothing
 
         if (events[node] == EVENT_DUP) {
             // end reconciles to first part of species branch
-            //reconparams->endfrac[node] = FRAC_NODE; // k[node]
-            //reconparams->endspecies[node] = recon[node];
 	    parts.append(BranchPart(recon[node], FRAC_NODE));
-        } else {
-            // end reconcile to at least one whole species branch
-            //reconparams->endfrac[node] = FRAC_NONE;
-            //reconparams->endspecies[node] = -1;
-	    //parts.append(BranchPart(-1, FRAC_NONE));
         }
+	// else: end reconciles to nothing
     }
     
     // set midparams
@@ -457,7 +439,6 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
 
         // walk up species spath until starting species branch
         // starting species branch is either fractional or NULL
-        
         int parent_snode;
         if (nodes[node]->parent != NULL)
             parent_snode = recon[nodes[node]->parent->name];
@@ -465,71 +446,14 @@ void reconBranch(int node, Tree *tree, SpeciesTree *stree,
             parent_snode = -1;
 	
         while (snode != parent_snode && snodes[snode]->parent != NULL) {
-	    //reconparams->midspecies[node].append(snode);
 	    parts.append(BranchPart(snode, FRAC_ONE));
             snode = snodes[snode]->parent->name;
         }
     } 
-    // else {
-    //   we begin and end on same branch
-    //   there are no midparams
-    //   DO NOTHING
-    // }
-
 
 }
 
 
-
-
-// get times vector from midpoints
-void getReconTimes2(Tree *tree, SpeciesTree *stree, 
-		   int node, 
-		   ReconParams *reconparams,
-		   ExtendArray<float> &times)
-{
-    float *k = reconparams->midpoints;
-
-    times.clear();   
-
-    
-    // start times
-    int startfrac = reconparams->startfrac[node];
-    if (startfrac == FRAC_DIFF) {    
-        times.append((k[node] - k[tree->nodes[node]->parent->name]) *
-		     stree->nodes[reconparams->startspecies[node]]->dist);
-    } else if (startfrac == FRAC_PARENT) {
-        float kp = 0;
-        //if (!reconparams->freebranches[node])
-            kp = k[tree->nodes[node]->parent->name];    
-        times.append((1.0 - kp) * 
-		     stree->nodes[reconparams->startspecies[node]]->dist);
-    } else {
-	// startfrac == FRAC_NONE, do nothing
-	//times.append(-1.0);
-    }
-
-    // end time
-    int endfrac = reconparams->endfrac[node];
-    if (endfrac == FRAC_PARENT) {    
-        times.append((1.0 - k[tree->nodes[node]->parent->name]) *
-		     stree->nodes[reconparams->endspecies[node]]->dist);
-    } else if (endfrac == FRAC_NODE) {
-        times.append(k[node] *
-		     stree->nodes[reconparams->endspecies[node]]->dist);
-    } else {
-	// endfrac == FRAC_NONE, do nothing
-	//times.append(-1.0);
-    }
-
-    // mid times
-    ExtendArray<int> &path = reconparams->midspecies[node];
-    for (int i=0; i<path.size(); i++) {
-	times.append(stree->nodes[reconparams->midspecies[node][i]]->dist);
-    }
-    
-
-}
 
 // get times vector from midpoints
 void getReconTimes(Tree *tree, SpeciesTree *stree, 
