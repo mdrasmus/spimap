@@ -301,12 +301,6 @@ void makeFtree(int nnodes, int *ptree, int ***ftree);
 // Deallocates a 'forward tree'
 void freeFtree(int nnodes, int **ftree);
 
-// Creates a tree object from a 'parent tree' array
-void ptree2tree(int nnodes, int *ptree, Tree *tree);
-
-// Creates a 'parent tree' from a tree object
-void tree2ptree(Tree *tree, int *ptree);
-
 
 //=============================================================================
 // Input/output
@@ -318,9 +312,16 @@ void printTree(Tree *tree, Node *node=NULL, int depth=0);
 // C exports
 extern "C" {
 
-    Tree *makeTree(int nnodes, int *ptree);
-    void deleteTree(Tree *tree);
-    void setTreeDists(Tree *tree, float *dists);
+// Creates a tree object from a 'parent tree' array
+void ptree2tree(int nnodes, int *ptree, Tree *tree);
+
+// Creates a 'parent tree' from a tree object
+void tree2ptree(Tree *tree, int *ptree);
+
+
+Tree *makeTree(int nnodes, int *ptree);
+void deleteTree(Tree *tree);
+void setTreeDists(Tree *tree, float *dists);
 
 }
 

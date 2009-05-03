@@ -654,7 +654,8 @@ SpidirPrior::SpidirPrior(
     int nnodes, SpeciesTree *stree, 
     SpidirParams *params, 
     int *gene2species,
-    float predupprob, float dupprob, float lossprob, bool estGenerate) :
+    float predupprob, float dupprob, float lossprob, 
+    int nsamples, bool approx, bool estGenerate) :
     
     nnodes(nnodes),
     stree(stree),
@@ -665,6 +666,8 @@ SpidirPrior::SpidirPrior(
     predupprob(predupprob),
     dupprob(dupprob),
     lossprob(lossprob),
+    nsamples(nsamples),
+    approx(approx),
     estGenerate(estGenerate)
 {
     const int maxdoom = 20;
@@ -693,7 +696,8 @@ float SpidirPrior::branchPrior(Tree *tree)
         
     return spidir::branchPrior(tree, stree,
 			       recon, events, params,
-			       generate, predupprob, dupprob, lossprob);
+			       generate, predupprob, dupprob, lossprob,
+			       nsamples, approx);
 }
 
 
@@ -834,6 +838,10 @@ Tree *TreeSearchClimb::search(Tree *initTree,
                               prior->getSpeciesTree(), 
                               prior->getGene2species());
     
+    if (isLogLevel(LOG_MEDIUM)) {
+	displayTree(tree, getLogFile());
+    }
+
     ExtendArray<int> recon(tree->nnodes);
     ExtendArray<int> events(tree->nnodes);
     
@@ -868,6 +876,10 @@ Tree *TreeSearchClimb::search(Tree *initTree,
         // propose new tree 
         proposer->propose(tree);
         
+	if (isLogLevel(LOG_MEDIUM)) {
+	    displayTree(tree, getLogFile());
+	}
+
         // calculate likelihood
         seqlk = fitter->findLengths(tree);
         branchp = prior->branchPrior(tree);
@@ -919,7 +931,67 @@ Tree *TreeSearchClimb::search(Tree *initTree,
 
 
 
+extern "C" {
 
+
+// Calculate the likelihood of a tree
+Tree *searchClimb(int niter, int quickiter,
+		  int nseqs, char **gene_names, char **seqs,
+		  int nsnodes, int *pstree, float *sdists,
+		  int *gene2species,
+		  float *sp_alpha, float *sp_beta, float generate,
+		  float pretime_lambda, float birth, float death,
+		  float gene_alpha, float gene_beta,
+		  float *bgfreq, float kappa,
+		  int nsamples, bool approx)
+{
+    int nnodes = 2*nseqs - 1;
+
+    setLogLevel(LOG_MEDIUM);
+
+    // create stree
+    SpeciesTree stree(nsnodes);
+    ptree2tree(nsnodes, pstree, &stree);
+    stree.setDepths();
+    stree.setDists(sdists);
+    
+    // params
+    SpidirParams params(nsnodes, NULL, sp_alpha, sp_beta, 
+			gene_alpha, gene_beta, pretime_lambda);
+    
+    // make gene names
+    string genes[nseqs];
+    //char s[101];
+    for (int i=0; i<nseqs; i++) {
+	//snprintf(s, 100, "%d", i);
+	genes[i] = gene_names[i];
+    }
+
+    // prior
+    SpidirPrior prior(nnodes, &stree, &params, gene2species,
+		      pretime_lambda, birth, death, nsamples, approx, false);
+
+    // seq likelihood
+    const int maxiter = 2;
+    int seqlen = strlen(seqs[0]);
+    HkyFitter fitter(nseqs, seqlen, seqs, 
+		     bgfreq, kappa, maxiter);
+
+    // proposers
+    const float sprRatio = .3;
+    SprNniProposer proposer2(&stree, gene2species, niter, sprRatio);
+    DupLossProposer proposer(&proposer2, &stree, gene2species, 
+			     birth, death,
+                             quickiter, niter);
+    
+    TreeSearchClimb search(&prior, &proposer, &fitter);
+
+    Tree *tree = search.search(NULL, genes, nseqs, seqlen, seqs);
+    
+    return tree;
+}
+
+} // extern "C"
 
 
 

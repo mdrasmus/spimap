@@ -233,7 +233,7 @@ public:
 		SpidirParams *params, 
 		int *gene2species,
 		float predupprob, float dupprob, float lossprob,
-		bool estGenerate);
+		int nsample, bool approx, bool estGenerate);
 
     virtual ~SpidirPrior();
 
@@ -253,6 +253,8 @@ protected:
     float predupprob;
     float dupprob;
     float lossprob;
+    int nsamples;
+    bool approx;
     bool estGenerate;
     float *doomtable;
 };

@@ -230,66 +230,10 @@ float estimateGeneRate(Tree *tree, SpeciesTree *stree,
 }
 
 
-//=============================================================================
-// calculate the likelihood of rare events such as gene duplication
-
-// TODO: remove this code
-float rareEventsLikelihood(Tree *tree, SpeciesTree *stree, int *recon, 
-                           int *events, float predupprob, float dupprob, 
-                           float lossprob)
-{
-    if (dupprob < 0.0 || lossprob < 0.0)
-        return 0.0;
-
-    ExtendArray<int> recon2(0, tree->nnodes);
-    ExtendArray<int> events2(0, tree->nnodes);
-    recon2.extend(recon, tree->nnodes);
-    events2.extend(events, tree->nnodes);
-
-    int addedNodes = addImpliedSpecNodes(tree, stree, recon2, events2);
-    //float logl = birthDeathTreePrior(tree, stree, recon2, events2, 
-    //                                 dupprob, lossprob);
-    float logl = birthDeathTreeQuickPrior(tree, stree, recon2, events2, 
-                                          dupprob, lossprob);
-    removeImpliedSpecNodes(tree, addedNodes);
-    
-    return logl;
-}
-
-
-float rareEventsLikelihood_old(Tree *tree, SpeciesTree *stree, int *recon, 
-                           int *events, float predupprob, float dupprob)
-{
-    float logl = 0.0;
-    int sroot = stree->nnodes - 1;
-    
-    int predups = 0;
-    int dups = 0;
-    //int losses = countLoss(tree, stree, recon);
-    
-    // count dups
-    for (int i=0; i<tree->nnodes; i++) {
-        if (events[i] == EVENT_DUP) {
-            if (recon[i] == sroot) {
-                predups += 1;
-                logl += logf(predupprob);
-            } else {
-                dups += 1;
-                logl += logf(dupprob);
-            }            
-        }
-    }
-    
-    //logl += log(poisson(dups, dupprob));
-    //logl += log(poisson(predups, predupprob));
-    //logl += log(poisson(losses, dupprob)); // assume same rate for loss
-
-    return logl;
-}
 
 
 //=============================================================================
-// likelihood functions
+// branch prior functions
 
 
 float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
@@ -637,27 +581,26 @@ bool getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes)
 }
 
 
-
 class BranchPriorCalculator
 {
 public:
-    BranchPriorCalculator(Tree *tree,
-			  SpeciesTree *stree,
-			  int *recon, int *events, 
-			  SpidirParams *params,
-			  float brith, float death,
-			  int nsamples=1000, bool approx=true) :
-        tree(tree),
-        stree(stree),
-        recon(recon),
-        events(events),
-        params(params),
-	birth(birth),
-	death(death),
-	reconparams(tree->nnodes, params),
-	rootnodes(0, tree->nnodes),
-	nsamples(nsamples),
-	approx(approx)
+    BranchPriorCalculator(Tree *_tree,
+			  SpeciesTree *_stree,
+			  int *_recon, int *_events, 
+			  SpidirParams *_params,
+			  float _birth, float _death,
+			  int _nsamples=1000, bool _approx=true) :
+        tree(_tree),
+        stree(_stree),
+        recon(_recon),
+        events(_events),
+        params(_params),
+	birth(_birth),
+	death(_death),
+	reconparams(_tree->nnodes, _params),
+	rootnodes(0, _tree->nnodes),
+	nsamples(_nsamples),
+	approx(_approx)
     {
 	// determine speciation subtrees	
 	getSpecSubtrees(tree, events, &rootnodes);
@@ -678,7 +621,6 @@ public:
 			    bool unfold)
     {
 	float logp = 0.0;
-	int sroot = stree->root->name;
         
 	// loop through all branches in subtree
 	for (int j=0; j<subnodes.size(); j++) {
@@ -858,8 +800,6 @@ float branchPrior(Tree *tree,
     
     clock_t startTime = clock();
     
-    //srand(time(NULL));
-    
     BranchPriorCalculator priorcalc(tree, stree, recon, events, params,
 				    birth, death, nsamples, approx);
     
@@ -897,17 +837,11 @@ float branchPrior(int nnodes, int *ptree, float *dists,
     ptree2tree(nsnodes, pstree, &stree);
     stree.setDepths();
     stree.setDists(sdists);
-
-    /*
-    static bool once = true;
-    if (once) {
-	srand(time(NULL));
-	once = false;
-	}*/
     
     SpidirParams params(nsnodes, NULL, sp_alpha, sp_beta, 
 			gene_alpha, gene_beta, pretime_lambda);
     
+
     return branchPrior(&tree, &stree,
 		       recon, events, &params, 
 		       generate, 

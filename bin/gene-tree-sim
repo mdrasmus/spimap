@@ -260,6 +260,10 @@ def main(conf):
         conf.bgfreq = parseBgFreq(conf.bgfreq)
     else:
         conf.bgfreq = [.25, .25, .25, .25]
+
+    # don't let duprate exactly equal lossrate
+    if conf.duprate == conf.lossrate:
+        conf.lossrate *= .98
         
     
     # simulate

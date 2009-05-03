@@ -29,7 +29,7 @@ def exc_default(func, val, exc=Exception):
 class TestAllTerms (unittest.TestCase):
 
 
-    def test_all_terms(self):
+    def _test_all_terms(self):
         """Test all terms"""
 
         prep_dir("test/output/all_terms")
@@ -77,7 +77,63 @@ class TestAllTerms (unittest.TestCase):
         out.close()
 
         
+    def test_search(self):
+        """Test all terms"""
+
+        prep_dir("test/output/all_terms_search")
+        out = open("test/output/all_terms_search/flies.nt.txt", "w")
+        #out = sys.stderr
+
+        treeids = os.listdir("test/data/flies.nt")
+        #treeids = ["3"]
+
+        for treeid in treeids:
         
+            tree_correct = readTree("test/data/flies.nt/%s/%s.tree" %
+                                    (treeid, treeid))
+            align = readFasta("test/data/flies.nt/%s/%s.align" %
+                              (treeid, treeid))
+
+            phylo.hashOrderTree(tree_correct)
+
+            print >>out, treeid
+            print >>out, "correct"
+            drawTree(tree_correct, out=out)
+            
+            stree = readTree("test/data/flies.norm.stree")
+            gene2species = genomeutil.readGene2species("test/data/flies.smap")
+            params = spidir.read_params("test/data/flies.nt.param")
+            birth = .4
+            death = .39
+            pretime = 1.0
+            maxdoom = 20
+            bgfreq = [.258,.267,.266,.209]
+            kappa = 1.59
+
+            genes = align.keys()
+            seqs = align.values()
+            
+            tree = spidir.search_climb(genes, seqs,
+                                       stree, gene2species,
+                                       params, birth, death, pretime,
+                                       bgfreq, kappa,
+                                       maxdoom=maxdoom,
+                                       niter=50, quickiter=100,
+                                       nsamples=100, branch_approx=True)
+
+            phylo.hashOrderTree(tree)
+            
+            
+
+            print >>out, "constructed"
+            drawTree(tree, out=out)
+            
+
+            print >>out, "is_correct:", (phylo.hashTree(tree) ==
+                                         phylo.hashTree(tree_correct))
+            
+
+        out.close()
         
 if __name__ == "__main__":
     unittest.main(testRunner=TestRunner())

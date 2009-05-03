@@ -3,7 +3,7 @@
 
 import sys, optparse
 
-from rasmus.bio import phylo, genomeutil
+from rasmus.bio import phylo
 from rasmus import util, treelib
 
 
@@ -70,7 +70,7 @@ def iter_branch_lengths(trees, stree, snodes, gene2species):
         recon = phylo.reconcile(tree, stree, gene2species)
         assert_one2one(tree, stree, recon)
         revrecon = reverse_recon(recon)
-        
+
         yield [revrecon[snode].dist for snode in snodes]
 
 
@@ -108,13 +108,18 @@ def reroot(tree, stree, gene2species):
 
 
 def main(conf, args):
-
+    
     if conf.stree is None or conf.smap is None:
         error("error: must specify species tree and mapping")
 
     # read in species data
-    stree = treelib.readTree(conf.stree)
-    gene2species = genomeutil.readGene2species(conf.smap)
+    stree = treelib.read_tree(conf.stree)
+    gene2species = phylo.read_gene2species(conf.smap)
+
+    #assert stree has branch lengths
+    if min(x.dist for x in stree.postorder() if x.parent) <= 0.0:
+        print >>sys.stderr, "error: species tree must have non-zero branch lengths"
+        sys.exit(1)
 
     # species node order for matrix (exclude root)
     snodes = [x for x in stree.postorder() if x.parent]
@@ -140,7 +145,7 @@ def main(conf, args):
         for row in iter_branch_lengths(trees, stree, snodes, gene2species):
             ntrees += 1
             out.write("\t".join(map(str, row)) + "\n")
-    except TreeException:
+    except TreeException, e:
         error("error with tree %d: " % (ntrees) + str(e))
     except Exception, e:
         error("error with tree %d: " % (ntrees) + str(e))

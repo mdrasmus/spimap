@@ -34,10 +34,14 @@ def c_matrix(c_type, mat):
     return cast(mat, POINTER(POINTER(c_type)))
 
 
-def export(lib, funcname, return_type, prototypes, scope=globals()):
+def export(lib, funcname, return_type, prototypes, scope=globals(),
+           newname=None):
     """Exports a C function with documentation"""
 
     converts = []
+
+    if newname is None:
+        newname = funcname
 
     # get c arguments
     arg_types = prototypes[0::2]
@@ -56,24 +60,23 @@ def export(lib, funcname, return_type, prototypes, scope=globals()):
         # record array sizes
         sizes = {}
         for i, argtype in enumerate(prototypes[0::2]):
-            if argtype in (c_float_list, c_float_matrix):
+            if argtype in (c_int_list, c_float_list, c_float_matrix):
                 sizes[i] = len(args[i])
         
         cargs = [f(a) for f, a in zip(converts, args)]
-        ret = cfunc(*cargs)
-
+        ret = cfunc(*cargs)        
+        
         # pass back arguments
-        for i, size in sizes.iteritems():            
+        for i, size in sizes.iteritems():
             args[i][:] = cargs[i][:sizes[i]]
 
         return ret
 
-
-    scope[funcname] = func
+    scope[newname] = func
 
     # set documentation
     args_doc = prototypes[1::2]
-    scope[funcname].__doc__ = "%s(%s)" % (funcname, ",".join(args_doc))
+    scope[newname].__doc__ = "%s(%s)" % (funcname, ",".join(args_doc))
 
 
 # additional C types
@@ -123,9 +126,25 @@ export(spidir, "gammaSumPdf", c_double,
 # basic tree functions
 export(spidir, "deleteTree", c_int, [c_void_p, "tree"])
 export(spidir, "makeTree", c_void_p, [c_int, "nnodes",
-                                          c_int_p, "ptree"])
+                                      c_int_p, "ptree"])
+export(spidir, "tree2ptree", c_int, [c_void_p, "tree", c_int_list, "ptree"],
+       newname="ctree2ptree")
 export(spidir, "setTreeDists", c_void_p, [c_void_p, "tree",
                                               c_float_p, "dists"])
+
+
+# search
+export(spidir, "searchClimb", c_void_p,
+       [c_int, "niter", c_int, "quickiter",
+        c_int, "nseqs", c_char_p_p, "gene_names", c_char_p_p, "seqs",
+        c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
+        c_int_list, "gene2species",
+        c_float_list, "sp_alpha", c_float_list, "sp_beta",
+        c_float, "gene_rate",
+        c_float, "pretime_lambda", c_float, "birth", c_float, "death",
+        c_float, "gene_alpha", c_float, "gene_beta",
+        c_float_list, "bgfreq", c_float, "kappa",
+        c_int, "nsamples", c_int, "approx"])
 
 
 # topology prior birthdeath functions
@@ -306,6 +325,25 @@ def make_ptree(tree):
     return ptree, nodes, nodelookup
 
 
+def ptree2tree(ptree, genes):
+
+    from rasmus.treelib import Tree, TreeNode
+
+    tree = Tree()
+    nodes = [TreeNode(gene) for gene in genes] + \
+            [TreeNode(i) for i in xrange(len(genes)-1)]
+    
+    for i, p in enumerate(ptree):
+        if p == -1:
+            tree.root = nodes[i]
+        else:
+            tree.addChild(nodes[p], nodes[i])
+    
+    return tree
+
+    
+
+
 def ptree2ctree(ptree):
     """Makes a c++ Tree from a parent array"""
     
@@ -324,14 +362,22 @@ def tree2ctree(tree):
     return ctree
 
 
-def make_gene2species_array(stree, nodes, snodelookup, gene2species):
+def ctree2tree(ctree, genes):
+    nnodes = 2*len(genes) - 1
+    ptree = [0] * nnodes
+    ctree2ptree(ctree, ptree)
+    return ptree2tree(ptree, genes)
+    
+        
+
+def make_gene2species_array(genes, stree, snodelookup, gene2species):
     gene2speciesarray = []
-    for node in nodes:
-        if node.isLeaf():
-            gene2speciesarray.append(snodelookup[
-                                     stree.nodes[gene2species(node.name)]])
-        else:
-            gene2speciesarray.append(-1)
+
+    for g in genes:
+        gene2speciesarray.append(snodelookup[stree.nodes[gene2species(g)]])
+    for i in xrange(len(genes)-1):
+        gene2speciesarray.append(-1)
+    
     return gene2speciesarray
 
 
@@ -350,6 +396,47 @@ def make_events_array(nodes, events):
     return [mapping[events[i]] for i in nodes]
 
 
+def search_climb(genes, align, stree, gene2species,
+                 params, birth, death, pretime,
+                 bgfreq=[.25,.25,.25,.25], kappa=1.0,
+                 maxdoom=20,
+                 niter=50, quickiter=100,                 
+                 nsamples=100, branch_approx=True):
+
+    nseqs = len(align)
+    calign = c_list(c_char_p, align)
+    gene_names = c_list(c_char_p, genes)
+    pstree, snodes, snodelookup = make_ptree(stree)    
+    nsnodes = len(snodes)
+    sdists = [x.dist for x in snodes]
+    
+    smap = make_gene2species_array(genes, stree, snodelookup, gene2species)
+
+    sp_alpha = [params[x.name][0] for x in snodes]
+    sp_beta = [params[x.name][1] for x in snodes]
+
+    gene_alpha, gene_beta = params["baserate"]
+    gene_rate = -1
+    
+    ctree = searchClimb(niter, quickiter,
+                        nseqs, gene_names, calign,
+                        nsnodes, pstree, sdists,
+                        smap,
+                        sp_alpha, sp_beta, gene_rate,
+                        pretime, birth, death,
+                        gene_alpha, gene_beta,
+                        bgfreq, kappa,
+                        nsamples, branch_approx)
+
+    nnodes = 2 * nseqs - 1
+    tree = ctree2tree(ctree, genes)
+    
+    deleteTree(ctree)
+
+    return tree
+
+    
+    
 def calc_joint_prob(align, tree, stree, recon, events, params,
                     birth, death, pretime,
                     bgfreq, kappa,

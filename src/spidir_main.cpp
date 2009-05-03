@@ -63,59 +63,68 @@ public:
 		    "prefix for all output filenames"));
     
     
-	config.add(new ConfigParamComment("Sequence model evolution"));
-	//config.add(new ConfigParam<string>
-	//	   ("-l", "--lengths", "(hky|spidir|hky_spidir|parsimony|birthdeath)", 
-	//	    &lenfitter, "hky",
-	//	    "algorithm for determining branch lengths (default: hky)"));    
+	config.add(new ConfigParamComment("Sequence evolution model"));
 	config.add(new ConfigParam<float>
-		   ("-r", "--tsvratio", "<transition/transversion ratio>", 
-		    &tsvratio, 1.0,
+		   ("-k", "--kappa", "<transition/transversion ratio>", 
+		    &kappa, 1.0,
 		    "used for HKY model (default=1.0)"));
 	config.add(new ConfigParam<string>
 		   ("-f", "--bgfreq", "<A freq>,<C ferq>,<G freq>,<T freq>", 
 		    &bgfreqstr, ".25,.25,.25,.25",
 		    "background frequencies (default=0.25,0.25,0.25,0.25)"));
 
+	config.add(new ConfigParamComment("Dup/loss evolution model"));
+	config.add(new ConfigParam<string>
+		   ("", "--prior", "hky|spidir|duploss|birthdeath|none", 
+		    &prioropt, "spidir",
+		    "function for prior (default=spidir)"));
+	config.add(new ConfigParam<float>
+		   ("-D", "--duprate", "<duplication rate>", 
+		    &duprate, 0.1,
+		    "rate of a gene duplication (default=0.1)"));
+	config.add(new ConfigParam<float>
+		   ("-L", "--lossrate", "<loss rate>", 
+		    &lossrate, 0.1,
+		    "probability of loss (default=0.1)"));
+	config.add(new ConfigParam<float>
+		   ("-P", "--pretime", "<pre-speciation time parameter>", 
+		    &pretime, 1.00,
+		    "lambda param of pre-speciation distribution (default=1.0)"));
+
     
 	config.add(new ConfigParamComment("Miscellaneous"));
 	config.add(new ConfigParam<string>
-		   ("", "--search", "mcmc|climb", &search, "mcmc", 
-		    "search algorithm"));
+		   ("", "--search", "climb|mcmc", 
+		    &search, "climb", 
+		    "search algorithm (default=climb)"));
 	config.add(new ConfigParam<int>
 		   ("-i", "--niter", "<# iterations>", 
 		    &niter, 100, 
 		    "number of iterations"));
-	config.add(new ConfigParam<float>
-		   ("-D", "--dupprob", "<duplication probability>", 
-		    &dupprob, 0.0001,
-		    "probability of a node being a duplication (default=-1.0, do not use)"));
-	config.add(new ConfigParam<float>
-		   ("-L", "--lossprob", "<loss probability>", 
-		    &lossprob, 0.00001,
-		    "probability of loss (default=-1.0, do not use)"));
-	config.add(new ConfigParam<float>
-		   ("-P", "--predupprob", "<pre-duplication probability>", 
-		    &predupprob, 1.00,
-		    "probability of a node being a pre-duplication (default=0.01)"));
 	config.add(new ConfigParam<int>
 		   ("", "--quickiter", "<quick iterations>", 
 		    &quickiter, 50,
 		    "number of subproposals (default=50)"));
-	config.add(new ConfigSwitch
-		   ("-g", "--generate", &estGenerate, "estimate generate"));
-	config.add(new ConfigParam<string>
-		   ("-c", "--correct", "<correct tree file>", &correctFile, ""
-		    "check if correct tree is visited in search"));
-	config.add(new ConfigParam<string>
-		   ("", "--prior", "hky|spidir|duploss|birthdeath|none", 
-		    &prioropt, "spidir",
-		    "function for prior (branch and topology)"));
 	config.add(new ConfigParam<int>
 		   ("-b", "--boot", "<# bootstraps>", 
 		    &bootiter, 1,
 		    "number of bootstraps to perform (default: 1)"));
+	config.add(new ConfigParam<string>
+		   ("-c", "--correct", "<correct tree file>", &correctFile, ""
+		    "check if correct tree is visited in search"));
+	config.add(new ConfigParam<int>
+		   ("", "--prior_samples", "<number of samples>",
+		    &priorSamples, 100,
+		    "number of samples to use in branch prior integration (default: 100)"));
+	config.add(new ConfigSwitch
+		   ("", "--prior_exact", 
+		    &priorExact,
+		    "Use an exact calculation of branch prior"));
+	config.add(new ConfigSwitch
+		   ("-g", "--gene_rate", &estGenerate, "estimate generate"));
 
+
+	config.add(new ConfigParamComment("Information"));
 	config.add(new ConfigParam<int>
 		   ("-V", "--verbose", "<verbosity level>", 
 		    &verbose, LOG_LOW, 
@@ -140,15 +149,20 @@ public:
 	// display help
 	if (help) {
 	    config.printHelp();
-	    return 0;
+	    return 1;
 	}
     
 	// display version info
 	if (version) {
 	    printf(VERSION_INFO);
-	    return 0;
+	    return 1;
 	}
     	
+
+	if (duprate == lossrate)
+	    lossrate *= .98;
+
+	return 0;
     }
 
     string alignfile;    
@@ -160,12 +174,13 @@ public:
     string correctFile;
     string prioropt;
     int niter;
-    //string lenfitter;
-    float tsvratio;
+    float kappa;
     string bgfreqstr;
-    float predupprob;
-    float dupprob;
-    float lossprob;
+    float pretime;
+    float duprate;
+    float lossrate;
+    int priorSamples;
+    bool priorExact;
     string logfile;
     int verbose;
     bool help;
@@ -339,32 +354,34 @@ int main(int argc, char **argv)
     
     ExtendArray<string> species(stree.nnodes);
     stree.getLeafNames(species);
-        
+    
     ExtendArray<int> gene2species(nnodes);
     mapping.getMap(genes, aln->nseqs, species, stree.nnodes, gene2species);
     
     
     //=====================================================
     // init likelihood function
-    Prior *prior;
-    
+    Prior *prior;    
+
     if (c.prioropt == "none")
         prior = new Prior();
     
     else if (c.prioropt == "spidir")
         prior = new SpidirPrior(nnodes, &stree, params, 
 				gene2species,
-				c.predupprob, 
-				c.dupprob, 
-				c.lossprob,
+				c.pretime, 
+				c.duprate, 
+				c.lossrate,
+				c.priorSamples,
+				!c.priorExact,
 				c.estGenerate);
     /*
     else if (c.lkfuncopt == "duploss")
         lkfunc = new SpidirBranchLikelihoodFunc(nnodes, &stree, params, 
                                                 gene2species,
-                                                c.predupprob, 
-						c.dupprob,
-						c.lossprob, 
+                                                c.pretime, 
+						c.duprate,
+						c.lossrate, 
                                                 c.estGenerate,
                                                 true);
     else if (c.lkfuncopt == "hky") 
@@ -386,7 +403,7 @@ int main(int argc, char **argv)
     BranchLengthFitter *fitter = NULL;
     const int maxiter = 2;
     fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs, 
-			   bgfreq, c.tsvratio, maxiter);
+			   bgfreq, c.kappa, maxiter);
     
     
     //========================================================
@@ -396,7 +413,7 @@ int main(int argc, char **argv)
     const float sprRatio = .3;
     SprNniProposer proposer2(&stree, gene2species, c.niter, sprRatio);
     DupLossProposer proposer(&proposer2, &stree, gene2species, 
-			     c.dupprob, c.lossprob,
+			     c.duprate, c.lossrate,
                              c.quickiter, c.niter);
     
 

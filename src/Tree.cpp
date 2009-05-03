@@ -884,51 +884,6 @@ void freeFtree(int nnodes, int **ftree)
 }
 
 
-// create a tree object from a parent tree array
-void ptree2tree(int nnodes, int *ptree, Tree *tree)
-{
-    Node **nodes = tree->nodes;
-    
-    // allocate children
-    for (int i=0; i<nnodes; i++) {
-        nodes[i]->allocChildren(2);
-        nodes[i]->name = i;
-        nodes[i]->nchildren = 0;
-    }
-    
-    // store parent and child pointers
-    for (int i=0; i<nnodes; i++) {
-        int parent = ptree[i];
-        
-        if (parent != -1) {
-            Node *parentnode = nodes[parent];            
-            parentnode->children[parentnode->nchildren++] = nodes[i];
-            nodes[i]->parent = parentnode;
-        } else {
-            nodes[i]->parent = NULL;
-        }
-    }
-    
-    // set root
-    tree->root = nodes[nnodes - 1];
-    assert(tree->assertTree());
-}
-
-
-// create a parent tree from a tree object array
-void tree2ptree(Tree *tree, int *ptree)
-{
-    Node **nodes = tree->nodes;
-    int nnodes = tree->nnodes;
-    
-    for (int i=0; i<nnodes; i++) {
-        if (nodes[i]->parent)
-            ptree[i] = nodes[i]->parent->name;
-        else
-            ptree[i] = -1;
-    }
-}
-
 
 //=============================================================================
 // primitive input/output
@@ -982,12 +937,60 @@ void printTree(Tree *tree, Node *node, int depth)
 // C exports
 extern "C" {
 
+
+// create a tree object from a parent tree array
+void ptree2tree(int nnodes, int *ptree, Tree *tree)
+{
+    Node **nodes = tree->nodes;
+    
+    // allocate children
+    for (int i=0; i<nnodes; i++) {
+        nodes[i]->allocChildren(2);
+        nodes[i]->name = i;
+        nodes[i]->nchildren = 0;
+    }
+    
+    // store parent and child pointers
+    for (int i=0; i<nnodes; i++) {
+        int parent = ptree[i];
+        
+        if (parent != -1) {
+            Node *parentnode = nodes[parent];            
+            parentnode->children[parentnode->nchildren++] = nodes[i];
+            nodes[i]->parent = parentnode;
+        } else {
+            nodes[i]->parent = NULL;
+        }
+    }
+    
+    // set root
+    tree->root = nodes[nnodes - 1];
+    assert(tree->assertTree());
+}
+
+
+// create a parent tree from a tree object array
+void tree2ptree(Tree *tree, int *ptree)
+{
+    Node **nodes = tree->nodes;
+    int nnodes = tree->nnodes;
+    
+    for (int i=0; i<nnodes; i++) {
+        if (nodes[i]->parent)
+            ptree[i] = nodes[i]->parent->name;
+        else
+            ptree[i] = -1;
+    }
+}
+
+
 Tree *makeTree(int nnodes, int *ptree) 
 {
     Tree *tree = new Tree(nnodes);
     ptree2tree(nnodes, ptree, tree); 
     return tree;
 }
+
 
 void deleteTree(Tree *tree)
 {
