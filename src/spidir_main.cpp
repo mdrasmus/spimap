@@ -70,7 +70,7 @@ public:
 		    "used for HKY model (default=1.0)"));
 	config.add(new ConfigParam<string>
 		   ("-f", "--bgfreq", "<A freq>,<C ferq>,<G freq>,<T freq>", 
-		    &bgfreqstr, ".25,.25,.25,.25",
+		    &bgfreqstr, "",
 		    "background frequencies (default=0.25,0.25,0.25,0.25)"));
 
 	config.add(new ConfigParamComment("Dup/loss evolution model"));
@@ -326,15 +326,22 @@ int main(int argc, char **argv)
     
     // determine background base frequency
     float bgfreq[4];
-    vector<string> tokens = split(c.bgfreqstr.c_str(), ",");
-    if (tokens.size() != 4) {
-        printError("bgfreq requires four base frequencies e.g .25,.25,.25,.25");
-        return 1;
-    }
-    for (unsigned int i=0; i<tokens.size(); i++) {
-        if (sscanf(tokens[i].c_str(), "%f", &bgfreq[i]) != 1) {
-            printError("bgfreq must be floats");
+
+    if (c.bgfreqstr == "") {
+        // compute frequency from alignment
+        computeBgfreq(aln->nseqs, aln->seqs, bgfreq);
+    } else {
+        // use supplied frequency
+        vector<string> tokens = split(c.bgfreqstr.c_str(), ",");
+        if (tokens.size() != 4) {
+            printError("bgfreq requires four base frequencies e.g .25,.25,.25,.25");
             return 1;
+        }
+        for (unsigned int i=0; i<tokens.size(); i++) {
+            if (sscanf(tokens[i].c_str(), "%f", &bgfreq[i]) != 1) {
+                printError("bgfreq must be floats");
+                return 1;
+            }
         }
     }
     

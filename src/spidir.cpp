@@ -45,6 +45,30 @@ int dnatype[] = {
 };    
 
 
+// compute background frequencies
+void computeBgfreq(int nseqs, char **seqs, float *bgfreq)
+{
+    for (int i=0; i<4; i++)
+        bgfreq[i] = 0.0;
+
+    int count = 0;
+
+    for (int i=0; i<nseqs; i++) {
+        for (char *c=seqs[i]; *c; c++) {
+            int d = dna2int[*c];
+            if (d != -1) {
+                count++;
+                bgfreq[d] += 1.0;
+            }
+        }
+    }
+
+    // normalize
+    for (int i=0; i<4; i++)
+        bgfreq[i] /= count;
+}
+
+
 //=============================================================================
 // Distance Matrix
 

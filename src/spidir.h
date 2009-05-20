@@ -30,6 +30,9 @@ extern int dnatype[];
 
 
 
+// compute background frequencies
+void computeBgfreq(int nseq, char **seqs, float *bgfreq);
+
 //=============================================================================
 // Distance Matrices
 

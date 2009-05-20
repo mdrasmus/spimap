@@ -49,6 +49,7 @@ endif
 
 # program files
 SPIDIR_PROG = bin/spidir
+SPIDIR_DEBUG = bin/spidir-debug
 
 SPIDIR_SRC = \
     src/spidir.cpp \
@@ -109,9 +110,15 @@ MATLAB_SRC = $(SPIDIR_SRC) src/matlab_interface.cpp
 # default targets
 all: $(SPIDIR_PROG) $(LIBSPIDIR)
 
+debug: $(SPIDIR_DEBUG)
+
 # SPIDIR stand-alone program
 $(SPIDIR_PROG): $(PROG_OBJS) src/igammaf/igammaf.a
 	$(CXX) $(CFLAGS) $(PROG_OBJS) $(PROG_LIBS) -o $(SPIDIR_PROG)
+
+$(SPIDIR_DEBUG): $(PROG_OBJS) src/igammaf/igammaf.a
+	$(CXX) $(CFLAGS) $(PROG_OBJS) $(PROG_LIBS) -o $(SPIDIR_DEBUG)
+
 
 # maximum likelihood program
 maxml: maxml.o $(SPIDIR_OBJS)
@@ -174,6 +181,10 @@ clean:
               $(MATLAB_OBJS) maxml maxml.o \
               $(MATLAB_COMPILE) $(MATLAB_COMPILE_RULES)
 	make -C src/igammaf clean
+
+clean-obj:
+	rm -f $(PROG_OBJS)
+
 
 #=============================================================================
 # dependencies

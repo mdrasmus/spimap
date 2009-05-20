@@ -113,7 +113,7 @@ def sim_tree(stree, params, duprate, lossrate, generate, use_spec,
     remove_losses(tree, recon, events)
 
     # try again if there is total extinction
-    if len(tree.nodes) < minsize:
+    if len(tree.leaves()) < minsize:
         infofile.write("tree too small. size: %d\n" % len(tree.nodes))
         if len(tree.nodes) == 0:
             infofile.write("extinction\n")

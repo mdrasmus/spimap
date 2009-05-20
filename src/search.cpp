@@ -433,6 +433,7 @@ void DupLossProposer::propose(Tree *tree)
     events.ensureSize(tree->nnodes);
     recon.setSize(tree->nnodes);
     events.setSize(tree->nnodes);
+    
     reconcile(tree, stree, gene2species, recon);
     labelEvents(tree, recon, events);
 
@@ -861,8 +862,7 @@ Tree *TreeSearchClimb::search(Tree *initTree,
     printLog(LOG_LOW, "search: branch = %f\n", branchp);          
     printLog(LOG_LOW, "search: top    = %f\n", topp);
                         
-    printSearchStatus(tree, 
-		      prior->getSpeciesTree(), 
+    printSearchStatus(tree, prior->getSpeciesTree(), 
                       prior->getGene2species(), recon, events);
     
     
