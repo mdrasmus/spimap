@@ -796,9 +796,8 @@ float branchPrior(Tree *tree,
 		  int nsamples, bool approx)
 {
     float logl = 0.0; // log likelihood
-        
-    
-    clock_t startTime = clock();
+    Timer timer;
+
     
     BranchPriorCalculator priorcalc(tree, stree, recon, events, params,
 				    birth, death, nsamples, approx);
@@ -811,7 +810,7 @@ float branchPrior(Tree *tree,
     }
     
     //setLogLevel(LOG_MEDIUM);
-    printLog(LOG_MEDIUM, "branch prior time: %f\n", getTimeSince(startTime));
+    printLog(LOG_MEDIUM, "branch prior time: %f\n", timer.time());
     
     return logl;
 }

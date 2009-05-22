@@ -12,6 +12,7 @@
 =============================================================================*/
 
 // headers c++ 
+#include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -365,16 +366,40 @@ FILE *getLogFile();
 void setLogLevel(int level);
 bool isLogLevel(int level);
 
-inline float getTimeSince(clock_t last)
-{ 
-    return (clock() - last) / float(CLOCKS_PER_SEC); 
-}
 
 void printError(const char *fmt, ...);
 
 
 void printIntArray(int *array, int size);
 void printFloatArray(float *array, int size);
+
+
+// timing
+class Timer
+{
+public:
+    Timer(bool begin=true)
+    {
+        if (begin)
+            start();
+    }
+
+    void start()
+    {
+        gettimeofday(&start_time, NULL);
+    }
+
+    float time()
+    {
+        timeval result, stop;
+        gettimeofday(&stop, NULL);
+        timersub(&stop, &start_time, &result);
+
+        return result.tv_sec + result.tv_usec/1000000.0;
+    }
+
+    timeval start_time;
+};
 
 
 

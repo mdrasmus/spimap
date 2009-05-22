@@ -367,7 +367,7 @@ int main(int argc, char **argv)
     
     
     //=====================================================
-    // init likelihood function
+    // init prior function
     Prior *prior;    
 
     if (c.prioropt == "none")
@@ -408,7 +408,7 @@ int main(int argc, char **argv)
     
     // determine branch length algorithm
     BranchLengthFitter *fitter = NULL;
-    const int maxiter = 2;
+    const int maxiter = 10;
     fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs, 
 			   bgfreq, c.kappa, maxiter);
     
@@ -417,8 +417,8 @@ int main(int argc, char **argv)
     // initialize search
     
     // init topology proposer
-    const float sprRatio = .3;
-    SprNniProposer proposer2(&stree, gene2species, c.niter, sprRatio);
+    const int radius = 3;
+    SprNbrProposer proposer2(&stree, gene2species, c.niter, radius);
     DupLossProposer proposer(&proposer2, &stree, gene2species, 
 			     c.duprate, c.lossrate,
                              c.quickiter, c.niter);
@@ -485,8 +485,18 @@ int main(int argc, char **argv)
             printLog(LOG_LOW, "RESULT: wrong\n");
         }
     }
-    
-    
+        
+    // log runtime
+    time_t runtime = time(NULL) - startTime;
+    printLog(LOG_LOW, "seq runtime:\t%f\n", fitter->runtime);
+    printLog(LOG_LOW, "branch runtime:\t%f\n", prior->branch_runtime);
+    printLog(LOG_LOW, "topology runtime:\t%f\n", prior->top_runtime);
+    printLog(LOG_LOW, "runtime seconds:\t%d\n", runtime);
+    printLog(LOG_LOW, "runtime minutes:\t%.1f\n", float(runtime / 60.0));
+    printLog(LOG_LOW, "runtime hours:\t%.1f\n", float(runtime / 3600.0));
+    closeLogFile();
+
+
     // clean up
     delete toptree;
     delete params;
@@ -494,13 +504,6 @@ int main(int argc, char **argv)
     delete prior;
     delete search;
     
-    
-    // log runtime
-    time_t runtime = time(NULL) - startTime;
-    printLog(LOG_LOW, "runtime seconds: %d\n", runtime);
-    printLog(LOG_LOW, "runtime minutes: %.1f\n", float(runtime / 60.0));
-    printLog(LOG_LOW, "runtime hours: %.1f\n", float(runtime / 3600.0));
-    closeLogFile();
 }
 
 

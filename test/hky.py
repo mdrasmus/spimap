@@ -16,6 +16,8 @@ from test import *
 
 from rasmus.common import *
 
+rplot_set_viewer("display")
+
 
 class TestHKY (unittest.TestCase):
     

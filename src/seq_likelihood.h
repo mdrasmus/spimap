@@ -8,8 +8,8 @@ namespace spidir {
 
 
 float findMLBranchLengthsHky(Tree *tree, int nseqs, char **seqs, 
-                            const float *bgfreq, float ratio, 
-                            int maxiter=100, int samples=0);
+                            const float *bgfreq, float kappa, 
+                            int maxiter=100);
 
 template <class Model>
 float getTotalLikelihood(ExtendArray<float*> &lktable, Tree *tree, 
@@ -36,10 +36,10 @@ float mleDistanceHky(float *probs1, float *probs2, int seqlen,
 		     float t0, float t1);
 
 float calcSeqProbHky(Tree *tree, int nseqs, char **seqs, 
-                     const float *bgfreq, float ratio);
+                     const float *bgfreq, float kappa);
 
 float findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs, 
-                             float *dists, const float *bgfreq, float ratio, 
+                             float *dists, const float *bgfreq, float kappa, 
                              int maxiter, bool parsinit=false);
 
 } // extern "C"

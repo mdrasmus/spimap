@@ -449,7 +449,7 @@ public:
 	const int maxiter = 20;
         
         // optimize gene rate parameters
-        gsl_vector_set(init_x, 0, gene_nu);
+        //gsl_vector_set(init_x, 0, gene_nu);
         //gsl_vector_set(init_x, 1, gene_beta);
         //gsl_multimin_fdfminimizer_set(opt, &opt_gene_rate, init_x, 
         //                              step_size, tol);      

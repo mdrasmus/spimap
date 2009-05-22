@@ -16,6 +16,9 @@ from test import *
 
 from rasmus.common import *
 
+rplot_set_viewer("display")
+
+
 class TestSeqLikelihood (unittest.TestCase):
 
     def setUp(self):
