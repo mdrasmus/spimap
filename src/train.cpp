@@ -34,11 +34,13 @@ class RatesEM
 public:
 
     RatesEM(int ntrees, int nspecies, int nrates, 
+            int *gene_sizes,
             float **lengths, float *times,
             float *sp_alpha, float *sp_beta, 
             float gene_alpha, float gene_beta) : 
         ntrees(ntrees),
-        nspecies(nspecies),          
+        nspecies(nspecies), 
+        gene_sizes(gene_sizes),
         lengths(lengths),
         times(times),
         sp_alpha(sp_alpha),
@@ -185,6 +187,8 @@ public:
     //======================================================
     // species rates function and derivative
 
+    // f(a_i, b_i) = - sum_j sum_k pgtab_jk 
+    //                       log(NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
     static double sp_rate_f(const gsl_vector *x, void *params)
     {
         RatesEM *em = (RatesEM*) params;
@@ -206,7 +210,9 @@ public:
         return -sum;
     }
     
-
+    // d/d a_i f(a_i, b_i) = - sum_j sum_k pgtab_jk 
+    //                (NB'_r(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)) /
+    //                    NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
     static void sp_rate_df(const gsl_vector *x, void *params, gsl_vector *df)
     {
         RatesEM *em = (RatesEM*) params;
@@ -238,6 +244,11 @@ public:
         gsl_vector_set(df, 1, -beta_sum);
     }
 
+    // f(a_i, b_i) = - sum_j sum_k pgtab_jk 
+    //                       log(NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
+    // d/d a_i f(a_i, b_i) = - sum_j sum_k pgtab_jk 
+    //                (NB'_r(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)) /
+    //                    NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
     static void sp_rate_fdf(const gsl_vector *x, void *params, 
                               double *f, gsl_vector *df)
     {
@@ -488,6 +499,7 @@ public:
     // data
     int ntrees;
     int nspecies;
+    int *gene_sizes;
     float **lengths;
 
     // given fixed parameters
@@ -518,23 +530,13 @@ public:
 
 extern "C" {
 
-void train(int ntrees, int nspecies, float **lengths, float *times,
-           float *sp_alpha, float *sp_beta, float *gene_alpha, float *gene_beta,
+void train(int ntrees, int nspecies, int *gene_sizes,
+           float **lengths, float *times,
+           float *sp_alpha, float *sp_beta, 
+           float *gene_alpha, float *gene_beta,
            int nrates, int max_iter)
 {
-
-    /*
-    for (int i=0; i<ntrees; i++) {
-        printFloatArray(lengths[i], nspecies);
-        printf("\n");
-    }
-    
-    printf("times ");
-    printFloatArray(times, nspecies);
-    printf("\n");
-    */
-
-    RatesEM em(ntrees, nspecies, nrates, lengths, times,
+    RatesEM em(ntrees, nspecies, nrates, gene_sizes, lengths, times,
                sp_alpha, sp_beta, *gene_alpha, *gene_beta);
     
     
@@ -545,18 +547,21 @@ void train(int ntrees, int nspecies, float **lengths, float *times,
     for (int iter=0; iter<max_iter; iter++) {
         em.EStep();
         em.MStep();
-
-        //printf("logl: %f\n", em.likelihood());
     }
       
 }
 
 
 RatesEM *allocRatesEM(int ntrees, int nspecies, int nrates,
+                      int *gene_sizes,
                       float **lengths, float *times,
                       float *sp_alpha, float *sp_beta, 
                       float gene_alpha, float gene_beta)
 {
+    int *gene_sizes2 = new int [ntrees];
+    for (int j=0; j<ntrees; j++)
+        gene_sizes2[j] = gene_sizes[j];
+
     // copy lengths
     float **lengths2 = new float* [ntrees];
     for (int j=0; j<ntrees; j++) {
@@ -575,13 +580,16 @@ RatesEM *allocRatesEM(int ntrees, int nspecies, int nrates,
         sp_beta2[i] = sp_beta[i];
     }
 
-    return new RatesEM(ntrees, nspecies, nrates, lengths2, times2,
+    return new RatesEM(ntrees, nspecies, nrates, gene_sizes2,
+                       lengths2, times2,
 		       sp_alpha2, sp_beta2, gene_alpha, gene_beta);
 }
 
 
 void freeRatesEM(RatesEM *em)
 {
+    delete [] em->gene_sizes;
+
     for (int j=0; j<em->ntrees; j++)
         delete [] em->lengths[j];
     delete [] em->lengths;
@@ -612,14 +620,6 @@ void RatesEM_MStep(RatesEM* em)
 
 float RatesEM_likelihood(RatesEM *em)
 {
-    /*
-    for (int j=0; j<em->ntrees; j++) {
-        for (int k=0; k<em->nrates; k++) {
-            printf("%f ", em->gtab[j][k]);
-        }
-        printf("\n");
-        }*/
-
     return em->likelihood();
 }
 

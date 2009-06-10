@@ -235,13 +235,16 @@ export(spidir, "findMLBranchLengthsHky", c_float,
 
 # training functions
 export(spidir, "train", c_void_p,
-       [c_int, "ntrees", c_int, "nspecies", c_float_matrix, "lengths",
+       [c_int, "ntrees", c_int, "nspecies",
+        c_int_list, "gene_sizes",
+        c_float_matrix, "lengths",
         c_float_list, "times",
         c_float_list, "sp_alpha", c_float_list, "sp_beta",
         c_float_list, "gene_alpha", c_float_list, "gene_beta",
         c_int, "nrates", c_int, "max_iter"])
 export(spidir, "allocRatesEM", c_void_p,
        [c_int, "ntrees", c_int, "nspecies", c_int, "nrates",
+        c_int_p, "gene_sizes",
         c_float_p_p, "lengths", c_float_p, "times",
         c_float_p, "sp_alpha", c_float_p, "sp_beta", 
         c_float, "gene_alpha", c_float, "gene_beta"])
@@ -631,7 +634,8 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
 #=============================================================================
 # training
 
-def train_params(length_matrix, times, species, nrates=10, max_iter=10):
+def train_params(gene_sizes, length_matrix, times, species,
+                 nrates=10, max_iter=10):
 
     ntrees = len(length_matrix)
     nspecies = len(length_matrix[0])
@@ -641,7 +645,7 @@ def train_params(length_matrix, times, species, nrates=10, max_iter=10):
     gene_alpha = [1.0]
     gene_beta = [1.0]
 
-    train(ntrees, nspecies, length_matrix,
+    train(ntrees, nspecies, gene_sizes, length_matrix,
           times,
           sp_alpha, sp_beta, gene_alpha, gene_beta,
           nrates, max_iter)
@@ -653,11 +657,12 @@ def train_params(length_matrix, times, species, nrates=10, max_iter=10):
 
     return params
 
-def alloc_rates_em(length_matrix, times, species, nrates):
+def alloc_rates_em(gene_sizes, length_matrix, times, species, nrates):
 
     ntrees = len(length_matrix)
     nspecies = len(length_matrix[0])
 
+    assert len(gene_sizes) == ntrees
     assert len(times) == nspecies
     assert len(species) == nspecies
 
@@ -667,6 +672,7 @@ def alloc_rates_em(length_matrix, times, species, nrates):
     gene_beta = 1.0
     
     return allocRatesEM(ntrees, nspecies, nrates,
+                        c_list(c_int, gene_sizes),
                         c_matrix(c_float, length_matrix),
                         c_list(c_float, times),
                         c_list(c_float, sp_alpha),

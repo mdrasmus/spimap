@@ -43,7 +43,7 @@ class TestTrain (unittest.TestCase):
         m = spidir.c_matrix(spidir.c_int, [[1,2,3],[4,5,6]])
         print m[1][1]
 
-    def _test_train(self):
+    def test_train(self):
 
         # read data
         stree = readTree("test/data/flies.norm.stree")
@@ -54,15 +54,16 @@ class TestTrain (unittest.TestCase):
         species = dat[0]
         lens = map2(float, dat[1:])
         times = [node.dist for node in stree.postorder() if node.parent]
+        gene_sizes = [1000] * len(lens)
         
         ntrees = len(lens)
         nrates = 20
         
-        #params = spidir.train_params(lens, times, species,
+        #params = spidir.train_params(gene_sizes, lens, times, species,
         #                             nrates=10, max_iter=10)
 
 
-        em = spidir.alloc_rates_em(lens, times, species, nrates)
+        em = spidir.alloc_rates_em(gene_sizes, lens, times, species, nrates)
 
         spidir.RatesEM_Init(em)
         spidir.RatesEM_EStep(em)
@@ -224,7 +225,7 @@ class TestTrain (unittest.TestCase):
 
 
 
-    def test_estep(self):
+    def _test_estep(self):
 
 
         def gene_post(g, lens, times, params):
