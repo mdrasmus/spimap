@@ -49,22 +49,16 @@ public:
         gtab(ntrees, nrates),
         pgtab(ntrees, nrates)
     {
-        // allocate gene rate optizer optimizer
-	//opt2 = gsl_root_fdfsolver_alloc(gsl_root_fdfsolver_newton);
-	opt2 = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
+        // allocate gene rate optizer
+	sol_gene_rat = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
 
         // setup optimizer for gene rates
-        //opt_gene_rate.f = &gene_rate_f;
-        //opt_gene_rate.df = &gene_rate_df;
-        //opt_gene_rate.fdf = &gene_rate_fdf;
-        //opt_gene_rate.params = this; 
-
 	opt_gene_rate.function = &gene_rate_f;
         opt_gene_rate.params = this; 
 
         // setup optimizer for species rates
         const int ndim = 2;
-        opt = gsl_multimin_fdfminimizer_alloc(
+        sol_sp_rate = gsl_multimin_fdfminimizer_alloc(
             gsl_multimin_fdfminimizer_vector_bfgs2, ndim);
         opt_sp_rate.f = &sp_rate_f;
         opt_sp_rate.df = &sp_rate_df;
@@ -76,9 +70,9 @@ public:
 
     ~RatesEM()
     {
-	//gsl_root_fdfsolver_free(opt2);
-	gsl_root_fsolver_free(opt2);
-        gsl_multimin_fdfminimizer_free(opt);
+	//gsl_root_fdfsolver_free(sol_gene_rat);
+	gsl_root_fsolver_free(sol_gene_rat);
+        gsl_multimin_fdfminimizer_free(sol_sp_rate);
     }
 
     // gene rates function and derivative
@@ -314,8 +308,6 @@ public:
         }
 
         gene_nu = 1.0; 
-	//gene_alpha = 1.0;
-        //gene_beta = 1.0;
     }
 
     inline double gene_post(double g, double A, double B, double C)
@@ -449,58 +441,43 @@ public:
 	const int maxiter = 20;
         
         // optimize gene rate parameters
-        //gsl_vector_set(init_x, 0, gene_nu);
-        //gsl_vector_set(init_x, 1, gene_beta);
-        //gsl_multimin_fdfminimizer_set(opt, &opt_gene_rate, init_x, 
-        //                              step_size, tol);      
-
-	//gsl_root_fdfsolver_set(opt2, &opt_gene_rate, 1.0);
-	gsl_root_fsolver_set(opt2, &opt_gene_rate, low, high);
+	gsl_root_fsolver_set(sol_gene_rat, &opt_gene_rate, low, high);
 
 	status = GSL_CONTINUE;
 	for (iter=0; iter<maxiter && status==GSL_CONTINUE; iter++) {
             // do one iteration
-            //status = gsl_multimin_fdfminimizer_iterate(opt);
-	    //status = gsl_root_fdfsolver_iterate(opt2);
-	    status = gsl_root_fsolver_iterate(opt2);
+	    status = gsl_root_fsolver_iterate(sol_gene_rat);
             if (status)
                 break;
-            // get gradient
-            //status = gsl_multimin_test_gradient(opt->gradient, epsabs);
-	    //r0 = r;
-	    //r = gsl_root_fdfsolver_root(opt2);
-	    //status = gsl_root_test_delta(r, r0, 0, 1e-3);
 
-	    low = gsl_root_fsolver_x_lower(opt2);
-	    high = gsl_root_fsolver_x_upper(opt2);
+            // check convergence
+	    low = gsl_root_fsolver_x_lower(sol_gene_rat);
+	    high = gsl_root_fsolver_x_upper(sol_gene_rat);
 	    status = gsl_root_test_interval(low, high, 0, 0.01);
 	}
 
-	gene_nu = gsl_root_fsolver_root(opt2);
-        //gene_nu = gsl_vector_get(opt->x, 0);
-        //gene_beta = gsl_vector_get(opt->x, 1);
-
-        //printf("g = (%f, %f)\n", gene_alpha, gene_beta); 
+	gene_nu = gsl_root_fsolver_root(sol_gene_rat);
+        
         
         // optimize each species rate parmater set
         for (int i=0; i<nspecies; i++) {
             cur_species = i;
             gsl_vector_set(init_x, 0, sp_alpha[i]);
             gsl_vector_set(init_x, 1, sp_beta[i]);
-            gsl_multimin_fdfminimizer_set(opt, &opt_sp_rate, init_x, 
+            gsl_multimin_fdfminimizer_set(sol_sp_rate, &opt_sp_rate, init_x, 
                                           step_size, tol);            
             status = GSL_CONTINUE;
 	    for (iter=0; iter<maxiter && status==GSL_CONTINUE; iter++) {
                 // do one iteration
-                status = gsl_multimin_fdfminimizer_iterate(opt);
+                status = gsl_multimin_fdfminimizer_iterate(sol_sp_rate);
                 if (status)
                     break;        
                 // get gradient
-                status = gsl_multimin_test_gradient(opt->gradient, epsabs);
+                status = gsl_multimin_test_gradient(sol_sp_rate->gradient, epsabs);
             }
 
-            sp_alpha[i] = gsl_vector_get(opt->x, 0);
-            sp_beta[i] = gsl_vector_get(opt->x, 1);
+            sp_alpha[i] = gsl_vector_get(sol_sp_rate->x, 0);
+            sp_beta[i] = gsl_vector_get(sol_sp_rate->x, 1);
 
             //printf("sp[%d] = (%f, %f)\n", i, sp_alpha[i], sp_beta[i]);
         }
@@ -530,12 +507,9 @@ public:
     Matrix<float> gtab;
     Matrix<double> pgtab;
 
-    // optimizer
-    gsl_multimin_fdfminimizer *opt;
-    //gsl_root_fdfsolver *opt2;
-    gsl_root_fsolver *opt2;
-    //gsl_multimin_function_fdf opt_gene_rate;
-    //gsl_function_fdf opt_gene_rate;
+    // optimizers
+    gsl_multimin_fdfminimizer *sol_sp_rate;
+    gsl_root_fsolver *sol_gene_rat;
     gsl_function opt_gene_rate;
     gsl_multimin_function_fdf opt_sp_rate;
     int cur_species;

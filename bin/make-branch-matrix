@@ -114,12 +114,13 @@ def main(conf, args):
 
     # read in species data
     stree = treelib.read_tree(conf.stree)
-    gene2species = phylo.read_gene2species(conf.smap)
+    gene2species = phylo.read_gene2species(conf.smap)    
 
-    #assert stree has branch lengths
-    if min(x.dist for x in stree.postorder() if x.parent) <= 0.0:
+    # assert stree has branch lengths for rerooting
+    if conf.reroot and min(x.dist for x in stree.root.children) <= 0.0:
         print >>sys.stderr, "error: species tree must have non-zero branch lengths"
         sys.exit(1)
+
 
     # species node order for matrix (exclude root)
     snodes = [x for x in stree.postorder() if x.parent]
@@ -138,7 +139,7 @@ def main(conf, args):
     try:
         trees = read_trees(sys.stdin)
 
-        if conf.reroot:
+        if conf.reroot:            
             trees = (reroot(tree, stree, gene2species)
                      for tree in trees)
         

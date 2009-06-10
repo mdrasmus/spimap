@@ -11,6 +11,8 @@ namespace spidir {
 using namespace std;
 
 
+//=============================================================================
+// proporsers
 
 class TopologyProposer
 {
@@ -28,6 +30,7 @@ public:
     virtual void accept(bool accepted) {}
 
     virtual void setCorrect(Tree *tree) { correctTree = tree; }
+    virtual Tree *getCorrect() { return correctTree; }
     virtual bool seenCorrect() { return correctSeen; }
     virtual inline void testCorrect(Tree *tree)
     {
@@ -108,7 +111,8 @@ public:
                     int *gene2species,
                     float dupprob,
                     float lossprob,
-                    int quickiter=100, int niter=500);
+                    int quickiter=100, int niter=500, int nsamples=10,
+                    bool extend=true);
     virtual ~DupLossProposer();
 
 
@@ -122,13 +126,6 @@ public:
     void clearQueue();
 
     typedef pair<Tree*,float> TreeProp;
-
-
-    static bool treePropCmp(const DupLossProposer::TreeProp &a, 
-                     const DupLossProposer::TreeProp &b)
-    {
-        return a.second < b.second;
-    }
 
 
 protected:
@@ -145,12 +142,19 @@ protected:
     float *doomtable;
     const static int maxdoom = 10;
     vector<TreeProp> queue;
-
+    float sum;
     ExtendArray<int> recon;
     ExtendArray<int> events;
     Tree *oldtop;
+    int nsamples;
+    int samplei;
+    int treesize;
+    bool extend;
 };
 
+
+//=============================================================================
+// fitters
 
 class BranchLengthFitter
 {
@@ -159,21 +163,9 @@ public:
         runtime(0)
     {}
     virtual ~BranchLengthFitter() {}
-    virtual float findLengths(Tree *tree) {return 0.0;}
+    virtual float findLengths(Tree *tree) { return 0.0; }
 
     float runtime;
-};
-
-
-class ParsimonyFitter : public BranchLengthFitter
-{
-public:
-    ParsimonyFitter(int nseqs, int seqlen, char **seqs);
-    virtual float findLengths(Tree *tree);
-    
-    int nseqs;
-    int seqlen;
-    char **seqs;
 };
 
 
@@ -194,75 +186,9 @@ public:
 };
 
 
-class SpidirSample : public BranchLengthFitter
-{
-public:
-    SpidirSample(SpeciesTree *stree, SpidirParams *params, int *gene2species) :
-        stree(stree),
-        params(params),
-        gene2species(gene2species)
-    {}
-    virtual float findLengths(Tree *tree);
-    
-    SpeciesTree *stree;
-    SpidirParams *params;
-    int *gene2species;
-};
-
-
-class HkySpidirSample : public BranchLengthFitter
-{
-public:
-    HkySpidirSample(SpeciesTree *stree, SpidirParams *params, int *gene2species,
-                    int nseqs, int seqlen, char **seqs, 
-                    float *bgfreq, float tsvratio, int maxiter) :
-        stree(stree),
-        params(params),
-        gene2species(gene2species),
-        nseqs(nseqs),
-        seqlen(seqlen),
-        seqs(seqs),
-        bgfreq(bgfreq),
-        maxiter(maxiter)
-        
-    {}
-    virtual float findLengths(Tree *tree);
-    
-    SpeciesTree *stree;
-    SpidirParams *params;
-    int *gene2species;
-    int nseqs;
-    int seqlen;
-    char **seqs;    
-    float *bgfreq;
-    float tsvratio;
-    int maxiter;
-};
-
-
-class BirthDeathFitter : public BranchLengthFitter
-{
-public:
-    BirthDeathFitter(int nseqs, int seqlen, char **seqs, 
-                     float *bgfreq, float tsvratio,
-                     SpeciesTree *stree, int *gene2species,
-                     float birthRate, float deathRate);
-    virtual float findLengths(Tree *tree);
-    
-    int nseqs;
-    int seqlen;
-    char **seqs;    
-    float *bgfreq;
-    float tsvratio;    
-    SpeciesTree *stree;
-    int *gene2species;
-    float birthRate;
-    float deathRate;
-};
-
 
 //=============================================================================
-
+// priors
 
 class Prior
 {
@@ -319,32 +245,6 @@ protected:
 };
 
 
-/*
-class HkyBranchLikelihoodFunc : public BranchLikelihoodFunc
-{
-public:
-    HkyBranchLikelihoodFunc(int nseqs, int seqlen, char **seqs, 
-                         float *bgfreq, float tsvratio) :
-        nseqs(nseqs),
-        seqlen(seqlen),
-        seqs(seqs),
-        bgfreq(bgfreq),
-        tsvratio(tsvratio)
-    {}
-    
-    virtual float likelihood(Tree *tree);
-    virtual float likelihood2(Tree *tree) { return 0.0; }
-    virtual SpeciesTree *getSpeciesTree() { return NULL; }
-    virtual int *getGene2species() { return NULL; }
-
-    int nseqs;
-    int seqlen;
-    char **seqs;    
-    float *bgfreq;
-    float tsvratio; 
-};
-
-*/
 
 class SampleFunc
 {

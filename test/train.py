@@ -2,6 +2,7 @@
 import sys, os
 
 import pygsl
+import pygsl.roots
 import pygsl.sf
 
 while "python" not in os.listdir("."):
@@ -83,7 +84,7 @@ class TestTrain (unittest.TestCase):
         #spidir.write_params("test/output/train.fastleaf/flies.fastleaf.out.params", params)
         
     
-    def test_gamma_deriv(self):
+    def _test_gamma_deriv(self):
         """gamma derivatives"""
 
         dx = .001
@@ -221,7 +222,158 @@ class TestTrain (unittest.TestCase):
         #rp.lines(x, y2, t="l", col="red")
         rplot_end(True)
 
-    def _test_estep(self):
+
+
+    def test_estep(self):
+
+
+        def gene_post(g, lens, times, params):
+            (gene_a, gene_b), sp_params = params
+
+            gene_len = 10
+            changes = [gene_len * l for l in lens]
+
+            A = prod((g*t*gene_len + b)**(-a-c)
+                    for t, a, b, c in zip(times,
+                                          util.cget(sp_params, 0),
+                                          util.cget(sp_params, 1),
+                                          changes))
+
+            return g**(gene_a-1+sum(changes)) * exp(-gene_b*g) * A
+        
+        
+        def deriv_log_gene_post(g, lens, times, params):
+            (gene_a, gene_b), sp_params = params
+
+            gene_len = 10
+            changes = [gene_len * l for l in lens]
+
+            A = sum((-a-c) * (t * gene_len) / (g * t * gene_len + b)
+                    for t, a, b, c in zip(times,
+                                          util.cget(sp_params, 0),
+                                          util.cget(sp_params, 1),
+                                          changes))
+
+            return (gene_a - 1 + sum(changes)) / g - gene_b + A
+            
+        
+
+        def gene_post_mode(lens, times, params):
+            (gene_a, gene_b), sp_params = params
+            
+            def f(x, params2=None):
+                print x
+                return deriv_log_gene_post(x, lens, times, params)
+
+            mu = gene_a / gene_b
+
+            func = pygsl.gsl_function.gsl_function(f, [])
+            sol = pygsl.roots.bisection(func)
+            sol.set(mu*.1, mu*10)
+
+            for i in range(20):
+                sol.iterate()
+            return sol.root()
+
+
+        def find_upper_g(lens, times, params, tol1=.05, tol2=.01):
+            
+            m = gene_post_mode(lens, times, params)
+            fm = gene_post(m, lens, times, params)
+            top = 2*m
+            bot = m
+
+            # extent top
+            while True:
+                ftop = gene_post(top, lens, times, params)
+                print top, ftop/fm
+                if ftop/fm <= tol2:
+                    break
+                top *= 2
+
+            # binary search
+            while True:
+                u = (top + bot) / 2.0
+                fu = gene_post(u, lens, times, params)
+
+                if fu / fm > tol1:
+                    bot = u
+                elif fu / fm < tol2:
+                    top = u
+                else:
+                    break
+
+                print bot, u, top
+
+            return u
+
+
+        def find_lower_g(lens, times, params, tol1=.05, tol2=.01):
+            
+            m = gene_post_mode(lens, times, params)
+            fm = gene_post(m, lens, times, params)
+            top = m
+            bot = 0
+            
+            # binary search
+            while True:
+                u = (top + bot) / 2.0
+                fu = gene_post(u, lens, times, params)
+
+                if fu / fm > tol1:
+                    top = u
+                elif fu / fm < tol2:
+                    bot = u
+                else:
+                    break
+
+                print bot, u, top
+
+            return u
+
+
+        
+        prep_dir("test/output/train-estep/")
+
+        nrates = 20  
+        lens = [.1, .2, .3]
+        times = [1.0, 0.5, 0.1]
+        params = ((90.0, .1), ((2.0, 3.0),
+                               (2.0, 3.0),
+                               (2.0, 3.0)))
+
+        m = gene_post_mode(lens, times, params)
+        top = find_upper_g(lens, times, params)
+        ftop = gene_post(top, lens, times, params)
+        bot = find_lower_g(lens, times, params)
+        fbot = gene_post(bot, lens, times, params)
+        print "range:", bot, m, top
+        
+
+        x = list(frange(.01, 2*m, 2*m/60.0))
+        y = [gene_post(g, lens, times, params) for g in x]
+        #y = map(log, y)
+        #y2 = [deriv_log_gene_post(g, lens, times, params) for g in x]
+
+        step1 = (m - bot) / (nrates / 2)
+        step2 = (top - m) / (nrates / 2)
+        box = list(frange(bot, m+step1/2, step1)) + \
+              list(frange(m, top+step2/2, step2))
+        fbox = [gene_post(g, lens, times, params) for g in box]
+        
+        rplot_start("test/output/train-estep/gene_post.pdf")
+        rplot("plot", x, y, t="l")
+        #rplot("lines", x, y2, t="l", col="blue")
+        rplot("lines", [bot, bot], [0, fbot], col="green")
+        rplot("lines", [top, top], [0, ftop], col="green")
+        rplot("lines", box, fbox, col="blue")
+        rplot("lines", box, fbox, col="blue", t="h")
+        rplot("lines", [m, m], [0, max(y)], col="red")
+        rplot_end(True)
+
+
+
+    def _test_estep_old(self):
 
 
         def gene_post(g, lens, times, params):

@@ -21,6 +21,9 @@
 #include <vector>
 #include <string.h>
 
+// gsl
+#include <gsl/gsl_randist.h>
+
 // spidir headers
 #include "ExtendArray.h"
 
@@ -109,6 +112,14 @@ inline float invgammavariate(float alpha, float beta)
 
 inline float expovariate(float lambda)
 { return -log(frand()) / lambda; }
+
+
+
+inline double negbinomPdf(int k, double r, double p)
+{
+    return gsl_ran_negative_binomial_pdf(k, p, r);
+}
+
 
 } // extern "C"
 

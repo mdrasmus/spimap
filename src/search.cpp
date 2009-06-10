@@ -2,21 +2,21 @@
 //  SPIDIR - tree search
 
 
+// 3rd party includes
 #include <algorithm>
 
+
+// spidir includes
 #include "common.h"
-#include "Matrix.h"
-#include "phylogeny.h"
 #include "branch_prior.h"
 #include "parsimony.h"
+#include "phylogeny.h"
 #include "search.h"
 #include "seq_likelihood.h"
-
+#include "Matrix.h"
 
 
 namespace spidir {
-
-
 
 //=============================================================================
 // Nearest Neighbor Interchange Topology Proposal
@@ -330,9 +330,6 @@ void SprProposer::propose(Tree *tree)
 {   
     // increase iteration
     iter++;
-
-    // debug: keep track of correct tree in search
-    testCorrect(tree);
     
     // choose a SPR move
     proposeRandomSpr(tree, &nodea, &nodeb);
@@ -343,6 +340,9 @@ void SprProposer::propose(Tree *tree)
     
     // perform SPR move
     performSpr(tree, nodea, nodeb);
+
+    // debug: keep track of correct tree in search
+    testCorrect(tree);
 }
 
 void SprProposer::revert(Tree *tree)
@@ -379,7 +379,6 @@ void SprNbrProposer::propose(Tree *tree)
     }
 
     iter++; // increase iteration
-    testCorrect(tree); // debug: keep track of correct tree in search
     
     // get new branch point
     nodea = queue.front();
@@ -391,6 +390,7 @@ void SprNbrProposer::propose(Tree *tree)
     
     // perform SPR move
     performSpr(tree, subtree, nodea);
+    testCorrect(tree); // debug: keep track of correct tree in search
 
     tree->assertTree();
 }
@@ -478,9 +478,9 @@ void SprNbrProposer::pickNewSubtree()
 }
 
 
-
-
 void SprNbrProposer::reset() { iter = 0; }
+
+
 
 //=============================================================================
 // Dup/Loss proposer
@@ -488,7 +488,8 @@ void SprNbrProposer::reset() { iter = 0; }
 DupLossProposer::DupLossProposer(TopologyProposer *proposer, 
                                  SpeciesTree *stree, int *gene2species,
                                  float dupprob, float lossprob,
-                                 int quickiter, int niter) :
+                                 int quickiter, int niter,
+                                 int nsamples, bool extend) :
     proposer(proposer),
     quickiter(quickiter),
     niter(niter),
@@ -501,7 +502,10 @@ DupLossProposer::DupLossProposer(TopologyProposer *proposer,
     lossprob(lossprob),
     recon(0),
     events(0),
-    oldtop(NULL)
+    oldtop(NULL),
+    nsamples(nsamples),
+    samplei(0),
+    treesize(0)
 {
     doomtable = new float [stree->nnodes];
     calcDoomTable(stree, dupprob, lossprob, maxdoom, doomtable);
@@ -518,7 +522,13 @@ DupLossProposer::~DupLossProposer()
     clearQueue();
 }
 
- 
+
+bool treePropCmp(const DupLossProposer::TreeProp &a, 
+                 const DupLossProposer::TreeProp &b)
+{
+    return a.second > b.second;
+}
+
 
 void DupLossProposer::queueTrees(Tree *tree)
 {
@@ -535,7 +545,7 @@ void DupLossProposer::queueTrees(Tree *tree)
     // init queue for subproposals
     queue.clear();
     
-    float sum = -INFINITY;
+    sum = -INFINITY;
     
     // make many subproposals
     proposer->reset();
@@ -555,45 +565,72 @@ void DupLossProposer::queueTrees(Tree *tree)
         // save tree and logl
         Tree *tree2 = tree->copy();
         queue.push_back(TreeProp(tree2, logl));
-        std::sort(queue.begin(), queue.end(), DupLossProposer::treePropCmp);
 
         // restore tree
         tree->reroot(oldroot1, oldroot2);
         proposer->revert(tree);
     }
+    
+    // makes the random sample slightly faster
+    std::sort(queue.begin(), queue.end(), treePropCmp);
+    
+    // start a new sample count
+    samplei = 0;
 }
+
 
 void DupLossProposer::propose(Tree *tree)
 {
     iter++;
-    testCorrect(tree); // debug: keep track of correct tree in search    
-    
+    treesize = tree->nnodes;
+
     // do simple proposal if dup/loss probs are disabled
     if (dupprob < 0.0 || lossprob < 0.0 || quickiter <= 1) {
         proposer->propose(tree);
         return;
     }
     
-    if (queue.size() == 0)
+    if (queue.size() == 0 || samplei >= nsamples)
         queueTrees(tree);
-
+    samplei++;
+    
     // save old topology
     if (oldtop)
         delete oldtop;
     oldtop = tree->copy();
+    
+    // randomly sample a tree from the queue
+    float choice = log(frand()) + sum;
+    float partsum = -INFINITY;
+    
+    for (unsigned int i=0; i<queue.size(); i++) {
+        partsum = logadd(partsum, queue[i].second);
+        
+        if (choice < partsum) {
+            // propose tree i
+            tree->setTopology(queue[i].first);
 
-    Tree *tree2 = queue.back().first;
-    queue.pop_back();
-
-    tree->setTopology(tree2);
-    delete tree2;
+            // remove tree i from queue
+            sum -= queue[i].second;
+            queue[i] = queue.back();
+            queue.pop_back();            
+            break;
+        }
+    }
+    
+    testCorrect(tree); // debug: keep track of correct tree in search
 }
 
 
 void DupLossProposer::accept(bool accepted)
 {
-    if (accepted)
+    if (accepted) {
         clearQueue();
+        
+        // extend more iterations
+        if (extend)
+            niter = max(niter, iter + treesize * 2);
+    }
 }
 
 
@@ -632,20 +669,6 @@ void DupLossProposer::clearQueue()
 //=============================================================================
 // Fitting branch lengths
 
-ParsimonyFitter::ParsimonyFitter(int nseqs, int seqlen, char **seqs) :
-    nseqs(nseqs),
-    seqlen(seqlen),
-    seqs(seqs)
-{}
-
-
-float ParsimonyFitter::findLengths(Tree *tree)
-{
-    parsimony(tree, nseqs, seqs);
-    return 0.0;
-}
-
-
 
 HkyFitter::HkyFitter(int nseqs, int seqlen, char **seqs, 
                      float *bgfreq, float tsvratio, int maxiter,
@@ -671,94 +694,6 @@ float HkyFitter::findLengths(Tree *tree)
         return logl;
     else
         return 0.0;
-}
-
-
-
-float SpidirSample::findLengths(Tree *tree)
-{
-    // reconcile gene tree to species tree
-    int recon[tree->nnodes];
-    int events[tree->nnodes];
-
-    reconcile(tree, stree, gene2species, recon);
-    labelEvents(tree, recon, events);
-    
-    //generateBranchLengths(tree, stree, recon, events, params);
-    return 0.0;
-}
-
-
-float HkySpidirSample::findLengths(Tree *tree)
-{ 
-    // reconcile gene tree to species tree
-    int recon[tree->nnodes];
-    int events[tree->nnodes];
-
-    reconcile(tree, stree, gene2species, recon);
-    labelEvents(tree, recon, events);
-    
-    float logl = -INFINITY;
-    
-    for (int i=0; i<maxiter; i++) {
-        //generateBranchLengths(tree, stree, recon, events, params);
-        logl = logadd(logl, calcSeqProbHky(tree, nseqs, seqs, bgfreq, tsvratio));
-    }
-    logl -= log(maxiter);
-    
-    return logl;
-}
-
-
-BirthDeathFitter::BirthDeathFitter(int nseqs, int seqlen, char **seqs, 
-                                   float *bgfreq, float tsvratio,
-                                   SpeciesTree *stree, int *gene2species, 
-                                   float birthRate, float deathRate) :
-    nseqs(nseqs),
-    seqlen(seqlen), 
-    seqs(seqs), 
-    bgfreq(bgfreq), 
-    tsvratio(tsvratio),
-    stree(stree),
-    gene2species(gene2species),
-    birthRate(birthRate),
-    deathRate(deathRate)
-{}
-
-
-float BirthDeathFitter::findLengths(Tree *tree)
-{
-    // reconcile gene tree to species tree
-    ExtendArray<int> recon(tree->nnodes);
-    ExtendArray<int> events(tree->nnodes);
-    reconcile(tree, stree, gene2species, recon);
-    labelEvents(tree, recon, events);
-    
-    int addedNodes = addImpliedSpecNodes(tree, stree, recon, events);
-    
-    float qbdlogl = birthDeathTreeQuickPrior(tree, stree, recon, events, 
-                                             birthRate, deathRate);  
-    
-    sampleDupTimes(tree, stree, recon, events, birthRate, deathRate);
-    
-    //displayTree(tree, stdout, 100);
-    
-    // TODO: I could add multiple samples here
-    
-    float bdlogl = birthDeathTreeQuickPrior(tree, stree, recon, events, 
-                                            birthRate, deathRate);
-    
-    removeImpliedSpecNodes(tree, addedNodes);
-    
-    float logl = findMLBranchLengthsHky(tree, nseqs, seqs, bgfreq, 
-                                        tsvratio, 10);
-    
-    //float logl = calcHkySeqProb(tree, nseqs, seqs, bgfreq, tsvratio) + bdlogl;
-    
-    printLog(LOG_MEDIUM, "search logl (total, bd, qbd): %f %f %f\n", 
-             logl, bdlogl, qbdlogl);
-    
-    return logl;
 }
 
 
@@ -840,13 +775,6 @@ float SpidirPrior::topologyPrior(Tree *tree)
 
     return logp;
 }
-
-/*
-float HkyBranchLikelihoodFunc::likelihood(Tree *tree)
-{
-    return calcSeqProbHky(tree, nseqs, seqs, bgfreq, tsvratio);
-}
-*/
 
 
 //=============================================================================
@@ -947,6 +875,9 @@ TreeSearchClimb::TreeSearchClimb(Prior *prior,
 TreeSearchClimb::~TreeSearchClimb()
 {}
 
+
+
+
 Tree *TreeSearchClimb::search(Tree *initTree, 
 			      string *genes, 
 			      int nseqs, int seqlen, char **seqs)
@@ -954,9 +885,22 @@ Tree *TreeSearchClimb::search(Tree *initTree,
     Tree *toptree = NULL;
     float toplogp = -INFINITY, nextlogp;
     Tree *tree = initTree;
- 
-    proposer->reset();
-       
+    Timer correctTimer;
+    
+    // search testing
+    Tree *correct = proposer->getCorrect();
+    float correctLogp = -INFINITY;
+    if (correct) {
+        // determine probability of correct tree
+        parsimony(correct, nseqs, seqs); // get initial branch lengths
+        float seqlk = fitter->findLengths(correct);
+        float branchp = prior->branchPrior(correct);
+        float topp = prior->topologyPrior(correct);
+        correctLogp = seqlk + branchp + topp;
+
+        printLog(LOG_LOW, "search: correct tree lnl = %f\n", correctLogp);
+    }
+
     
     // determine initial tree
     if (initTree == NULL)
@@ -964,14 +908,10 @@ Tree *TreeSearchClimb::search(Tree *initTree,
                               prior->getSpeciesTree(), 
                               prior->getGene2species());
     
-    if (isLogLevel(LOG_MEDIUM)) {
-	displayTree(tree, getLogFile());
-    }
-
-    ExtendArray<int> recon(tree->nnodes);
-    ExtendArray<int> events(tree->nnodes);
+    vector<int> recon(tree->nnodes);
+    vector<int> events(tree->nnodes);
     
-    // init likelihood score
+    // calc probability of initial tree
     parsimony(tree, nseqs, seqs); // get initial branch lengths
     float seqlk = fitter->findLengths(tree);
     float branchp = prior->branchPrior(tree);
@@ -981,20 +921,20 @@ Tree *TreeSearchClimb::search(Tree *initTree,
     
     
     // log initial tree
-    printLog(LOG_LOW, "search: initial %f\n", toplogp);
+    printLog(LOG_LOW, "search: initial\n");
     printLog(LOG_LOW, "search: lnl    = %f\n", toplogp);
     printLog(LOG_LOW, "search: seqlk  = %f\n", seqlk);
     printLog(LOG_LOW, "search: branch = %f\n", branchp);          
     printLog(LOG_LOW, "search: top    = %f\n", topp);
-                        
     printSearchStatus(tree, prior->getSpeciesTree(), 
-                      prior->getGene2species(), recon, events);
+                      prior->getGene2species(), &recon[0], &events[0]);
     
     
     int accept = 0;
     int reject = 0;
     
     // search loop
+    proposer->reset();
     for (int i=0; proposer->more(); i++) {
         printLog(LOG_LOW, "search: iter %d\n", i);
     
@@ -1011,41 +951,64 @@ Tree *TreeSearchClimb::search(Tree *initTree,
         topp = prior->topologyPrior(tree);
         nextlogp = seqlk + branchp + topp;
         
-        // acceptance rule
-        if (nextlogp > toplogp)
+
+        // search test
+        if (correct && (nextlogp >= correctLogp || 
+                        tree->sameTopology(correct)))
         {
+            printLog(LOG_LOW, "search: correct tree time = %f\n", 
+                     correctTimer.time());
+            printLog(LOG_LOW, "search: correct tree logl = %f\n", 
+                     correctLogp);
+            printLog(LOG_LOW, "search: correct tree is best = %d\n",
+                     int(tree->sameTopology(correct)));
+            printLog(LOG_LOW, "search: correct tree better logl = %f\n", 
+                     nextlogp);
+
+            correct = NULL;
+        }
+
+        // acceptance rule
+        bool accept = (nextlogp > toplogp);
+
+        // print accept
+        if (accept)
+            printLog(LOG_LOW, "search: accept\n");
+        else
+            printLog(LOG_LOW, "search: reject\n");
+
+
+        // print info
+        printLog(LOG_LOW, "search: lnl    = %f\n", nextlogp);
+        printLog(LOG_LOW, "search: seqlk  = %f\n", seqlk);
+        printLog(LOG_LOW, "search: branch = %f\n", branchp);          
+        printLog(LOG_LOW, "search: top   = %f\n", topp);
+        
+
+        // act on acceptance
+        if (accept) {
+            // accept
             accept++;
             proposer->accept(true);
-        
-            printLog(LOG_LOW, "search: accept\n");
-            printLog(LOG_LOW, "search: lnl    = %f\n", nextlogp);
-            printLog(LOG_LOW, "search: seqlk  = %f\n", seqlk);
-            printLog(LOG_LOW, "search: branch = %f\n", branchp);          
-            printLog(LOG_LOW, "search: top   = %f\n", topp);
-            
-            // accept
             toplogp = nextlogp;
-            
-            printSearchStatus(tree, 
-			      prior->getSpeciesTree(), 
-			      prior->getGene2species(), recon, events);
             delete toptree;
             toptree = tree->copy();
+
+            printSearchStatus(tree, 
+                              prior->getSpeciesTree(), 
+                              prior->getGene2species(), &recon[0], &events[0]);
+
         } else {           
             // reject, undo topology change
-            reject++;
-            proposer->accept(false);
             
-            printLog(LOG_LOW, "search: reject\n", nextlogp);
-            printLog(LOG_LOW, "search: lnl    = %f\n", nextlogp);
-            printLog(LOG_LOW, "search: seqlk  = %f\n", seqlk);
-            printLog(LOG_LOW, "search: branch = %f\n", branchp);          
-            printLog(LOG_LOW, "search: top    = %f\n", topp);
-            
+            // display rejected tree
             if (isLogLevel(LOG_MEDIUM))
                 printSearchStatus(tree, prior->getSpeciesTree(), 
-				  prior->getGene2species(), recon, events);
+				  prior->getGene2species(), 
+                                  &recon[0], &events[0]);
             
+            reject++;
+            proposer->accept(false);            
             proposer->revert(tree);
         }
     }
@@ -1105,7 +1068,7 @@ Tree *searchClimb(int niter, int quickiter,
 		     bgfreq, kappa, maxiter);
 
     // proposers
-    SprProposer proposer2(&stree, gene2species, niter);
+    SprNbrProposer proposer2(&stree, gene2species, niter);
     DupLossProposer proposer(&proposer2, &stree, gene2species, 
 			     birth, death,
                              quickiter, niter);
@@ -1213,14 +1176,5 @@ Tree *searchMCMC(Tree *initTree,
 }
 
 
-
-Tree *searchClimb(Tree *initTree, 
-                  string *genes, int nseqs, int seqlen, char **seqs,
-                  Prior *prior,
-                  TopologyProposer *proposer,
-                  BranchLengthFitter *fitter)
-{
-    return NULL;
-}
 
 } // namespace spidir

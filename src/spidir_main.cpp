@@ -122,6 +122,12 @@ public:
 		    "Use an exact calculation of branch prior"));
 	config.add(new ConfigSwitch
 		   ("-g", "--gene_rate", &estGenerate, "estimate generate"));
+        config.add(new ConfigParam<int>
+                   ("", "--quicksamples", "<number of quick samples>",
+                    &quickSamples, 10,
+                    "number of samples in quick search"));
+	config.add(new ConfigSwitch
+		   ("", "--no_spr_nbr", &noSprNbr, "do not use SPR NBR"));
 
 
 	config.add(new ConfigParamComment("Information"));
@@ -188,6 +194,8 @@ public:
     bool estGenerate;
     int bootiter;
     int quickiter;
+    int quickSamples;
+    bool noSprNbr;
 };
 
 
@@ -418,10 +426,16 @@ int main(int argc, char **argv)
     
     // init topology proposer
     const int radius = 3;
-    SprNbrProposer proposer2(&stree, gene2species, c.niter, radius);
-    DupLossProposer proposer(&proposer2, &stree, gene2species, 
+    TopologyProposer *proposer2;
+    if (c.noSprNbr)
+        proposer2 = new SprProposer(&stree, gene2species, c.niter);
+    else
+        proposer2 = new SprNbrProposer(&stree, gene2species, c.niter, radius);
+
+    DupLossProposer proposer(proposer2, &stree, gene2species, 
 			     c.duprate, c.lossrate,
-                             c.quickiter, c.niter);
+                             c.quickiter, c.niter, 
+                             c.quickSamples);
     
 
     TreeSearch *search = NULL;
@@ -503,7 +517,7 @@ int main(int argc, char **argv)
     delete fitter;
     delete prior;
     delete search;
-    
+    delete proposer2;
 }
 
 
