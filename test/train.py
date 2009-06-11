@@ -14,7 +14,7 @@ import spidir
 from rasmus.common import *
 from test import *
 
-if os.system("xpdf") != 0:
+if os.system("xpdf 2&> /dev/null") != 0:
     rplot_set_viewer("display")
 
 
@@ -46,7 +46,8 @@ class TestTrain (unittest.TestCase):
     def test_train(self):
 
         # read data
-        stree = readTree("test/data/flies.norm.stree")
+        stree = read_tree("test/data/flies.norm.stree")
+        print "stree"
         #dat = read_delim("test/data/flies-one2one.fastleaf.lens")
 
         dat = read_delim("test/data/flies-one2one.uniform.lens")
@@ -62,10 +63,11 @@ class TestTrain (unittest.TestCase):
         #params = spidir.train_params(gene_sizes, lens, times, species,
         #                             nrates=10, max_iter=10)
 
-
+        print "alloc"
         em = spidir.alloc_rates_em(gene_sizes, lens, times, species, nrates)
 
         spidir.RatesEM_Init(em)
+        print "estep"
         spidir.RatesEM_EStep(em)
         logl = spidir.RatesEM_likelihood(em)
         print "logl:", logl

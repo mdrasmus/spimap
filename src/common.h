@@ -120,6 +120,13 @@ inline double negbinomPdf(int k, double r, double p)
     return gsl_ran_negative_binomial_pdf(k, p, r);
 }
 
+// Derivative of Negative Binomial distribution with respect to r
+double negbinomDerivR(int k, double r, double p);
+
+// Derivative of Negative Binomial distribution with respect to p
+double negbinomDerivP(int k, double r, double p);
+
+
 
 } // extern "C"
 

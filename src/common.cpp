@@ -299,6 +299,45 @@ double gammaSumPdf(double y, int n, float *alpha, float *beta,
 }
 
 
+double logfactorial(int x)
+{
+    if (x < 20) {
+        const double table[] = {
+            0.0, 0.0, 0.69314718055994529, 1.791759469228055, 
+            3.1780538303479458, 4.7874917427820458, 6.5792512120101012, 
+            8.5251613610654147, 10.604602902745251, 12.801827480081469, 
+            15.104412573075516, 17.502307845873887, 19.987214495661885, 
+            22.552163853123425, 25.19122118273868, 27.89927138384089, 
+            30.671860106080672, 33.505073450136891, 36.395445208033053, 
+            39.339884187199495 };
+        return table[x];
+    } else {
+        return gammln(x+1);
+    }
+}
+
+
+// Log Derivative of Negative Binomial distribution with respect to r
+double negbinomDerivR(int k, double r, double p)
+{
+    // (1-p)^k p^r G(k+r) / (k! G(r)) ( psi^(0)(k+r) - psi^(0)(r) + log(p) )
+    double lnp = log(p);
+    double A = k * log(1-p) + r*lnp + gammln(k+r) - logfactorial(k) - gammln(r);
+    double B = gsl_sf_psi_n(0, k+r) - gsl_sf_psi_n(0, r) + lnp;
+    return exp(A) * B;
+}
+
+
+// Derivative of Negative Binomial distribution with respect to p
+double negbinomDerivP(int k, double r, double p)
+{
+    // (1-p)^k p^r G(k+r) / (k! G(r)) (k/(p-1) + r/p)
+    double lnp = log(p);
+    double A = k * log(1-p) + r*lnp + gammln(k+r) - logfactorial(k) - gammln(r);
+    double B = k/(p-1) + r/p;
+    return exp(A) * B;
+}
+
 
 // Normal distribution.
 //
