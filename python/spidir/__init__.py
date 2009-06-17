@@ -634,6 +634,53 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
 #=============================================================================
 # training
 
+def mean(vals):
+    return sum(vals) / float(len(vals))
+    
+
+
+def read_length_matrix(filename, minlen=.0001, maxlen=1.0,
+                       nooutliers=True):
+    """Read a length matrix made by spidir-prep"""
+
+    from rasmus import util
+
+    dat = [line.rstrip().split("\t") for line in open(filename)]
+    species = dat[0][2:]
+    lens = util.map2(float, util.submatrix(dat, range(1, len(dat)),
+                                           range(2, len(dat[0]))))
+    gene_sizes = map(int, util.cget(dat[1:], 1))
+    files = util.cget(dat[1:], 0)
+
+    if nooutliers:
+        treelens = map(sum, lens)
+        m = mean(treelens)
+        ind = util.find(lambda x: x<5*m, treelens)
+        files, gene_sizes, lens, treelens = [util.mget(x, ind) for x in
+                                             files, gene_sizes, lens, treelens]
+
+
+
+    for row in lens:
+        for i in xrange(len(row)):
+            if row[i] < minlen:
+                row[i] = minlen
+
+    '''
+    # remove high lengths
+    cols = zip(* lens)
+    means = map(mean, cols)
+
+    for row in lens:
+        for i in xrange(len(row)):
+            if row[i] > maxlen:
+                row[i] = means[i]
+    '''
+    
+    return species, lens, gene_sizes, files
+
+
+
 def train_params(gene_sizes, length_matrix, times, species,
                  nrates=10, max_iter=10):
 
