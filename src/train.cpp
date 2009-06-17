@@ -223,10 +223,10 @@ public:
         double alpha_sum = 0.0;
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
+            double l = em->lengths[j][i];
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
                 double bgt = sp_beta_i / (g * em->times[i]);
-                double l = em->lengths[j][i];
                 double lngamma = gammalog(l, sp_alpha_i, bgt);
                 double gamma = exp(lngamma);
 
@@ -261,10 +261,10 @@ public:
         double alpha_sum = 0.0;
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
+            double l = em->lengths[j][i];
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
                 double bgt = sp_beta_i / (g * em->times[i]);
-                double l = em->lengths[j][i];
                 double lngamma = gammalog(l, sp_alpha_i, bgt);
                 double gamma = exp(lngamma);
 
@@ -327,12 +327,12 @@ public:
     }
     
 
-    float find_upper_g(float m, float A, float B, float C,
-                       float tol1=.05, float tol2=.01)
+    double find_upper_g(double m, double A, double B, double C,
+                        double tol1=.05, double tol2=.01)
     {        
         double fm = gene_post(m, A, B, C);
-        float top = 2*m;
-        float bot = m;
+        double top = 2*m;
+        double bot = m;
 
         // extent top
         while (true) {
@@ -344,7 +344,7 @@ public:
 
         // binary search
         while (true) {
-            float u = (top + bot) / 2.0;
+            double u = (top + bot) / 2.0;
             double fu = gene_post(u, A, B, C);
 
             if (fu / fm > tol1)
@@ -357,16 +357,16 @@ public:
     }
 
 
-    float find_lower_g(float m, float A, float B, float C,
-                       float tol1=.05, float tol2=.01)
+    double find_lower_g(double m, double A, double B, double C,
+                       double tol1=.05, double tol2=.01)
     {
         double fm = gene_post(m, A, B, C);
-        float top = m;
-        float bot = 0;       
+        double top = m;
+        double bot = 0;       
 
         // binary search
         while (true) {
-            float u = (top + bot) / 2.0;
+            double u = (top + bot) / 2.0;
             double fu = gene_post(u, A, B, C);
 
             if (fu / fm > tol1)
@@ -386,29 +386,29 @@ public:
         float x[nrates+1];
         double y[nrates+1];
 	float q = 1.0 / gene_nu;
-	float gene_alpha = q, gene_beta = q;
+	double gene_alpha = q, gene_beta = q;
 
         // determine commonly used coefficients
-        float A = - gene_beta;
-        float B = gene_alpha - 1.0;
+        double A = - gene_beta;
+        double B = gene_alpha - 1.0;
         for (int i=0; i<nspecies; i++)
             B -= sp_alpha[i];
 
         for (int j=0; j<ntrees; j++) {
 
             // determine commonly used coefficients
-            float C = 0.0;
+            double C = 0.0;
             for (int i=0; i<nspecies; i++)
                 C += sp_beta[i] * lengths[j][i] / times[i];
 
             // find main range of gene rates
-            float mid = (-B - sqrt(B*B - 4*A*C)) / (2*A);
-            float top = find_upper_g(mid, A, B, C);
-            float bot = find_lower_g(mid, A, B, C);
+            double mid = (-B - sqrt(B*B - 4*A*C)) / (2*A);
+            double top = find_upper_g(mid, A, B, C);
+            double bot = find_lower_g(mid, A, B, C);
 
             int half_nrates = (nrates + 1) / 2;
-            float step1 = (mid - bot) / half_nrates;
-            float step2 = (top - mid) / (nrates + 1 - half_nrates);
+            double step1 = (mid - bot) / half_nrates;
+            double step2 = (top - mid) / (nrates + 1 - half_nrates);
 
             // compute x, y for posterior gene rate PDF
             for (int k=0; k<half_nrates; k++) {
@@ -441,7 +441,7 @@ public:
     void MStep()
     {
         // optimization config
-        double step_size = .1;
+        double step_size = .01;
         double tol = .1;
         const double epsabs = .01;
         gsl_vector *init_x = gsl_vector_alloc(2);
@@ -449,7 +449,7 @@ public:
         //double r = 1.0, r0 = 1.0;
 	double low = .0001, high = gene_nu * 5;
 	int iter = 0;
-	const int maxiter = 20;
+	const int maxiter = 10;
         
         // optimize gene rate parameters
 	gsl_root_fsolver_set(sol_gene_rat, &opt_gene_rate, low, high);
@@ -466,8 +466,8 @@ public:
 	    high = gsl_root_fsolver_x_upper(sol_gene_rat);
 	    status = gsl_root_test_interval(low, high, 0, 0.01);
 	}
-
 	gene_nu = gsl_root_fsolver_root(sol_gene_rat);
+        fprintf(stderr, "nu = %f (iter=%d)\n", gene_nu, iter);
         
         
         // optimize each species rate parmater set
@@ -478,6 +478,8 @@ public:
             gsl_multimin_fdfminimizer_set(sol_sp_rate, &opt_sp_rate, init_x, 
                                           step_size, tol);            
             status = GSL_CONTINUE;
+
+            
 	    for (iter=0; iter<maxiter && status==GSL_CONTINUE; iter++) {
                 // do one iteration
                 status = gsl_multimin_fdfminimizer_iterate(sol_sp_rate);
@@ -486,6 +488,10 @@ public:
                 // get gradient
                 status = gsl_multimin_test_gradient(sol_sp_rate->gradient, epsabs);
             }
+
+            fprintf(stderr, "calc lk\n");
+            double lk = likelihood();
+            fprintf(stderr, "species %d %d %f\n", i, iter, lk);
 
             sp_alpha[i] = gsl_vector_get(sol_sp_rate->x, 0);
             sp_beta[i] = gsl_vector_get(sol_sp_rate->x, 1);

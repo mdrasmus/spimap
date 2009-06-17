@@ -86,19 +86,19 @@ float invgammaCdf(float x, float a, float b);
 double quantInvgamma(double p, double a, double b);
 
 // Derivative of Gamma distribution with respect to x
-float gammaDerivX(float x, float a, float b);
+double gammaDerivX(double x, double a, double b);
     
 // Derivative of Gamma distribution with respect to a
-float gammaDerivA(float x, float a, float b);
+double gammaDerivA(double x, double a, double b);
 
 // Derivative of Gamma distribution with respect to b
-float gammaDerivB(float x, float a, float b);
+double gammaDerivB(double x, double a, double b);
 
 // Derivative of Gamma distribution with respect to nu (its variance)
-float gammaDerivV(float x, float v);
+double gammaDerivV(double x, double v);
 
 // Second Derivative of Gamma distribution with respect to nu (its variance)
-double gammaDerivV2(float x, float v);
+double gammaDerivV2(double x, double v);
 
 // PDF of a sum of n gamma variables
 double gammaSumPdf(double y, int n, float *alpha, float *beta, 

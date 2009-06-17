@@ -154,31 +154,33 @@ double quantInvgamma(double p, double a, double b)
 
 
 // Derivative of Gamma distribution with respect to x
-float gammaDerivX(float x, float a, float b)
+double gammaDerivX(double x, double a, double b)
 { 
     return pow(b, a) / gamm(a) * exp(-b*x) * pow(x, a-2) * (a - b*x - 1);
 }
     
 // Derivative of Gamma distribution with respect to a
-float gammaDerivA(float x, float a, float b)
+double gammaDerivA(double x, double a, double b)
 {
     return exp(-b*x) * pow(x,a-1) * pow(b, a) / gamm(a) * 
         (log(b) + log(x) - gsl_sf_psi_n(0, a));
 }
 
 // Derivative of Gamma distribution with respect to b
-float gammaDerivB(float x, float a, float b)
+double gammaDerivB(double x, double a, double b)
 {
     return pow(x, a-1) / gamm(a) * exp(-b*x) * pow(b, a-1) * (a - x*b);
 }
 
 // Derivative of Gamma distribution with respect to nu (its variance)
-float gammaDerivV(float x, float v)
+double gammaDerivV(double x, double v)
 {
     float q = 1.0 / v;
     
-    double w = log(q)*(q+2) + log(x)*(q-1) -x * q - gammln(q);
-    double z = 1 - x + log(q) + log(x) - gsl_sf_psi_n(0, q);
+    double lnq = log(q);
+    double lnx = log(x);
+    double w = lnq*(q+2) + lnx*(q-1) - x * q - gammln(q);
+    double z = 1 - x + lnq + lnx - gsl_sf_psi_n(0, q);
 
     if (z > 0)
 	return -exp(w + log(z));
@@ -191,14 +193,14 @@ float gammaDerivV(float x, float v)
 }
 
 // Second Derivative of Gamma distribution with respect to nu (its variance)
-double gammaDerivV2(float x, float v)
+double gammaDerivV2(double x, double v)
 {
-    float q = 1.0 / v;
-    float lnx = log(x);
-    float lnq = log(q);
-    float A = 1.0 + v - x + lnx;
-    float psi0 = gsl_sf_psi_n(0, q);
-    float psi1 = gsl_sf_psi_n(1, q);
+    double q = 1.0 / v;
+    double lnx = log(x);
+    double lnq = log(q);
+    double A = 1.0 + v - x + lnx;
+    double psi0 = gsl_sf_psi_n(0, q);
+    double psi1 = gsl_sf_psi_n(1, q);
 
     double w = -x*q + lnq*(q+4) + lnx*(q-1) - gammln(q);
     double z = 1 + 3*v - 2*x - 2*v*x + x*x + lnq*lnq - lnx*lnx +
