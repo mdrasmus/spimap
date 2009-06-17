@@ -29,14 +29,18 @@ o.add_option("-p", "--params", dest="params",
 
 
 def read_length_matrix(filename, minlen=.0001, maxlen=1.0):
+    """Read a length matrix"""
+    
     dat = util.read_delim(filename)
-    species = dat[0]
-    lens = util.map2(float, dat[1:])
+    species = dat[0][2:]
+    lens = util.map2(float, util.submatrix(dat, range(1, len(dat)),
+                                           range(2, len(dat[0]))))
+    gene_sizes = map(int, util.cget(dat[1:], 1))
 
-    for row in lens:
-        for i in xrange(len(row)):
-            if row[i] <= 0.0:
-                row[i] = minlen
+    #for row in lens:
+    #    for i in xrange(len(row)):
+    #        if row[i] <= 0.0:
+    #            row[i] = minlen
 
     # remove high lengths
     cols = zip(* lens)
@@ -47,7 +51,7 @@ def read_length_matrix(filename, minlen=.0001, maxlen=1.0):
             if row[i] > maxlen:
                 row[i] = means[i]
     
-    return species, lens
+    return species, lens, gene_sizes
 
     
 def write_params_list(filename, species, params, logls):
@@ -58,10 +62,10 @@ def write_params_list(filename, species, params, logls):
                                   for p in ("_a", "_b")]
     out.write("\t".join(headers) + "\n")
 
-    for i, (p, l) in enumerate(zip(params, logls)):
+    for it, (p, l) in enumerate(zip(params, logls)):
 
         vals = [p[sp][i] for sp in species for i in (0, 1)]
-        out.write("%d\t%f\t" % (i, l) + "\t".join(map(str, vals)) + "\n")
+        out.write("%d\t%f\t" % (it, l) + "\t".join(map(str, vals)) + "\n")
 
     out.close()
 
@@ -77,17 +81,17 @@ def main(conf, args):
         return 1
     
     # read data
-    stree = treelib.readTree(conf.stree)
+    stree = treelib.read_tree(conf.stree)
     times = [node.dist for node in stree.postorder() if node.parent]
 
-    species, lens = read_length_matrix(conf.lenmatrix)
+    species, lens, gene_sizes = read_length_matrix(conf.lenmatrix)
     for i, sp in enumerate(species):
         if isinstance(sp, basestring) and sp.isdigit():
             species[i] = int(sp)
 
     logls = []
         
-    em = spidir.alloc_rates_em(lens, times, species, conf.nrates)
+    em = spidir.alloc_rates_em(gene_sizes, lens, times, species, conf.nrates)
 
     spidir.RatesEM_Init(em)
 

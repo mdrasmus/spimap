@@ -1,5 +1,6 @@
 
 import sys, os
+from itertools import izip
 
 import pygsl
 import pygsl.roots
@@ -36,6 +37,7 @@ def invgammaPdf(x, params):
     return exp(log(b)*a + log(x)*(-a - 1) + (-b / x) - gammaln(a))
 
 
+
 class TestTrain (unittest.TestCase):
 
 
@@ -50,24 +52,24 @@ class TestTrain (unittest.TestCase):
         print "stree"
         #dat = read_delim("test/data/flies-one2one.fastleaf.lens")
 
-        dat = read_delim("test/data/flies-one2one.uniform.lens")
+        dat = read_delim("test/data/flies-one2one.uniform.treemat")
         
-        species = dat[0]
-        lens = map2(float, dat[1:])
+        species = dat[0][2:]
+        lens = map2(float, submatrix(dat, range(1, len(dat)),
+                                     range(2, len(dat[0]))))
         times = [node.dist for node in stree.postorder() if node.parent]
-        gene_sizes = [1000] * len(lens)
+        gene_sizes = map(int, cget(dat, 1)[1:])  #[1000] * len(lens)
         
         ntrees = len(lens)
         nrates = 20
+
         
         #params = spidir.train_params(gene_sizes, lens, times, species,
         #                             nrates=10, max_iter=10)
-
-        print "alloc"
+        
         em = spidir.alloc_rates_em(gene_sizes, lens, times, species, nrates)
 
         spidir.RatesEM_Init(em)
-        print "estep"
         spidir.RatesEM_EStep(em)
         logl = spidir.RatesEM_likelihood(em)
         print "logl:", logl

@@ -30,11 +30,38 @@ assert os.system("PYTHONPATH=~/projects/spidir/python:$PYTHONPATH "
 
 
 assert os.system("phylofiles test/data/flies-one2one.uniform/ .tree | "
-                 "xargs cat | "
                  "bin/make-branch-matrix "
                  "-s test/data/flies.norm.stree "
                  "-S test/data/flies.smap > test/data/flies-one2one.uniform.lens"
                  ) == 0
+
+assert os.system("phylofiles test/data/flies-one2one.uniform/ .tree | "
+                 "bin/spidir-prep "
+                 "-A .align "
+                 "-T .tree "
+                 "-s test/data/flies.norm.stree "
+                 "-S test/data/flies.smap > test/data/flies-one2one.uniform.treemat.tmp"
+                 ) == 0
+
+
+def noise_matrix(gene_sizes, lens):
+    return [[poissonvariate(x * d) / float(d) for x in row]
+            for d, row in izip(gene_sizes, lens)]        
+        
+dat = read_delim("test/data/flies-one2one.uniform.treemat.tmp")
+species = dat[0][2:]
+lens = map2(float, submatrix(dat, range(1, len(dat)),
+                             range(2, len(dat[0]))))
+gene_sizes = map(int, cget(dat, 1)[1:])
+lens2 = noise_matrix(gene_sizes, lens)
+
+for i in xrange(len(lens2)):
+    for j in xrange(len(lens2[0])):
+        dat[i+1][j+2] = lens2[i][j]
+
+write_delim("test/data/flies-one2one.uniform.treemat", dat)
+
+
 
 #=============================================================================
 # flies.gamma.fastleaf.param

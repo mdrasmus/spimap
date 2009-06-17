@@ -254,7 +254,7 @@ public:
                     alpha_sum += em->pgtab[j][k] * 
                         negbinomDerivR(c, sp_alpha_i, p) / nb;
                     beta_sum += em->pgtab[j][k] *
-                        negbinomDerivP(c, sp_alpha_i, p) *
+                        negbinomDerivP(c, sp_alpha_i, p) / nb *
                         (p + p*p) / sp_beta_i;
                 }
             }
@@ -296,7 +296,7 @@ public:
                     alpha_sum += em->pgtab[j][k] * 
                         negbinomDerivR(c, sp_alpha_i, p) / nb;
                     beta_sum += em->pgtab[j][k] *
-                        negbinomDerivP(c, sp_alpha_i, p) *
+                        negbinomDerivP(c, sp_alpha_i, p) / nb *
                         (p + p*p) / sp_beta_i;
                 }
             }
@@ -323,7 +323,7 @@ public:
                 for (int i=0; i<nspecies; i++)
                     prod += log(negbinomPdf(changes[j][i], sp_alpha[i], 
                       sp_beta[i] / (times[i] * gene_sizes[j] * gtab[j][k] +
-                      sp_beta[i])));
+                                    sp_beta[i])));
                 sum += pgtab[j][k] * exp(prod);
             }
             logl += log(sum);
@@ -578,6 +578,8 @@ public:
                 // get gradient
                 status = gsl_multimin_test_gradient(sol_sp_rate->gradient, epsabs);
             }
+
+            //printf("iters: %d\n", iter);
 
             sp_alpha[i] = gsl_vector_get(sol_sp_rate->x, 0);
             sp_beta[i] = gsl_vector_get(sol_sp_rate->x, 1);
