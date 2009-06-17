@@ -576,7 +576,8 @@ public:
                 if (status)
                     break;        
                 // get gradient
-                status = gsl_multimin_test_gradient(sol_sp_rate->gradient, epsabs);
+                status = gsl_multimin_test_gradient(sol_sp_rate->gradient, 
+                                                    epsabs);
             }
 
             //printf("iters: %d\n", iter);

@@ -37,6 +37,10 @@ def invgammaPdf(x, params):
     return exp(log(b)*a + log(x)*(-a - 1) + (-b / x) - gammaln(a))
 
 
+def nbinom(x, r, p):
+    q = gammaln(r+x) - gammaln(x+1) - gammaln(r) +  r*log(p) + x*log(1-p)
+    return exp(q)
+
 
 class TestTrain (unittest.TestCase):
 
@@ -45,7 +49,53 @@ class TestTrain (unittest.TestCase):
         m = spidir.c_matrix(spidir.c_int, [[1,2,3],[4,5,6]])
         print m[1][1]
 
-    def test_train(self):
+
+    def test_negbinomPdf(self):
+
+        fequal(spidir.negbinomPdf(3, .5, .7),
+               nbinom(3, .5, .7))
+
+        fequal(spidir.negbinomPdf(1000, 4, .03),
+               nbinom(1000, 4, .03))
+
+        fequal(spidir.negbinomPdf(10000, 4, .03),
+               nbinom(10000, 4, .03))
+
+        print spidir.negbinomPdf(10000, 4, .03), nbinom(10000, 4, .03)
+
+        prep_dir("test/output/train-negbinom/")
+
+        k = 100
+        p = .03
+        r = list(frange(1, 10, .1))
+        y = [spidir.negbinomDerivR(k, i, p) for i in r]
+        y2 = [(spidir.negbinomPdf(k, i+.01, p) -
+               spidir.negbinomPdf(k, i-.01, p)) / .02
+              for i in r]
+
+        rplot_start("test/output/train-negbinom/negbinomDerivR.pdf")
+        rplot("plot", r, y, t="l")
+        rp.lines(r, y2, col="red")
+        rplot_end(True)
+        
+
+        k = 100
+        r = 4.0
+        p = list(frange(.01, .08, .001))
+        y = [spidir.negbinomDerivP(k, r, i) for i in p]
+        y2 = [(spidir.negbinomPdf(k, r, i+.001) -
+               spidir.negbinomPdf(k, r, i-.001)) / .002
+              for i in p]
+
+        rplot_start("test/output/train-negbinom/negbinomDerivP.pdf")
+        rplot("plot", p, y, t="l")
+        rp.lines(p, y2, col="red")
+        rplot_end(True)
+
+        
+
+
+    def _test_train(self):
 
         # read data
         stree = read_tree("test/data/flies.norm.stree")

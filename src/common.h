@@ -113,12 +113,7 @@ inline float invgammavariate(float alpha, float beta)
 inline float expovariate(float lambda)
 { return -log(frand()) / lambda; }
 
-
-
-inline double negbinomPdf(int k, double r, double p)
-{
-    return gsl_ran_negative_binomial_pdf(k, p, r);
-}
+double negbinomPdf(int k, double r, double p);
 
 // Derivative of Negative Binomial distribution with respect to r
 double negbinomDerivR(int k, double r, double p);

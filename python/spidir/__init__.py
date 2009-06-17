@@ -119,6 +119,12 @@ export(spidir, "gammaSumPdf", c_double,
        [c_double, "y", c_int, "n", c_float_list, "alpha",
         c_float_list, "beta", 
         c_float, "tol"])
+export(spidir, "negbinomPdf", c_double,
+       [c_int, "k", c_double, "r", c_double, "p"])
+export(spidir, "negbinomDerivR", c_double,
+       [c_int, "k", c_double, "r", c_double, "p"])
+export(spidir, "negbinomDerivP", c_double,
+       [c_int, "k", c_double, "r", c_double, "p"])
 
 #export(spidir, "incompleteGammaC", c_double,
 #       [c_double, "s", c_double, "x"])
