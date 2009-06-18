@@ -718,7 +718,7 @@ public:
         
         // gene rate probability
         if (params->gene_alpha > 0 && params->gene_beta > 0)
-            logp += gammalog(generate, params->gene_alpha, params->gene_beta);
+            logp += loginvgammaPdf(generate, params->gene_alpha, params->gene_beta);
 	
         printLog(LOG_HIGH, "generate: %f %f\n", generate, exp(logp));
         return logp;
@@ -732,15 +732,11 @@ public:
 
     double calc()
     {
-	double maxprob = -INFINITY;
-	float argmax_generate = params->gene_alpha / params->gene_beta;
-	float est_generate = estimateGeneRate(tree, stree, recon, events, params);
-        printLog(LOG_HIGH, "est_generate: %f\n", est_generate);
-        
 	// TODO: make this equal portions of gamma
-        double logp = -INFINITY;       
-        float gstart = params->gene_alpha / params->gene_beta * 0.05;
-        float gend = params->gene_alpha / params->gene_beta * 3.0;
+        double logp = -INFINITY;
+        float mid = params->gene_beta / (params->gene_alpha + 1.0);
+        float gstart = mid * 0.05;
+        float gend = mid * 3.0;
         float step = (gend - gstart) / 20.0;
 
 
@@ -751,20 +747,10 @@ public:
 	    
             logp = logadd(logp, p);
             printLog(LOG_HIGH, "generate_int: %f %f\n", gi, p);
-            if (p > maxprob) {
-                maxprob = p;
-                argmax_generate = gi;
-            }
         }
         
         // multiply probabilty by integration step
         logp += log(step);
-        
-        printLog(LOG_HIGH, "argmax gene rate: %f\n", argmax_generate);
-        if (est_generate > 0.0)
-            printLog(LOG_HIGH, "branch prior: %f %f %f\n", maxprob, logp,
-		     calc_cond(est_generate));
-
 	return logp;
     }
     

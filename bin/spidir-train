@@ -25,6 +25,9 @@ o.add_option("-r", "--nrates", dest="nrates",
              default=20)
 o.add_option("-p", "--params", dest="params",
              metavar="<output parameters file>")
+o.add_option("-f", "--filter", dest="filter",
+             metavar="<treelen percentile>",
+             type="float", default=1.00)
 
     
 def write_params_list(filename, species, params, logls):
@@ -58,6 +61,18 @@ def main(conf, args):
     times = [node.dist for node in stree.postorder() if node.parent]
 
     species, lens, gene_sizes, files = spidir.read_length_matrix(conf.lenmatrix)
+
+    # filter
+    treelens = map(sum, lens)
+    top = stats.percentile(treelens, conf.filter)
+    ind = util.find(lambda i: i <= top, treelens)
+    lens = util.mget(lens, ind)
+    gene_sizes = util.mget(gene_sizes, ind)
+    files = util.mget(files, ind)
+
+    util.logger("using %d trees" % len(lens))
+    
+    
     for i, sp in enumerate(species):
         if isinstance(sp, basestring) and sp.isdigit():
             species[i] = int(sp)

@@ -137,10 +137,75 @@ float gammaPdf(float x, float a, float b)
 
 
 // Inverse gamma distribution PDF
-float invgamma(float x, float a, float b)
+float invgammaPdf(float x, float a, float b)
 {
-    return pow(b, a) / gamm(a) * pow(1/x, a+1) * exp(-b/x);
+    return exp(loginvgammaPdf(x, a, b));
+    //return pow(b, a) / gamm(a) * pow(1/x, a+1) * exp(-b/x);
 }
+
+
+// Log Inverse gamma distribution PDF
+float loginvgammaPdf(float x, float a, float b)
+{
+    return a*log(b) - gammln(a) + (a+1)*log(1/x) - b/x;
+}
+
+
+float invgammaDerivA(float x, float a, float b)
+{
+    return gammaDerivA(1/x, a, b) / x / x;
+}
+
+
+float invgammaDerivB(float x, float a, float b)
+{
+    return gammaDerivB(1/x, a, b) / x / x;
+}
+
+
+double invgammaDerivG(double x, double d)
+{
+    double logd = log(d);
+    double logix = log(1/x);
+    double p = - gammln(1+d) + d*logd - d/x + (3+d)*logix;
+    return exp(p) * (d * (-1 + x) + x + d*x*(logd + logix) - 
+                     d*x*gsl_sf_psi_n(0, 1+d));
+    /*
+    return (1/gamm(1+d) * pow(d,d) * exp(-d/x) * pow(1/x, 3+d)) * 
+            (d * (-1 + x) + x + d*x*(log(d) + log(1/x)) - 
+             d*x*gsl_sf_psi_n(0, 1+d));
+    */
+}
+
+double invgammaDerivG2(double x, double d)
+{
+
+    double logd = log(d);
+    double logix = log(1/x);
+    double dxlogdix = d*x*(logd + logix);
+    double psi1 = gsl_sf_psi_n(0, 1 + d);
+    double psi2 = gsl_sf_psi_n(1, 1 + d);
+
+    double p = - gammln(1 + d) + d*log(d) -d/x + (4+d)*log(1/x);
+
+    return exp(p) * (d - 2*(1 + d)*x + (3 + d)*x*x + 
+         x*(logd + logix)*(2*(d*(-1 + x) + x) + dxlogdix) + 
+         x*(-2*(d*(-1 + x) + x + dxlogdix)*
+            psi1 + d*x*psi1*psi1 - d*x*psi2));
+    return exp(p);
+    
+    /*
+    return (1/gamm(1 + d))*pow(d,d)*exp(-d/x)*pow(1/x, 4 + d) *
+        (d - 2*(1 + d)*x + (3 + d)*x*x + 
+         x*(log(d) + log(1/x))*(2*(d*(-1 + x) + x) + 
+                                d*x*(log(d) + log(1/x))) + 
+         x*(-2*(d*(-1 + x) + x + d*x*(log(d) + log(1/x)))*
+            gsl_sf_psi_n(0, 1 + d) + 
+            d*x*pow(gsl_sf_psi_n(0, 1 + d), 2) - 
+            d*x*gsl_sf_psi_n(1, 1 + d)));
+    */
+}
+
 
 float invgammaCdf(float x, float a, float b)
 {
@@ -171,6 +236,7 @@ double gammaDerivB(double x, double a, double b)
 {
     return pow(x, a-1) / gamm(a) * exp(-b*x) * pow(b, a-1) * (a - x*b);
 }
+
 
 // Derivative of Gamma distribution with respect to nu (its variance)
 double gammaDerivV(double x, double v)

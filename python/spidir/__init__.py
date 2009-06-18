@@ -95,7 +95,7 @@ c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
 
 # common functions
 export(spidir, "gamm", c_float, [c_float, "a"])
-export(spidir, "invgamma", c_float,
+export(spidir, "invgammaPdf", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
 export(spidir, "invgammaCdf", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
