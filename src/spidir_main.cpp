@@ -427,15 +427,15 @@ int main(int argc, char **argv)
     // init topology proposer
     const int radius = 3;
     TopologyProposer *proposer2;
-    if (c.noSprNbr)
-        proposer2 = new SprProposer(&stree, gene2species, c.niter);
-    else
-        proposer2 = new SprNbrProposer(&stree, gene2species, c.niter, radius);
+    //if (c.noSprNbr)
+        proposer2 = new SprNniProposer(&stree, gene2species, c.niter);
+    //else
+    //    proposer2 = new SprNbrProposer(&stree, gene2species, c.niter, radius);
 
     DupLossProposer proposer(proposer2, &stree, gene2species, 
 			     c.duprate, c.lossrate,
-                             c.quickiter, c.niter, 
-                             c.quickSamples);
+                             c.quickiter, c.niter);//, 
+    //                             c.quickSamples);
     
 
     TreeSearch *search = NULL;
@@ -502,9 +502,9 @@ int main(int argc, char **argv)
         
     // log runtime
     time_t runtime = time(NULL) - startTime;
-    printLog(LOG_LOW, "seq runtime:\t%f\n", fitter->runtime);
-    printLog(LOG_LOW, "branch runtime:\t%f\n", prior->branch_runtime);
-    printLog(LOG_LOW, "topology runtime:\t%f\n", prior->top_runtime);
+    //    printLog(LOG_LOW, "seq runtime:\t%f\n", fitter->runtime);
+    //    printLog(LOG_LOW, "branch runtime:\t%f\n", prior->branch_runtime);
+    //    printLog(LOG_LOW, "topology runtime:\t%f\n", prior->top_runtime);
     printLog(LOG_LOW, "runtime seconds:\t%d\n", runtime);
     printLog(LOG_LOW, "runtime minutes:\t%.1f\n", float(runtime / 60.0));
     printLog(LOG_LOW, "runtime hours:\t%.1f\n", float(runtime / 3600.0));

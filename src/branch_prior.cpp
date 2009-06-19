@@ -706,6 +706,7 @@ public:
     }
 
 
+
     
     double calc_cond(float generate)
     {
@@ -734,8 +735,8 @@ public:
     {
 	// TODO: make this equal portions of gamma
         double logp = -INFINITY;
-        float mid = params->gene_beta / (params->gene_alpha + 1.0);
-        float gstart = mid * 0.05;
+        float mid = params->gene_beta / (params->gene_alpha - 1.0);
+        float gstart = mid * 0.01;
         float gend = mid * 3.0;
         float step = (gend - gstart) / 20.0;
 
