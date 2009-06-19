@@ -481,11 +481,16 @@ int main(int argc, char **argv)
     
     //========================================================
     // output final tree
+    printf("toptree %p '%s'\n", toptree, outtreeFilename.c_str());
+
+    displayTree(toptree);
+
     toptree->setLeafNames(genes);
     toptree->writeNewick(outtreeFilename.c_str());
     
     
     // log tree correctness
+    /*
     if (c.correctFile != "") {
         if (proposer.seenCorrect()) {
             printLog(LOG_LOW, "SEARCH: correct visited\n");
@@ -499,6 +504,7 @@ int main(int argc, char **argv)
             printLog(LOG_LOW, "RESULT: wrong\n");
         }
     }
+    */
         
     // log runtime
     time_t runtime = time(NULL) - startTime;
@@ -510,6 +516,7 @@ int main(int argc, char **argv)
     printLog(LOG_LOW, "runtime hours:\t%.1f\n", float(runtime / 3600.0));
     closeLogFile();
 
+    printf("cleanup\n");
 
     // clean up
     delete toptree;
@@ -518,6 +525,10 @@ int main(int argc, char **argv)
     delete prior;
     delete search;
     delete proposer2;
+
+
+    printf("hello\n");
+
 }
 
 
