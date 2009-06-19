@@ -12,6 +12,11 @@
 #include <math.h>
 #include <time.h>
 
+
+// 3rd party
+#include <gsl/gsl_roots.h>
+#include <gsl/gsl_multimin.h>
+
 // spidir headers
 #include "common.h"
 #include "Matrix.h"
@@ -66,11 +71,11 @@ public:
         bgfreq = _bgfreq;
     }
 
-    float operator()(float t)
+    double operator()(float t)
     {
         // trivial case
         if (t < 0)
-            return -INFINITY;
+            return INFINITY;
 	
 
 	// g(t, j)
@@ -81,16 +86,16 @@ public:
 
 
 	// interate over sequence
-	float dlogl = 0.0;
+	double dlogl = 0.0;
 	for (int j=0; j<seqlen; j++) {
-	    float sum1 = 0.0, sum2 = 0.0;
+	    double sum1 = 0.0, sum2 = 0.0;
 	    for (int k=0; k<4; k++) {
 		sum1 += bgfreq[k] * probs3[matind(4,j,k)];
 		sum2 += bgfreq[k] * probs4[matind(4,j,k)];
 	    }
 	    dlogl += sum2 / sum1;
 	}
-
+        
 	return dlogl;
     }
     
@@ -110,13 +115,9 @@ template <class Model, class DModel, class D2Model>
 class DistLikelihoodDeriv2
 {
 public:
-    DistLikelihoodDeriv2(float *probs1, float *probs2, int seqlen, 
-			const float *bgfreq, 
-			Model *model, DModel *dmodel, D2Model *d2model) :
-        probs1(probs1),
-        probs2(probs2),
+    DistLikelihoodDeriv2(int seqlen, 			
+                         Model *model, DModel *dmodel, D2Model *d2model) :
         seqlen(seqlen),
-        bgfreq(bgfreq),
         model(model),
 	dmodel(dmodel),
         d2model(d2model)
@@ -133,8 +134,15 @@ public:
         delete [] probs5;
     }
 
+    void set_params(float *_probs1, float *_probs2, const float *_bgfreq)
+    {
+        probs1 = _probs1;
+        probs2 = _probs2;
+        bgfreq = _bgfreq;
+    }
 
-    float operator()(float t)
+
+    double operator()(float t)
     {
         // trivial case
         if (t < 0)
@@ -152,9 +160,9 @@ public:
 
 
 	// interate over sequence
-	float d2logl = 0.0;
+	double d2logl = 0.0;
 	for (int j=0; j<seqlen; j++) {
-	    float g = 0.0, dg = 0.0, d2g = 0.0;
+	    double g = 0.0, dg = 0.0, d2g = 0.0;
 	    for (int k=0; k<4; k++) {
 		g += bgfreq[k] * probs3[matind(4,j,k)];
 		dg += bgfreq[k] * probs4[matind(4,j,k)];
@@ -162,7 +170,7 @@ public:
 	    }
 	    d2logl += - dg*dg/(g*g) + d2g/g;
 	}
-
+        
 	return d2logl;
     }
     
@@ -254,7 +262,8 @@ float branchLikelihoodHkyDeriv2(float *probs1, float *probs2, int seqlen,
     HkyModelDeriv dhky(bgfreq, kappa);
     HkyModelDeriv2 d2hky(bgfreq, kappa);
     DistLikelihoodDeriv2<HkyModel, HkyModelDeriv, HkyModelDeriv2> d2f
-	(probs1, probs2, seqlen, bgfreq, &hky, &dhky, &d2hky);
+	(seqlen, &hky, &dhky, &d2hky);
+    d2f.set_params(probs1, probs2, bgfreq);
     return d2f(t);
 }
 
@@ -540,14 +549,125 @@ public:
 	table(tree->nnodes, seqlen),
         model(model),
         dmodel(model->deriv()),
-        lk_deriv(seqlen, model, dmodel)
+        d2model(dmodel->deriv()),
+        lk_deriv(seqlen, model, dmodel),
+	lk_deriv2(seqlen, model, dmodel, d2model)
     {
+
+        // setup branch length optimizer
+        opt = gsl_root_fdfsolver_alloc(gsl_root_fdfsolver_newton);
+
+        opt_func.f = &branch_f;
+        opt_func.df = &branch_df;
+        opt_func.fdf = &branch_fdf;
+        opt_func.params = this;
     }
 
     ~MLBranchAlgorithm()
     {
+        gsl_root_fdfsolver_free(opt);
         delete dmodel;
     }
+
+
+    static double branch_f(double x, void *params)
+    {       
+        double y;
+        if (x < minx || x > maxx)
+            y = ((MLBranchAlgorithm*) params)->lk_deriv(minx);
+        else
+            y = ((MLBranchAlgorithm*) params)->lk_deriv(x);
+        //printf("x %f y %f\n", x, y);
+        return y;
+    }
+
+    static double branch_df(double x, void *params)
+    {
+        double dy;
+        if (x < minx || x > maxx)
+            dy = ((MLBranchAlgorithm*) params)->lk_deriv(minx) / (x - minx);
+        else
+            dy = ((MLBranchAlgorithm*) params)->lk_deriv2(x);
+        
+        //printf("x %f dy %f\n", x, dy);
+        return dy;
+    }
+
+    static void branch_fdf(double x, void *params, 
+                           double *f, double *df)
+    {
+        *f = branch_f(x, params); //((MLBranchAlgorithm*) params)->lk_deriv(x);
+        *df = branch_df(x, params); //((MLBranchAlgorithm*) params)->lk_deriv2(x);
+        //printf("x %f y %f dy %f\n", x, *f, *df);
+    }
+
+
+    // old branch fitting
+    float fitBranch2(Tree *tree, const float *bgfreq, float initdist)
+    {
+        Node *node1 = tree->root->children[0];
+        Node *node2 = tree->root->children[1];
+
+        lk_deriv.set_params(table.lktable[node1->name], 
+                            table.lktable[node2->name], 
+                            bgfreq);
+
+        return bisectRoot(lk_deriv, max(initdist*0.0, 0.0), 
+                          max(initdist*10.0, 0.00001), .0001);
+
+    }
+
+    float fitBranch(Tree *tree, const float *bgfreq, float initdist)
+    {
+        double r = initdist, r0 = initdist;
+        const double esp = 1e-3;
+
+        if (initdist < 0)
+            initdist = .0001;
+
+        //printf("initdist %f\n", initdist);
+
+        Node *node1 = tree->root->children[0];
+        Node *node2 = tree->root->children[1];
+        
+        lk_deriv.set_params(table.lktable[node1->name], 
+                            table.lktable[node2->name], 
+                            bgfreq);
+        
+        lk_deriv2.set_params(table.lktable[node1->name], 
+                             table.lktable[node2->name], 
+                             bgfreq);
+
+        gsl_root_fdfsolver_set(opt, &opt_func, initdist);
+
+        int status = GSL_CONTINUE;
+        const int maxiter = 10;
+        int iter;
+        for (iter=0; iter<maxiter && status==GSL_CONTINUE; iter++) {
+            //printf("root %f\n", r);
+
+            // do one iteration
+            status = gsl_root_fdfsolver_iterate(opt);
+            r0 = r;
+            r = gsl_root_fdfsolver_root(opt);
+            if (status)
+                break;
+            status = gsl_root_test_delta(r, r0, 0, esp);
+        }
+        //printf("root done iters=%d r=%f\n", iter, r);
+
+        if (iter == maxiter) {
+            r = fitBranch2(tree, bgfreq, initdist);
+        }
+
+        //printf("bisect: %f\n\n", r);
+
+        // return final branch length
+        return r;
+    }
+        
+
+
 
     float fitBranches(Tree *tree, int nseqs, int seqlen, char **seqs, 
 		      const float *bgfreq, 
@@ -555,7 +675,7 @@ public:
     {
 	float logl = -INFINITY;
 	float **lktable = table.lktable;
-    
+
 
 	for (int i=0; i<rootingOrder.size(); i+=2) {
 	    // remembering old children of root
@@ -592,21 +712,13 @@ public:
 	    // get total probability before branch length change
 	    float loglBefore = getTotalLikelihood(lktable, tree, 
                                                   seqlen, *model, bgfreq);
-	    logl = -INFINITY;
-	    Node *node1 = tree->root->children[0];
-	    Node *node2 = tree->root->children[1];
 
-	    // find new MLE branch length for root branch            
-	    float initdist = node1->dist + node2->dist;
-            lk_deriv.set_params(lktable[node1->name], lktable[node2->name], 
-                                bgfreq);
-            float mle = bisectRoot(lk_deriv, max(initdist*0.0, 0.0), 
-                                   max(initdist*10.0, 0.00001), .0001);
-	    //float mle = mleDistance(lktable[node1->name], 
-	    //			    lktable[node2->name], 
-	    //			    seqlen, bgfreq, *model,
-	    //     		    max(initdist*0.0, 0.0), 
-	    //			    max(initdist*10.0, 0.00001));
+            Node *node1 = tree->root->children[0];
+            Node *node2 = tree->root->children[1];
+            float initdist = node1->dist + node2->dist;
+
+            // find new MLE branch length for root branch
+            float mle = fitBranch(tree, bgfreq, initdist);
 	    node1->dist = mle / 2.0;
 	    node2->dist = mle / 2.0;
 	
@@ -638,28 +750,39 @@ public:
 	return logl;
     }
 
+    const static double minx = 0.0000001;
+    const static double maxx = 10.0;
+
+    gsl_root_fdfsolver *opt;
+    gsl_function_fdf opt_func;
 
     LikelihoodTable table;
     Model *model;
     typename Model::Deriv *dmodel;
+    typename Model::Deriv::Deriv *d2model;
+    
     DistLikelihoodDeriv<Model, typename Model::Deriv> lk_deriv;
+    DistLikelihoodDeriv2<Model, typename Model::Deriv, 
+                         typename Model::Deriv::Deriv> lk_deriv2;
 };
+
 
 
 // NOTE: assumes binary Tree
 template <class Model>
 float findMLBranchLengths(Tree *tree, int nseqs, char **seqs, 
                           const float *bgfreq, Model &model,
-                          int maxiter=10, int samples=0)
+                          int maxiter=10)
 {
-
-    clock_t startTime = clock();
+    // timing
+    Timer timer;
+    
 
     int seqlen = strlen(seqs[0]);
     MLBranchAlgorithm<Model> mlalg(tree, seqlen, &model);
 
     float lastLogl = -INFINITY, logl = -INFINITY;    
-    const float converge = logf(2.0);
+    const float converge = logf(1.02);
     
     // initialize the condition likelihood table
     calcLkTable(mlalg.table.lktable, tree, nseqs, seqlen, seqs, model);
@@ -692,19 +815,10 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
     }
     
     // restore original rooting
-    if (origroot1->parent != tree->root ||
-        origroot2->parent != tree->root)
-    {
-        if (origroot1->parent == origroot2) {
-            tree->reroot(origroot1);
-        } else if  (origroot2->parent == origroot1) {
-            tree->reroot(origroot2);
-        } else
-            assert(0);
-    }
+    tree->reroot(origroot1, origroot2);
+
     
-    printLog(LOG_MEDIUM, "mldist time: %f\n", (clock() - startTime) /
-             float(CLOCKS_PER_SEC));    
+    printLog(LOG_MEDIUM, "mldist time: %f\n",  timer.time());
     
     return logl;
 }
