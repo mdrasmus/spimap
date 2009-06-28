@@ -250,6 +250,27 @@ void reconcile(Tree *tree, SpeciesTree *stree,
 }
 
 
+// test whether a reconciliation is valid
+void reconAssert(Tree *tree, SpeciesTree *stree, int *recon)
+{
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = tree->nodes[i];
+        Node *snode = stree->nodes[recon[node->name]];
+
+        if (node->parent == NULL)
+            continue;
+        
+        Node *snode2 = stree->nodes[recon[node->parent->name]];
+        
+        // ensure every parent's species is above its child's species
+        for(Node *ptr = snode; ptr != snode2; ptr = ptr->parent) {
+            assert(ptr != NULL);
+        }
+    }
+}
+
+
+
 // label events for each node in tree
 // NOTE: assumes binary gene tree
 void labelEvents(Tree *tree, int *recon, int *events)
@@ -334,10 +355,11 @@ void addSpecNode(Node *node, Node *snode, Tree *tree,
     Node *parent = node->parent;
     
     // find index of node in parent's children
-    int nodei=0;
+    int nodei=-1;
     for (; nodei<parent->nchildren; nodei++)
         if (parent->children[nodei] == node)
             break;
+    assert(nodei != -1);
     
     // insert new node into tree
     parent->children[nodei] = newnode;
@@ -350,13 +372,15 @@ void addSpecNode(Node *node, Node *snode, Tree *tree,
     events.append(EVENT_SPEC);
 }
 
+
 int addImpliedSpecNodes(Tree *tree, Tree *stree, 
     ExtendArray<int> &recon, ExtendArray<int> &events)
 {
     int addedNodes = 0;
-
+    
     // recurse
-    for (int i=0; i<tree->nnodes; i++) {
+    int nnodes = tree->nnodes;
+    for (int i=0; i<nnodes; i++) {
         Node *node = tree->nodes[i];
         // process this node and the branch above it
         
@@ -370,6 +394,7 @@ int addImpliedSpecNodes(Tree *tree, Tree *stree,
             // root of species tree
             if (recon[node->name] == stree->root->name)
                 continue;
+            assert(tree->root == node);
             // NOTE: root is not last node (may need to relax this condition)
             tree->root = tree->addNode(new Node(1));
             tree->root->children[0] = node;
@@ -378,8 +403,7 @@ int addImpliedSpecNodes(Tree *tree, Tree *stree,
             events.append(EVENT_SPEC);
             addedNodes++;
         }
-
-    
+        
         // determine starting and ending species
         Node *sstart = stree->nodes[recon[node->name]];
         Node *send = stree->nodes[recon[node->parent->name]];
@@ -436,10 +460,11 @@ void removeImpliedSpecNodes(Tree *tree, int addedNodes)
         }
         
         // find index of oldnode in parent's children
-        int nodei = 0;
+        int nodei = -1;
         for (; nodei<parent->nchildren; nodei++)
             if (parent->children[nodei] == oldnode)
-                break;        
+                break;
+        assert(nodei != -1);
     
         // remove old node from tree
         parent->children[nodei] = child;

@@ -335,10 +335,10 @@ bool Tree::assertTree()
         fprintf(stderr, "root->parent != NULL\n");
         return false;
     }
-    if (root->name != nnodes - 1) {
+    /*if (root->name != nnodes - 1) {
         fprintf(stderr, "root->name != nnodes - 1\n");
         return false;
-    }
+        }*/
     
     bool leaves = true;
     for (int i=0; i<nnodes; i++) {

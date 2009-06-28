@@ -20,8 +20,6 @@
 #include <gsl/gsl_sf.h>
 
 
-#include "igammaf/igammaf.h"
-
 // spidir headers
 #include "common.h"
 
@@ -207,6 +205,7 @@ double invgammaDerivG2(double x, double d)
 }
 
 
+/*
 float invgammaCdf(float x, float a, float b)
 {
     return incompletegammac(a, b / x) / gamm(a);
@@ -216,7 +215,7 @@ double quantInvgamma(double p, double a, double b)
 {
     return b / invincompletegammac(a, gamm(a) * p);
 }
-
+*/
 
 // Derivative of Gamma distribution with respect to x
 double gammaDerivX(double x, double a, double b)
@@ -295,11 +294,6 @@ double gammaDerivV2(double x, double v)
     */
 }
 
-
-double incompleteGammaC(double s, double x)
-{
-    return incompletegammac(s, x);
-}
 
 
 // PDF of a sum of n gamma variables

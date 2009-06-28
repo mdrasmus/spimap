@@ -627,10 +627,10 @@ float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
                               int *events, float birthRate, float deathRate,
                               float *doomtable, int maxdoom)
 {
-    ExtendArray<int> recon2(0, tree->nnodes);
+    ExtendArray<int> recon2(0, 2 * tree->nnodes);
     recon2.extend(recon, tree->nnodes);
 
-    ExtendArray<int> events2(0, tree->nnodes);
+    ExtendArray<int> events2(0, 2 * tree->nnodes);
     events2.extend(events, tree->nnodes);
 
 

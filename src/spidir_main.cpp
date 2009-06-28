@@ -12,6 +12,9 @@
 #include <string>
 #include <vector>
 
+// third party
+#include <gsl/gsl_errno.h>
+
 // spidir headers
 #include "common.h"
 #include "phylogeny.h"
@@ -462,6 +465,11 @@ int main(int argc, char **argv)
     time_t startTime = time(NULL);
     
     //=======================================================
+    // setup gsl
+    gsl_set_error_handler_off();
+
+
+    //=======================================================
     // search
     Tree *toptree;
     
@@ -481,8 +489,7 @@ int main(int argc, char **argv)
     
     //========================================================
     // output final tree
-    printf("toptree %p '%s'\n", toptree, outtreeFilename.c_str());
-
+    
     displayTree(toptree);
 
     toptree->setLeafNames(genes);
@@ -490,7 +497,6 @@ int main(int argc, char **argv)
     
     
     // log tree correctness
-    /*
     if (c.correctFile != "") {
         if (proposer.seenCorrect()) {
             printLog(LOG_LOW, "SEARCH: correct visited\n");
@@ -504,20 +510,18 @@ int main(int argc, char **argv)
             printLog(LOG_LOW, "RESULT: wrong\n");
         }
     }
-    */
+
         
     // log runtime
     time_t runtime = time(NULL) - startTime;
-    //    printLog(LOG_LOW, "seq runtime:\t%f\n", fitter->runtime);
-    //    printLog(LOG_LOW, "branch runtime:\t%f\n", prior->branch_runtime);
-    //    printLog(LOG_LOW, "topology runtime:\t%f\n", prior->top_runtime);
+    printLog(LOG_LOW, "seq runtime:\t%f\n", fitter->runtime);
+    printLog(LOG_LOW, "branch runtime:\t%f\n", prior->branch_runtime);
+    printLog(LOG_LOW, "topology runtime:\t%f\n", prior->top_runtime);
     printLog(LOG_LOW, "runtime seconds:\t%d\n", runtime);
     printLog(LOG_LOW, "runtime minutes:\t%.1f\n", float(runtime / 60.0));
     printLog(LOG_LOW, "runtime hours:\t%.1f\n", float(runtime / 3600.0));
     closeLogFile();
-
-    printf("cleanup\n");
-
+    
     // clean up
     delete toptree;
     delete params;
@@ -525,10 +529,6 @@ int main(int argc, char **argv)
     delete prior;
     delete search;
     delete proposer2;
-
-
-    printf("hello\n");
-
 }
 
 

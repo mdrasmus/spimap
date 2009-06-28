@@ -656,7 +656,7 @@ public:
         }
         //printf("root done iters=%d r=%f\n", iter, r);
 
-        if (iter == maxiter) {
+        if (iter == maxiter || status != GSL_SUCCESS) {
             r = fitBranch2(tree, bgfreq, initdist);
         }
 

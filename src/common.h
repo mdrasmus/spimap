@@ -55,10 +55,16 @@ inline float frand(float min, float max)
 { return min + (rand() / float(RAND_MAX) * (max-min)); }
 
 inline int irand(int max)
-{ return int(rand() / float(RAND_MAX) * max); }
+{
+    const int i = int(rand() / float(RAND_MAX) * max); 
+    return (i == max) ? max - 1 : i;
+}
 
 inline int irand(int min, int max)
-{ return min + int(rand() / float(RAND_MAX) * (max - min)); }
+{
+    const int i = min + int(rand() / float(RAND_MAX) * (max - min)); 
+    return (i == max) ? max - 1 : i;
+}
 
 
 // computes the log(normalPdf(x | u, s^2))
@@ -87,8 +93,8 @@ float invgammaDerivA(float x, float a, float b);
 float invgammaDerivB(float x, float a, float b);
 double invgammaDerivG(double x, double g);
 double invgammaDerivG2(double x, double g);
-float invgammaCdf(float x, float a, float b);
-double quantInvgamma(double p, double a, double b);
+//float invgammaCdf(float x, float a, float b);
+//double quantInvgamma(double p, double a, double b);
 
 // Derivative of Gamma distribution with respect to x
 double gammaDerivX(double x, double a, double b);
