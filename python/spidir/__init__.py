@@ -83,11 +83,13 @@ def export(lib, funcname, return_type, prototypes, scope=globals(),
 c_float_p = POINTER(c_float)
 c_float_p_p = POINTER(POINTER(c_float))
 c_int_p = POINTER(c_int)
+c_int_p_p = POINTER(POINTER(c_int))
 c_char_p_p = POINTER(c_char_p)
 
 c_int_list = (c_int_p, lambda x: c_list(c_int, x))
 c_float_list = (c_float_p, lambda x: c_list(c_float, x))
 c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
+c_int_matrix = (c_int_p_p, lambda x: c_matrix(c_int, x))
 
 
 #=============================================================================
@@ -97,10 +99,10 @@ c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
 export(spidir, "gamm", c_float, [c_float, "a"])
 export(spidir, "invgammaPdf", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "invgammaCdf", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "quantInvgamma", c_double,
-       [c_double, "p", c_double, "a", c_double, "b"])
+#export(spidir, "invgammaCdf", c_float,
+#       [c_float, "x", c_float, "a", c_float, "b"])
+#export(spidir, "quantInvgamma", c_double,
+#       [c_double, "p", c_double, "a", c_double, "b"])
 export(spidir, "gammalog", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
 export(spidir, "gammaPdf", c_float,
@@ -130,7 +132,7 @@ export(spidir, "makeTree", c_void_p, [c_int, "nnodes",
 export(spidir, "tree2ptree", c_int, [c_void_p, "tree", c_int_list, "ptree"],
        newname="ctree2ptree")
 export(spidir, "setTreeDists", c_void_p, [c_void_p, "tree",
-                                              c_float_p, "dists"])
+                                          c_float_p, "dists"])
 
 
 # search
@@ -154,6 +156,27 @@ export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
 export(spidir, "birthDeathCount", c_float,
        [c_int, "ngenes", c_float, "time",
         c_float, "birth", c_float, "death"])
+export(spidir, "birthDeathCounts", c_float,
+       [c_int, "start", c_int, "end", c_float, "time",
+        c_float, "birth", c_float, "death"])
+export(spidir, "birthDeathCounts", c_float,
+       [c_int, "start", c_int, "end", c_float, "time",
+        c_float, "birth", c_float, "death"])
+export(spidir, "birthDeathCounts2", c_float,
+       [c_int, "start", c_int, "end", c_float, "time",
+        c_float, "birth", c_float, "death"])
+
+
+export(spidir, "birthDeathTreeCounts", c_double,
+       [c_void_p, "tree", c_int, "nspecies", c_int_list, "counts", 
+        c_float, "birth", c_float, "death", c_int, "maxgene",
+        c_int, "rootgene"])
+export(spidir, "birthDeathForestCounts", c_double,
+       [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
+        c_int_matrix, "counts", c_int_list, "mult",
+        c_float, "birth", c_float, "death", c_int, "maxgene",
+        c_int, "rootgene"])
+
 export(spidir, "calcDoomTable", c_int,
        [c_void_p, "tree", c_float, "birth", c_float, "death",
         c_int, "maxdoom", c_float_p, "doomtable"])
@@ -491,6 +514,51 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
     deleteTree(cstree)
 
     return p
+
+
+def birth_death_tree_counts(stree, counts, birth, death,
+                            maxgene=50, rootgene=1):
+    
+    if birth == death:
+        birth = 1.001 * death
+
+    ctree = tree2ctree(stree)
+    nspecies = len(counts)
+    
+    prob = birthDeathTreeCounts(ctree, nspecies, counts,
+                                birth, death, maxgene, rootgene)
+    deleteTree(ctree)
+
+    return prob
+
+
+def birth_death_forest_counts(stree, counts, birth, death,
+                              maxgene=50, rootgene=1, mult=None):
+    
+    if birth == death:
+        birth = 1.001 * death
+
+    if mult is None:
+        hist = {}
+        for row in counts:
+            row = tuple(row)
+            hist[row] = hist.get(row, 0) + 1
+        counts, mult = zip(*hist.items())
+        counts = map(list, counts)
+        mult = list(mult)
+        
+
+    ctree = tree2ctree(stree)
+
+    nfams = len(counts)
+    nspecies = len(counts[0])
+    
+    logl = birthDeathForestCounts(ctree, nspecies, nfams, counts, mult,
+                                  birth, death, maxgene, rootgene)
+    deleteTree(ctree)
+
+    return logl
+
 
 
 #=============================================================================

@@ -1,4 +1,5 @@
 #include <math.h>
+#include "Matrix.h"
 #include "Tree.h"
 #include "phylogeny.h"
 #include "birthdeath.h"
@@ -664,6 +665,211 @@ float birthDeathCount(int ngenes, float time, float birthRate, float deathRate)
 }
 
 
+// returns the probability of 'start' genes giving rise to 'end' genes after 
+// time 'time'
+float birthDeathCounts2(int start, int end, float time, 
+                       float birthRate, float deathRate)
+{
+    const float l = birthRate;
+    const float u = deathRate;
+    const float r = l - u;
+    const float a = u / l;
+
+    const float ertime = exp(-r*time);
+    const float ut = (1.0 - ertime) / (1.0 - a * ertime);
+    const float p0 = a*ut;
+    
+    // all 'start' genes die out
+    if (end == 0) {
+        return ipow(p0, start);
+    }
+    
+    // TODO: could speed this up by simplifying choose
+    const int iter = (start < end) ? start : end;
+    float p = 0.0;
+
+    for (int j=0; j<=iter; j++) {
+        //printf("j %d\n", j);
+        p += fchoose(start, j) *
+             fchoose(start + end - j - 1, start - 1) *
+             ipow(p0, start-j) *
+             ipow(ut, end-j) *
+             ipow(1 - p0 - ut, j);
+    }
+    
+    assert(!isnan(p) || !isinf(p));
+    return p;
+}
+
+// returns the probability of 'start' genes giving rise to 'end' genes after 
+// time 'time'
+float birthDeathCounts(int start, int end, float time, 
+                       float birth, float death)
+{
+    if (start == 0) {
+        if (end == 0)
+            return 1.0;
+        else
+            return 0.0;
+    }
+
+    const double ertime = exp((birth-death)*time);
+    const double tmp = (ertime-1.0) / (birth*ertime - death);
+    const double a = death * tmp;
+    const double b = birth * tmp;
+    
+    // all 'start' genes die out
+    if (end == 0) {
+        return ipow(a, start);
+    }
+    
+    // compute base case
+    double f = 1.0;
+    for (int k=1; k<start; k++)
+        f *= (start + end - k);
+
+    // compute leading coeffient
+    double c = ipow(a, start) * ipow(b, end);
+    for (int i=2; i<start; i++)
+        c /= i;
+
+    double p = c * f;
+    double x = start;
+    double y = end;
+    double z = start + end - 1;
+    const double oneab = 1.0 - a - b;
+    const int iter = (start < end) ? start : end;
+    for (int j=1; j<=iter; j++) {
+        f *= (oneab * x * y / (j * a * b * z));
+
+        printf("j=%d f=%e c=%e p=%e\n", j, f, c, p);
+
+        p += c * f;
+        x--;
+        y--;
+        z--;
+    }
+
+    if (p < 0.0)
+        p = 0.0;
+    
+
+    if (p > 1.0) {
+        printf("p=%e genes=(%d, %d) b=%f d=%f t=%f\n", p, start, end,
+               birth, death, time);
+        assert(0);
+    }
+
+    return p;
+}
+
+
+//=============================================================================
+// gene counts on species tree
+
+
+double birthDeathTreeCounts(Tree *tree, int nspecies, int *counts, 
+                            float birth, float death, int maxgene,
+                            int rootgene, double **tab)
+{
+    // set up dynamic table
+    bool cleanup = false;
+    if (!tab) {
+
+        // set maxgene to twice largest cluster
+        for (int i=0; i<nspecies; i++) {
+            if (2 * counts[i] > maxgene)
+                maxgene = 2 * counts[i];
+        }
+
+        // allocate dynamic table
+        tab = new double* [tree->nnodes];
+        for (int i=0; i<tree->nnodes; i++)
+            tab[i] = new double [maxgene];
+        cleanup = true;
+    }
+
+    // initialize leaves
+    for (int i=0; i<nspecies; i++) {
+        for (int j=0; j<maxgene; j++)
+            tab[i][j] = 0.0;
+        tab[i][counts[i]] = 1.0;
+    }
+
+    // perform post order traversal of tree
+    ExtendArray<Node*> postnodes(0, tree->nnodes);
+    getTreePostOrder(tree, &postnodes);
+    for (int a=0; a<tree->nnodes; a++) {
+        const Node *node = postnodes[a];
+        //const int i = node.name;
+
+        // skip leaves
+        if (node->isLeaf())
+            continue;
+
+        for (int j=0; j<maxgene; j++) {
+
+            // compute product over children
+            double prod = 1.0;        
+            for (int ci=0; ci<node->nchildren; ci++) {
+                const int c = node->children[ci]->name;
+                const double t = node->children[ci]->dist;
+                double sum = 0.0;
+                
+                for (int j2=0; j2<maxgene; j2++) {
+                    double f = birthDeathCounts(j, j2, t, birth, death) * 
+                           tab[c][j2];
+                    sum += f;
+                }
+
+                prod *= sum;
+            }
+
+            tab[node->name][j] = prod;
+        }
+    }
+
+    // cleanup
+    if (cleanup) {
+        for (int i=0; i<tree->nnodes; i++)
+            delete [] tab[i];
+        delete [] tab;
+    }
+
+    return tab[tree->root->name][rootgene];
+}
+
+
+
+double birthDeathForestCounts(Tree *tree, int nspecies, int nfams,
+                              int **counts, int *mult,
+                              float birth, float death, int maxgene,
+                              int rootgene)
+{
+
+    // set maxgene
+    for (int i=0; i<nfams; i++) {
+        for (int j=0; j<nspecies; j++) {
+            if (2 * counts[i][j] > maxgene)
+                maxgene = 2 * counts[i][j];
+        }
+    }
+
+    // set up dynamic table
+    Matrix<double> matrix(tree->nnodes, maxgene);
+    double **tab = matrix;
+
+    double logl = 0.0;
+
+    // loop through families
+    for (int i=0; i<nfams; i++) {
+        logl += mult[i] * log(birthDeathTreeCounts(tree, nspecies, counts[i], 
+                                                   birth, death, maxgene,
+                                                   rootgene, tab));
+    }
+
+    return logl;
+}
 
 
 //=============================================================================
@@ -899,35 +1105,6 @@ void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
 //=============================================================================
 // OLD CODE
 
-// returns the probability of 'start' genes giving rise to 'end' genes after 
-// time 'time'
-float birthDeathCount2(int start, int end, float time, float birthRate, float deathRate)
-{
-    const float l = birthRate;
-    const float u = deathRate;
-    const float r = l - u;
-    const float a = u / l;
-
-    const float ut = (1.0 - exp(-r*time)) / (1.0 - a * exp(-r*time));
-    const float p0 = a*ut;
-    
-    // all 'start' genes die out
-    if (end == 0) {
-        return ipow(p0, start);
-    }
-    
-    const int iter = (start < end) ? start : end;
-    float p = 0.0;
-    for (int j=0; j<iter; j++) {
-        p += choose(start, j) *
-             choose(start + end - j - 1, start - 1) *
-             ipow(p0, start-j) *
-             ipow(ut, end-j) *
-             ipow(1 - p0 - ut, j);
-    }
-        
-    return p;
-}
 
 
 

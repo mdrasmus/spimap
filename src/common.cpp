@@ -51,7 +51,7 @@ double fchoose(int n, int k)
     
     double t = 1.0;
     double m = n;
-    for (double i=1; i<k+1; i++)
+    for (double i=1; i<=k; i++)
         t *= (m - i + 1) / i;
     return t;
 }

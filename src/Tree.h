@@ -79,7 +79,7 @@ public:
     }
     
     // Returns whether the node is a leaf
-    bool isLeaf() {
+    bool isLeaf() const {
         return nchildren == 0;
     }
     

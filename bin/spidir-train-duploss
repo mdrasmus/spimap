@@ -1,0 +1,67 @@
+#!/usr/bin/env python
+# Make gene count matrix from a cluster/part file
+
+import sys, optparse
+from math import log
+
+from rasmus.bio import phylo
+from rasmus import util, treelib
+
+import spidir
+
+o = optparse.OptionParser()
+o.set_defaults()
+
+o.add_option("-s", "--stree", dest="stree",
+             metavar="<species tree newick file>")
+o.add_option("-S", "--smap", dest="smap",
+             metavar="<gene to species file>")
+o.add_option("-c", "--countmatrix", dest="countmatrix",
+             metavar="<gene count matrix output file>")
+o.add_option("-r", "--range", dest="range",
+             metavar="start,step,stop")
+o.add_option("", "--maxgene", dest="maxgene", type="int",
+             default=20, metavar="<maximum number of genes in ancestor>")
+
+
+def error(message, exit=1):
+    print >>sys.stderr, message
+    sys.exit(exit)
+
+
+def main(conf, args):
+
+    # TODO: make more checks
+    if conf.stree is None or conf.smap is None:
+        error("error: must specify species tree and mapping")
+
+    start, step, stop = map(float, conf.range.split(","))
+    rates = list(util.frange(start,stop+step*.5,step))
+
+    # read in species data
+    stree = treelib.read_tree(conf.stree)
+    gene2species = phylo.read_gene2species(conf.smap)
+
+    infile = open(conf.countmatrix)
+    species = infile.next().rstrip().split("\t")
+
+    lmat = util.make_matrix(len(rates), len(rates), 0.0)
+
+    # read all counts
+    counts = [map(int, line.rstrip().split("\t"))
+              for line in infile]
+
+    for i, birth in enumerate(rates):
+        for j, death in enumerate(rates):
+            l = spidir.birth_death_forest_counts(stree, counts,
+                                                 birth, death,
+                                                 maxgene=conf.maxgene,
+                                                 rootgene=1)
+            print >>sys.stderr, birth, death, l
+            print birth, death, l
+                
+
+
+conf, args = o.parse_args()
+main(conf, args)
+

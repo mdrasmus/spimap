@@ -1,7 +1,7 @@
 #
 # SPIDIR (SPecies Informed DIstance-based Reconstruction) 
 # Matt Rasmussen
-# copyright 2007-2009
+# Copyright 2007-2009
 #
 # Makefile
 #
