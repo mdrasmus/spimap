@@ -16,7 +16,7 @@ from ctypes import *
 libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
 spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
 
-
+    
 #=============================================================================
 # ctypes help functions
 
@@ -166,17 +166,29 @@ export(spidir, "birthDeathCounts2", c_float,
        [c_int, "start", c_int, "end", c_float, "time",
         c_float, "birth", c_float, "death"])
 
-
+# birth death tree counts
 export(spidir, "birthDeathTreeCounts", c_double,
        [c_void_p, "tree", c_int, "nspecies", c_int_list, "counts", 
         c_float, "birth", c_float, "death", c_int, "maxgene",
-        c_int, "rootgene"])
+        c_int, "rootgene", c_void_p, "tab"])
 export(spidir, "birthDeathForestCounts", c_double,
        [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
         c_int_matrix, "counts", c_int_list, "mult",
         c_float, "birth", c_float, "death", c_int, "maxgene",
-        c_int, "rootgene"])
+        c_int, "rootgene", c_void_p, "tab"])
 
+export(spidir, "birthDeathCountsML_alloc", c_void_p,
+       [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
+        c_int_matrix, "counts", c_int_list, "mult",
+        c_float, "birth", c_float, "death", c_float, "step",
+        c_int, "maxgene", c_int, "rootgene"])
+export(spidir, "birthDeathCountsML_free", c_void_p,
+       [c_void_p, "opt"])
+export(spidir, "birthDeathCountsML_iter", c_int,
+       [c_void_p, "opt", c_float_list, "birth", c_float_list, "death",
+        c_float_list, "size"])
+
+# tree topology
 export(spidir, "calcDoomTable", c_int,
        [c_void_p, "tree", c_float, "birth", c_float, "death",
         c_int, "maxdoom", c_float_p, "doomtable"])
@@ -520,13 +532,13 @@ def birth_death_tree_counts(stree, counts, birth, death,
                             maxgene=50, rootgene=1):
     
     if birth == death:
-        birth = 1.001 * death
+        birth = 1.01 * death
 
     ctree = tree2ctree(stree)
     nspecies = len(counts)
     
     prob = birthDeathTreeCounts(ctree, nspecies, counts,
-                                birth, death, maxgene, rootgene)
+                                birth, death, maxgene, rootgene, 0)
     deleteTree(ctree)
 
     return prob
@@ -536,7 +548,7 @@ def birth_death_forest_counts(stree, counts, birth, death,
                               maxgene=50, rootgene=1, mult=None):
     
     if birth == death:
-        birth = 1.001 * death
+        birth = 1.01 * death
 
     if mult is None:
         hist = {}
@@ -554,11 +566,48 @@ def birth_death_forest_counts(stree, counts, birth, death,
     nspecies = len(counts[0])
     
     logl = birthDeathForestCounts(ctree, nspecies, nfams, counts, mult,
-                                  birth, death, maxgene, rootgene)
+                                  birth, death, maxgene, rootgene, 0)
     deleteTree(ctree)
 
     return logl
 
+def birth_death_counts_ml_alloc(stree, counts, birth0, death0, step,
+                                maxgene=50, rootgene=1, mult=None):
+    
+    if birth0 == death0:
+        birth0 = 1.01 * death0
+
+    if mult is None:
+        hist = {}
+        for row in counts:
+            row = tuple(row)
+            hist[row] = hist.get(row, 0) + 1
+        counts, mult = zip(*hist.items())
+        counts = map(list, counts)
+        mult = list(mult)
+
+    ctree = tree2ctree(stree)
+
+    nfams = len(counts)
+    nspecies = len(counts[0])
+    
+    opt = birthDeathCountsML_alloc(ctree, nspecies, nfams, counts, mult,
+                                   birth0, death0, step, maxgene, rootgene)
+    return (ctree, opt)
+
+def birth_death_counts_ml_free(opt):
+    birthDeathCountsML_free(opt[1])
+    deleteTree(opt[0])
+
+
+def birth_death_counts_ml_iter(opt):
+
+    birth = [0.0]
+    death = [0.0]
+    size = [0.0]
+    status = birthDeathCountsML_iter(opt[1], birth, death, size)
+
+    return status, size[0], (birth[0], death[0])
 
 
 #=============================================================================

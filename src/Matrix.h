@@ -12,6 +12,25 @@
 namespace spidir {
 
 template <class ValueType>
+ValueType **allocMatrix(int nrows, int ncols)
+{
+    ValueType **mat = new ValueType* [nrows];
+    for (int i=0; i<nrows; i++)
+        mat[i] = new ValueType[ncols];
+    return mat;
+}
+
+template <class ValueType>
+void freeMatrix(ValueType **mat, int nrows)
+{
+    for (int i=0; i<nrows; i++)
+        delete [] mat[i];
+    delete [] mat;
+}
+
+
+
+template <class ValueType>
 class Matrix
 {
 public:

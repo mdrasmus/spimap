@@ -51,7 +51,7 @@ public:
         gtab(ntrees, nrates),
         pgtab(ntrees, nrates)
     {
-        // allocate gene rate optizer
+        // allocate gene rate optimizer
 	sol_gene_rate = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
 
         // setup optimizer for gene rates
@@ -315,9 +315,41 @@ public:
 
     void init_params()
     {
+        ExtendArray<float> vec(ntrees);
+        ExtendArray<float> vec2(ntrees);
+        ExtendArray<float> treelens(ntrees);
+
+        float meantreelens = 0.0;
+        for (int j=0; j<ntrees; j++) {
+            treelens[j] = 0.0;
+            for (int i=0; i<nspecies; i++)
+                treelens[j] += lengths[j][i];
+            meantreelens += treelens[j];
+        }
+        meantreelens /= ntrees;
+        
+        //printf("meantreelens=%f\n", meantreelens);
+        //printFloatArray(treelens, 5);
+
+        
         for (int i=0; i<nspecies; i++) {
-            sp_alpha[i] = 1.0;
-            sp_beta[i] = 1.0;
+            float sum = 0.0;
+            for (int j=0; j<ntrees; j++) {
+                vec2[j] = lengths[j][i];
+                vec[j] = lengths[j][i] / 
+                    (treelens[j] / meantreelens) / times[i];
+                sum += vec[j];
+            }
+
+            //printf("sp=%d t=%f ", i, times[i]);
+            //printFloatArray(vec.get(), 5);
+            //printFloatArray(vec2.get(), 5);
+
+            float mu = sum / ntrees;
+            float sigma = stdev(vec.get(), ntrees);
+            
+            sp_alpha[i] = mu*mu / sigma / sigma;
+            sp_beta[i] = mu / sigma / sigma;
         }
 
         gene_nu = 1.0; 

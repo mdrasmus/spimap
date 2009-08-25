@@ -74,7 +74,7 @@ public:
 	config.add(new ConfigParam<string>
 		   ("-f", "--bgfreq", "<A freq>,<C ferq>,<G freq>,<T freq>", 
 		    &bgfreqstr, "",
-		    "background frequencies (default=0.25,0.25,0.25,0.25)"));
+		    "background frequencies (default: estimate)"));
 
 	config.add(new ConfigParamComment("Dup/loss evolution model"));
 	config.add(new ConfigParam<string>

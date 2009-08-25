@@ -90,7 +90,7 @@ def main(conf, args):
 
         # test termination
         if conf.niter is not None:
-            if len(logls) > conf.niter:
+            if len(logls) >= conf.niter:
                 break
         else:
             if len(logls) > term_iters and \

@@ -30,7 +30,7 @@ double birthDeathTreeCounts(Tree *tree, int nspecies, int *counts,
 double birthDeathForestCounts(Tree *tree, int nspecies, int nfams,
                               int **counts, int *mult,
                               float birth, float death, int maxgene,
-                              int rootgene);
+                              int rootgene, double **tab=NULL);
 
 float birthDeathDensity(float *times, int ntimes, float maxtime, 
                         float birth, float death);

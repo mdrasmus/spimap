@@ -1,0 +1,4195 @@
+SPIDIR executed with the following arguments:
+spidir -p train/param/ensembl.param -S config/ensembl.smap -s config/ensembl.div.stree --kappa 4.85269 -i 1000 --quickiter 1000 -a trees-mhc-spidir/19520/19520.nt.mfa -o trees-mhc-spidir/19520/19520 -D 0.296282 -L 0.744633 
+
+search: initial
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top    = -1355.205933
+search: dups = 56
+search: loss = 373
+          /- ENSPVAP00000004855               
+         /+                                   
+         |\- ENSCAFP00000000954               
+        /+                                    
+        ||/- ENSECAP00000003787               
+        |\+                                   
+       /+ \- ENSBTAP00000007456               
+       ||                                     
+       ||/- ENSMLUP00000004479                
+       |\+                                    
+      /+ \- ENSOPRP00000003534                
+      ||                                      
+      || /- ENSCPOP00000013326                
+      ||/+                                    
+      |||\- ENSDORP00000010714                
+      |\+                                     
+      | |/- ENSMUSP00000109662                
+      | \+                                    
+      |  \- ENSRNOP00000042145                
+      |                                       
+      |   /- ENSEEUP00000011871               
+     /+  /+                                   
+     ||  |\- ENSPCAP00000000636               
+     || /+                                    
+     || ||/- ENSOGAP00000012706               
+     || |\+                                   
+     || | \- ENSMODP00000018770               
+     ||/+                                     
+     |||| /- ENSMMUP00000015332               
+     ||||/+                                   
+     |||||\- ENSPPYP00000018412               
+     |||\+                                    
+    /+\+ |/- ENSPTRP00000050361               
+    || | \+                                   
+    || |  \- ENSP00000379078                  
+    || |                                      
+    || |/- ENSOANP00000026631                 
+    || \+                                     
+    ||  \- ENSMICP00000003271                 
+    ||                                        
+   /+|  /- ENSTBEP00000008437                 
+   ||| /+                                     
+   |||/+\- ENSETEP00000016441                 
+   |||||                                      
+   ||\+\- ENSOCUP00000006046                  
+   || |                                       
+   || \- ENSXETP00000042514                   
+  /+|                                         
+  |||/- ENSXETP00000023873                    
+  ||\+                                        
+  || \- ENSACAP00000010952                    
+  ||                                          
+  || /- ENSFCAP00000004169                    
+  ||/+                                        
+  |||\- ENSTTRP00000013419                    
+  |\+                                         
+  | |/- ENSLAFP00000006855                    
+  | \+                                        
+  |  \- ENSTSYP00000001770                    
+  |                                           
+  |         /- ENSECAP00000009319             
+  |        /+                                 
+  |       /+\- ENSCAFP00000008925             
+  |       ||                                  
+  |      /+\- ENSBTAP00000025200              
+  |      ||                                   
+  |     /+\- ENSCPOP00000021158               
+  |     ||                                    
+  |     ||/- ENSRNOP00000008892               
+  |    /+\+                                   
+  |    || \- ENSMUSP00000048225               
+  |   /+|                                     
+  |   ||\- ENSMODP00000005462                 
+  |  /+|                                      
+  |  ||\- ENSOANP00000005979                  
+  |  ||                                       
+  | /+\- ENSACAP00000010140                   
+  | ||                                        
+  | ||/- ENSTGUP00000010537                   
+  | |\+                                       
+  | | \- ENSGALP00000032655                   
+  | |                                         
+  | |   /- ENSXETP00000046361                 
+  | |  /+                                     
+  | | /+\- ENSACAP00000003330                 
+  | | ||                                      
+ /+ |/+\- ENSOCUP00000012882                  
+ || |||                                       
+ || ||\- ENSPVAP00000016847                   
+ || ||                                        
+ || ||  /- ENSDNOP00000015593                 
+ || || /+                                     
+ || || |\- ENSGGOP00000010946                 
+ ||/+| |                                      
+ ||||| |    /- ENSEEUP00000011192             
+ ||||| |   /+                                 
+ ||||| |  /+\- ENSETEP00000000939             
+ ||||| |  ||                                  
+ ||||| |  |\- ENSOPRP00000004587              
+ ||||| |  |                                   
+ ||||| |  | /- ENSGALP00000023545             
+ ||||| |  |/+                                 
+ ||||| |  ||\- ENSTGUP00000017698             
+ ||||| |  ||                                  
+ ||||| |  ||       /- ENSMICP00000006826      
+ ||||| |  ||      /+                          
+ ||||| |  ||     /+\- ENSCHOP00000001855      
+ ||||| |  ||     ||                           
+ ||||| |  ||    /+\- ENSDORP00000005023       
+ ||||| | /+|    ||                            
+ |||\+ | |||   /+\- ENSTBEP00000010737        
+ ||| | | |||   ||                             
+ ||| | | |||   |\- ENSMLUP00000012265         
+ ||| | | |||   |                              
+ ||| | | |||   |        /- ENSBTAP00000005172 
+ ||| |/+ |||   |       /+                     
+ ||| ||| |||   |      /+\- ENSVPAP00000007858 
+ ||| ||| |||   |      ||                      
+ ||| ||| |||   |     /+\- ENSECAP00000016148  
+ ||| ||| |||   |     ||                       
+ ||| ||| |||   |     ||/- ENSTSYP00000002629  
+ ||| ||| |||   |    /+\+                      
+ ||| ||| |\+   |    || \- ENSMMUP00000030472  
+ ||| ||| | |  /+   /+|                        
+/+|| ||| | |  ||   ||\- ENSOGAP00000008607    
+||\+ ||| | |  ||   ||                         
+|| | ||| | |  ||  /+\- ENSCPOP00000004321     
+|| | ||| | |  ||  ||                          
+|| | ||| | |  ||  ||/- ENSRNOP00000027629     
+|| | |||/+ |  || /+\+                         
+|| | ||||| |  || || \- ENSMUSP00000088451     
+|| | ||||| |  || ||                           
+|| | ||||| |  || |\- ENSCAFP00000024919       
+|| | ||||| | /+|/+                            
+|| | \+||| | |||||  /- ENSP00000357330        
+|| |  |||| | ||||| /+                         
+|| |  |||| | |||||/+\- ENSPTRP00000002411     
+|| |  |||| | ||\+|||                          
+|| |  |||| | || |\+\- ENSPPYP00000000864      
+|| |  |||| |/+| | |                           
+|| |  |\+| |||| | \- ENSMMUP00000038843       
+|| |  | || |||| |                             
+|| |  | || |||| \- ENSTTRP00000012646         
+|| |  | || \+||                               
+|| |  | ||  ||\- ENSLAFP00000001837           
+|| |  | ||  ||                                
+|| |  | ||  |\- ENSSARP00000001033            
+|| |  | ||  |                                 
+|| |  | ||  \- ENSMODP00000021257             
+|| |  | ||                                    
+|| |  | |\- ENSPCAP00000013700                
+|| |  | |                                     
+|| |  | \- ENSFCAP00000011217                 
+|| |  |                                       
+|| |  \- ENSSTOP00000004133                   
+|| |                                          
+|| |/- ENSOANP00000027206                     
+|| \+                                         
+||  \- ENSRNOP00000040274                     
+||                                            
+|| /- ENSTBEP00000000211                      
+||/+                                          
+|\+\- ENSMLUP00000010608                      
+| |                                           
+| \- ENSOANP00000001013                       
+|                                             
++      /- ENSPPYP00000022240                  
+|     /+                                      
+|     |\- ENSMMUP00000025757                  
+|    /+                                       
+|    ||/- ENSP00000298728                     
+|    |\+                                      
+|   /+ \- ENSPTRP00000037004                  
+|   ||                                        
+|   ||/- ENSGGOP00000004530                   
+|   |\+                                       
+|  /+ \- ENSMICP00000008770                   
+|  ||                                         
+|  || /- ENSCAFP00000028661                   
+|  ||/+                                       
+|  |||\- ENSECAP00000016801                   
+|  |\+                                        
+|  | |/- ENSBTAP00000016118                   
+|  | \+                                       
+| /+  \- ENSTTRP00000013127                   
+| ||                                          
+| ||  /- ENSRNOP00000030189                   
+| || /+                                       
+| || |\- ENSMUSP00000100002                   
+| ||/+                                        
+| ||||/- ENSCPOP00000006136                   
+| |||\+                                       
+| |\+ \- ENSCPOP00000015823                   
+| | |                                         
+|/+ |/- ENSOGAP00000000118                    
+||| \+                                        
+|||  \- ENSOCUP00000015109                    
+|||                                           
+|||  /- ENSMODP00000021357                    
+||| /+                                        
+||| |\- ENSOANP00000015800                    
+|||/+                                         
+|||||/- ENSGALP00000013792                    
+||||\+                                        
+||\+ \- ENSTGUP00000002934                    
+|| |                                          
+|| |/- ENSACAP00000012109                     
+|| \+                                         
+||  \- ENSXETP00000036915                     
+\+                                            
+ |    /- ENSCHOP00000009892                   
+ |   /+                                       
+ |  /+\- ENSSTOP00000000358                   
+ |  ||                                        
+ | /+\- ENSEEUP00000006327                    
+ | ||                                         
+ | ||/- ENSPVAP00000011224                    
+ | |\+                                        
+ |/+ \- ENSSARP00000004375                    
+ |||                                          
+ ||| /- ENSPCAP00000013481                    
+ |||/+                                        
+ ||\+\- ENSETEP00000014965                    
+ || |                                         
+ \+ \- ENSOPRP00000005436                     
+  |                                           
+  |  /- ENSTGUP00000014117                    
+  | /+                                        
+  |/+\- ENSLAFP00000009820                    
+  |||                                         
+  \+\- ENSDNOP00000014629                     
+   |                                          
+   |/- ENSFCAP00000001127                     
+   \+                                         
+    \- ENSDORP00000013968                     
+                                              
+search: iter 0
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1448.586792
+search: iter 1
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 2
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 3
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1314.660645
+search: iter 4
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1335.648560
+search: iter 5
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.661377
+search: iter 6
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 7
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 8
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.499634
+search: iter 9
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.461548
+search: iter 10
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 11
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 12
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 13
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1313.928955
+search: iter 14
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1293.469971
+search: iter 15
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 16
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.661377
+search: iter 17
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1310.485718
+search: iter 18
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 19
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.154785
+search: iter 20
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 21
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 22
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1360.308228
+search: iter 23
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 24
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.661377
+search: iter 25
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1364.313843
+search: iter 26
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 27
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.019409
+search: iter 28
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 29
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1348.515015
+search: iter 30
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.577881
+search: iter 31
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 32
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.623779
+search: iter 33
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.542480
+search: iter 34
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 35
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 36
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1351.670654
+search: iter 37
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.467773
+search: iter 38
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1339.088501
+search: iter 39
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 40
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 41
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 42
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.163696
+search: iter 43
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 44
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1357.357544
+search: iter 45
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 46
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1372.103638
+search: iter 47
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 48
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 49
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 50
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 51
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 52
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 53
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 54
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 55
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 56
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.564209
+search: iter 57
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1360.031006
+search: iter 58
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1399.452759
+search: iter 59
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 60
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1359.552368
+search: iter 61
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.731812
+search: iter 62
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 63
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 64
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 65
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1402.432861
+search: iter 66
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 67
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 68
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.315308
+search: iter 69
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 70
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 71
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 72
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 73
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 74
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 75
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.154785
+search: iter 76
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.062256
+search: iter 77
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1352.196411
+search: iter 78
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 79
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 80
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.108154
+search: iter 81
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1352.201172
+search: iter 82
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.108154
+search: iter 83
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 84
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.040894
+search: iter 85
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 86
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1353.766113
+search: iter 87
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 88
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 89
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 90
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 91
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1383.301025
+search: iter 92
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.153076
+search: iter 93
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 94
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1441.140503
+search: iter 95
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 96
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 97
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 98
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 99
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 100
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 101
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1314.660645
+search: iter 102
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 103
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 104
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1427.462036
+search: iter 105
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1372.103638
+search: iter 106
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 107
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 108
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 109
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1375.688110
+search: iter 110
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.889771
+search: iter 111
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 112
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 113
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 114
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.437866
+search: iter 115
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 116
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 117
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 118
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1293.469971
+search: iter 119
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.542480
+search: iter 120
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1309.677734
+search: iter 121
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 122
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 123
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 124
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 125
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 126
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 127
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1352.196411
+search: iter 128
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 129
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.369141
+search: iter 130
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.930664
+search: iter 131
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 132
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 133
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 134
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.154785
+search: iter 135
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 136
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 137
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 138
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.424927
+search: iter 139
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1447.686157
+search: iter 140
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1396.839722
+search: iter 141
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 142
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 143
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 144
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1354.107300
+search: iter 145
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.562744
+search: iter 146
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 147
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 148
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 149
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 150
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 151
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 152
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 153
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 154
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 155
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 156
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 157
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 158
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 159
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 160
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1357.992310
+search: iter 161
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 162
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1387.790894
+search: iter 163
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 164
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1435.675293
+search: iter 165
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 166
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 167
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1309.549072
+search: iter 168
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 169
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 170
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 171
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 172
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1364.313843
+search: iter 173
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.424927
+search: iter 174
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.154785
+search: iter 175
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 176
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.424927
+search: iter 177
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 178
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 179
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 180
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 181
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 182
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 183
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1375.222778
+search: iter 184
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 185
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 186
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.564209
+search: iter 187
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 188
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 189
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 190
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 191
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1315.353760
+search: iter 192
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 193
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 194
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 195
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.542480
+search: iter 196
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 197
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 198
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 199
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 200
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 201
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1370.665649
+search: iter 202
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.546509
+search: iter 203
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1434.994263
+search: iter 204
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 205
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1407.218872
+search: iter 206
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.437866
+search: iter 207
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 208
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 209
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.153076
+search: iter 210
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1444.984863
+search: iter 211
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 212
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 213
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1385.390747
+search: iter 214
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 215
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 216
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.467773
+search: iter 217
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1378.817505
+search: iter 218
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 219
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1351.503296
+search: iter 220
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1395.781982
+search: iter 221
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.437866
+search: iter 222
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1362.902100
+search: iter 223
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 224
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 225
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1356.127197
+search: iter 226
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 227
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1377.277100
+search: iter 228
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 229
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.930664
+search: iter 230
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1339.088501
+search: iter 231
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 232
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.623779
+search: iter 233
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.848755
+search: iter 234
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1368.820923
+search: iter 235
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 236
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 237
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 238
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 239
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 240
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 241
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 242
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 243
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 244
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 245
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 246
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1293.469971
+search: iter 247
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 248
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.562744
+search: iter 249
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 250
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 251
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 252
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 253
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 254
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 255
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.339355
+search: iter 256
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 257
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1357.812012
+search: iter 258
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1369.867920
+search: iter 259
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 260
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 261
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1358.454224
+search: iter 262
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1338.207275
+search: iter 263
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.725830
+search: iter 264
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.661377
+search: iter 265
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 266
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 267
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.461548
+search: iter 268
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1340.567627
+search: iter 269
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1311.552856
+search: iter 270
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1369.321777
+search: iter 271
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 272
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.437866
+search: iter 273
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 274
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 275
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 276
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 277
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 278
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 279
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1340.393555
+search: iter 280
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.323730
+search: iter 281
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 282
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.196655
+search: iter 283
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 284
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 285
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.323730
+search: iter 286
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1353.805908
+search: iter 287
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 288
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 289
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 290
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1362.633179
+search: iter 291
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1381.486084
+search: iter 292
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 293
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 294
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1313.928955
+search: iter 295
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 296
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1366.176514
+search: iter 297
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1381.459473
+search: iter 298
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 299
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 300
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 301
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 302
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.237427
+search: iter 303
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 304
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 305
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 306
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 307
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1311.175415
+search: iter 308
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.467773
+search: iter 309
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 310
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 311
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 312
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 313
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.577881
+search: iter 314
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1454.732910
+search: iter 315
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1377.093140
+search: iter 316
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 317
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 318
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.461548
+search: iter 319
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.467773
+search: iter 320
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 321
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 322
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1399.877686
+search: iter 323
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 324
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 325
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 326
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.577881
+search: iter 327
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.369141
+search: iter 328
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 329
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 330
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.062256
+search: iter 331
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.889771
+search: iter 332
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1332.142578
+search: iter 333
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 334
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1400.456421
+search: iter 335
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 336
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 337
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 338
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1403.418945
+search: iter 339
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 340
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1365.516235
+search: iter 341
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 342
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 343
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1356.592285
+search: iter 344
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 345
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 346
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 347
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1314.660645
+search: iter 348
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1314.037598
+search: iter 349
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 350
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 351
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 352
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 353
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1384.319580
+search: iter 354
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 355
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.323730
+search: iter 356
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 357
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 358
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.196655
+search: iter 359
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 360
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 361
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 362
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 363
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 364
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 365
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 366
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.062256
+search: iter 367
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 368
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1367.396118
+search: iter 369
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.661377
+search: iter 370
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 371
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1358.831421
+search: iter 372
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1341.492065
+search: iter 373
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.019409
+search: iter 374
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 375
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.889771
+search: iter 376
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.153076
+search: iter 377
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1293.469971
+search: iter 378
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1367.856567
+search: iter 379
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 380
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.461548
+search: iter 381
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 382
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 383
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 384
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 385
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1375.089478
+search: iter 386
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1293.469971
+search: iter 387
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1380.143555
+search: iter 388
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 389
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 390
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 391
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 392
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 393
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 394
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 395
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1381.858154
+search: iter 396
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1360.217529
+search: iter 397
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.546509
+search: iter 398
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 399
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 400
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 401
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 402
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 403
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 404
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 405
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 406
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 407
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1310.979980
+search: iter 408
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 409
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 410
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 411
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 412
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1315.964722
+search: iter 413
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 414
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1309.549072
+search: iter 415
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 416
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1354.680176
+search: iter 417
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1309.959961
+search: iter 418
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.323730
+search: iter 419
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.525146
+search: iter 420
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.464233
+search: iter 421
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 422
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 423
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 424
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 425
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 426
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 427
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.464233
+search: iter 428
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1338.224487
+search: iter 429
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 430
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 431
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 432
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 433
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 434
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 435
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 436
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.108154
+search: iter 437
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 438
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1387.614746
+search: iter 439
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1356.135742
+search: iter 440
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.424927
+search: iter 441
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 442
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1369.401489
+search: iter 443
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 444
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.424927
+search: iter 445
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 446
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 447
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 448
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 449
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1365.007080
+search: iter 450
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 451
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.108154
+search: iter 452
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 453
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 454
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 455
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 456
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1416.402100
+search: iter 457
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.237427
+search: iter 458
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.725830
+search: iter 459
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 460
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1370.665649
+search: iter 461
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 462
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.889771
+search: iter 463
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 464
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.315308
+search: iter 465
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 466
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 467
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1358.831421
+search: iter 468
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 469
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1357.151855
+search: iter 470
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 471
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.661377
+search: iter 472
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1372.126709
+search: iter 473
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1310.485718
+search: iter 474
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 475
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 476
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 477
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 478
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 479
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 480
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1293.469971
+search: iter 481
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 482
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 483
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 484
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 485
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 486
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1341.646240
+search: iter 487
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 488
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 489
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1293.469971
+search: iter 490
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1359.686523
+search: iter 491
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 492
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 493
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.889771
+search: iter 494
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 495
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.062256
+search: iter 496
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1360.502930
+search: iter 497
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 498
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.577881
+search: iter 499
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 500
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.339355
+search: iter 501
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 502
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 503
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 504
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 505
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 506
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 507
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 508
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 509
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 510
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.019409
+search: iter 511
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 512
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 513
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 514
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1428.211182
+search: iter 515
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.974976
+search: iter 516
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 517
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 518
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 519
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 520
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 521
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1427.265991
+search: iter 522
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 523
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.062256
+search: iter 524
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 525
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 526
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 527
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 528
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.323730
+search: iter 529
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 530
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1364.007446
+search: iter 531
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 532
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 533
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.623779
+search: iter 534
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 535
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.461548
+search: iter 536
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.038574
+search: iter 537
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 538
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1315.720703
+search: iter 539
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 540
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 541
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.062256
+search: iter 542
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 543
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 544
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1309.677734
+search: iter 545
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 546
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.154785
+search: iter 547
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1373.118164
+search: iter 548
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 549
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 550
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 551
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 552
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1310.485718
+search: iter 553
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.731812
+search: iter 554
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1340.016235
+search: iter 555
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.657959
+search: iter 556
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 557
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 558
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.577881
+search: iter 559
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 560
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 561
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.852051
+search: iter 562
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 563
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 564
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.542480
+search: iter 565
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 566
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 567
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1369.867920
+search: iter 568
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1284.807739
+search: iter 569
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.336670
+search: iter 570
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.336670
+search: iter 571
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 572
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 573
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1303.413940
+search: iter 574
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.153076
+search: iter 575
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 576
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1368.726562
+search: iter 577
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1375.089478
+search: iter 578
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.255981
+search: iter 579
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1353.805908
+search: iter 580
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 581
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1307.930664
+search: iter 582
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 583
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 584
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 585
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.153076
+search: iter 586
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 587
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 588
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 589
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 590
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 591
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1346.917969
+search: iter 592
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 593
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 594
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 595
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.339355
+search: iter 596
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 597
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 598
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.336670
+search: iter 599
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 600
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 601
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 602
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 603
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1296.480103
+search: iter 604
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 605
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.953857
+search: iter 606
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 607
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 608
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 609
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 610
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 611
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 612
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 613
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 614
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1359.528076
+search: iter 615
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 616
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 617
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 618
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 619
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 620
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 621
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 622
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 623
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 624
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.562744
+search: iter 625
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 626
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 627
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1306.163696
+search: iter 628
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 629
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 630
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 631
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.154785
+search: iter 632
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 633
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.007080
+search: iter 634
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1391.646362
+search: iter 635
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1357.984741
+search: iter 636
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.720825
+search: iter 637
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 638
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 639
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.985718
+search: iter 640
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1289.101196
+search: iter 641
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 642
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1298.147583
+search: iter 643
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1305.275879
+search: iter 644
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1351.670654
+search: iter 645
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1316.680542
+search: iter 646
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1367.856567
+search: iter 647
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1355.205933
+search: iter 648
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1295.468994
+search: iter 649
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1308.623779
+search: iter 650
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1304.750122
+search: iter 651
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1297.108154
+search: iter 652
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1314.660645
+search: iter 653
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1310.485718
+search: iter 654
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1302.027710
+search: iter 655
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1300.323730
+search: iter 656
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1292.542114
+search: iter 657
+search: reject
+search: lnl    = -inf
+search: seqlk  = -inf
+search: branch = -inf
+search: top   = -1361.646118
+search: iter 658

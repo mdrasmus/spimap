@@ -432,6 +432,7 @@ void calcLkTable(float** lktable, Tree *tree,
                     lktable[i][matind(4, j, 2)] = 1.0;
                     lktable[i][matind(4, j, 3)] = 1.0;
                 } else {
+                    // initialize base
                     lktable[i][matind(4, j, 0)] = 0.0;
                     lktable[i][matind(4, j, 1)] = 0.0;
                     lktable[i][matind(4, j, 2)] = 0.0;
@@ -596,13 +597,12 @@ public:
     static void branch_fdf(double x, void *params, 
                            double *f, double *df)
     {
-        *f = branch_f(x, params); //((MLBranchAlgorithm*) params)->lk_deriv(x);
-        *df = branch_df(x, params); //((MLBranchAlgorithm*) params)->lk_deriv2(x);
-        //printf("x %f y %f dy %f\n", x, *f, *df);
+        *f = branch_f(x, params);
+        *df = branch_df(x, params);
     }
 
 
-    // old branch fitting
+    // slower more stable branch fitting
     float fitBranch2(Tree *tree, const float *bgfreq, float initdist)
     {
         Node *node1 = tree->root->children[0];
@@ -624,8 +624,6 @@ public:
 
         if (initdist < 0)
             initdist = .0001;
-
-        //printf("initdist %f\n", initdist);
 
         Node *node1 = tree->root->children[0];
         Node *node2 = tree->root->children[1];
@@ -841,6 +839,8 @@ float findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs,
 {
     //int seqlen = strlen(seqs[0]);
         
+    gsl_set_error_handler_off();
+
     // create tree objects
     Tree tree(nnodes);
     ptree2tree(nnodes, ptree, &tree);

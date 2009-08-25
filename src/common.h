@@ -146,7 +146,7 @@ double variance(T *vals, int size)
     for (int i=0; i<size; i++)
         tot += (vals[i] - mean) * (vals[i] - mean);
     
-    return tot / size;
+    return tot / (size - 1);
 }
 
 template <class T>
