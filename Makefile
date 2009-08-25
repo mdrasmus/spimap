@@ -1,7 +1,7 @@
 #
 # SPIDIR (SPecies Informed DIstance-based Reconstruction) 
 # Matt Rasmussen
-# copyright 2007
+# Copyright 2007-2009
 #
 # Makefile
 #
@@ -9,8 +9,6 @@
 # install prefix paths
 prefix = /usr
 
-# python version for SPIDIR python interface
-#PYTHON_VERSION=2.5
 
 # C++ compiler options
 CXX = g++
@@ -70,7 +68,7 @@ SPIDIR_OBJS = $(SPIDIR_SRC:.cpp=.o)
 
 PROG_SRC = src/spidir_main.cpp 
 PROG_OBJS = src/spidir_main.o $(SPIDIR_OBJS)
-PROG_LIBS = -lgsl -lgslcblas src/igammaf/igammaf.a
+PROG_LIBS = -lgsl -lgslcblas -lm
 #`gsl-config --libs`
 
 #=======================
@@ -108,22 +106,24 @@ MATLAB_SRC = $(SPIDIR_SRC) src/matlab_interface.cpp
 # targets
 
 # default targets
-all: $(SPIDIR_PROG) $(LIBSPIDIR)
+all: $(SPIDIR_PROG) $(LIBSPIDIR) $(LIBSPIDIR_SHARED)
 
 debug: $(SPIDIR_DEBUG)
 
 # SPIDIR stand-alone program
-$(SPIDIR_PROG): $(PROG_OBJS) src/igammaf/igammaf.a
+$(SPIDIR_PROG): $(PROG_OBJS) 
 	$(CXX) $(CFLAGS) $(PROG_OBJS) $(PROG_LIBS) -o $(SPIDIR_PROG)
 
-$(SPIDIR_DEBUG): $(PROG_OBJS) src/igammaf/igammaf.a
+$(SPIDIR_DEBUG): $(PROG_OBJS) 
 	$(CXX) $(CFLAGS) $(PROG_OBJS) $(PROG_LIBS) -o $(SPIDIR_DEBUG)
 
 
+#-----------------------------
 # maximum likelihood program
 maxml: maxml.o $(SPIDIR_OBJS)
 	$(CXX) $(CFLAGS) maxml.o $(SPIDIR_OBJS) $(PROG_LIBS) -o maxml
 
+#-----------------------------
 # SPIDIR C-library
 lib: $(LIBSPIDIR) $(LIBSPIDIR_SHARED)
 
@@ -131,11 +131,12 @@ $(LIBSPIDIR): $(LIBSPIDIR_OBJS)
 	mkdir -p lib
 	$(AR) -r $(LIBSPIDIR) $(LIBSPIDIR_OBJS)
 
-$(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS) src/igammaf/igammaf.a
+$(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS) 
 	mkdir -p lib
 	$(CXX) -o $(LIBSPIDIR_SHARED) -shared $(LIBSPIDIR_OBJS) $(PROG_LIBS)
 
 
+#------------------------------
 # SPIDIR matlab interface
 matlab: $(MATLAB_OBJS) $(MATLAB_COMPILE)
 
@@ -151,11 +152,6 @@ $(MATLAB_COMPILE_RULES): %.rule: %.cpp
 	touch $@
 
 
-#=============================================================================
-# igammaf rules
-
-src/igammaf/igammaf.a:
-	make -C src/igammaf
 
 #=============================================================================
 # basic rules
@@ -180,7 +176,6 @@ clean:
 	rm -f $(PROG_OBJS) $(SPIDIR_PROG) $(LIBSPIDIR) \
               $(MATLAB_OBJS) maxml maxml.o \
               $(MATLAB_COMPILE) $(MATLAB_COMPILE_RULES)
-	make -C src/igammaf clean
 
 clean-obj:
 	rm -f $(PROG_OBJS)

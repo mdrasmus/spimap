@@ -25,6 +25,7 @@ o.add_option("-r", "--nrates", dest="nrates",
              default=20)
 o.add_option("-p", "--params", dest="params",
              metavar="<output parameters file>")
+<<<<<<< HEAD:bin/spidir-train
 
 
 
@@ -52,6 +53,11 @@ def read_length_matrix(filename, minlen=.0001, maxlen=1.0):
                 row[i] = means[i]
     
     return species, lens, gene_sizes
+=======
+o.add_option("-f", "--filter", dest="filter",
+             metavar="<treelen percentile>",
+             type="float", default=1.00)
+>>>>>>> gamma-gamma:bin/spidir-train
 
     
 def write_params_list(filename, species, params, logls):
@@ -84,7 +90,23 @@ def main(conf, args):
     stree = treelib.read_tree(conf.stree)
     times = [node.dist for node in stree.postorder() if node.parent]
 
+<<<<<<< HEAD:bin/spidir-train
     species, lens, gene_sizes = read_length_matrix(conf.lenmatrix)
+=======
+    species, lens, gene_sizes, files = spidir.read_length_matrix(conf.lenmatrix)
+
+    # filter
+    treelens = map(sum, lens)
+    top = stats.percentile(treelens, conf.filter)
+    ind = util.find(lambda i: i <= top, treelens)
+    lens = util.mget(lens, ind)
+    gene_sizes = util.mget(gene_sizes, ind)
+    files = util.mget(files, ind)
+
+    util.logger("using %d trees" % len(lens))
+    
+    
+>>>>>>> gamma-gamma:bin/spidir-train
     for i, sp in enumerate(species):
         if isinstance(sp, basestring) and sp.isdigit():
             species[i] = int(sp)
@@ -102,7 +124,7 @@ def main(conf, args):
 
         # test termination
         if conf.niter is not None:
-            if len(logls) > conf.niter:
+            if len(logls) >= conf.niter:
                 break
         else:
             if len(logls) > term_iters and \

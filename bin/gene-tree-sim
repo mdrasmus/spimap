@@ -26,6 +26,9 @@ o.add_option("-s", "--stree", dest="stree",
 o.add_option("-p", "--params", dest="params", metavar="<params>")
 o.add_option("-g", "--generate", dest="generate", metavar="<gene rate>",
              default=None, type="float")
+o.add_option("", "--generatefunc", dest="generatefunc",
+             metavar="<gene rate function>",
+             default="gamma")
 o.add_option("-l", "--genelen", dest="genelen",
              metavar="<gene length in base pairs>",
              default=1000,
@@ -79,6 +82,8 @@ o.add_option("-I", "--outinfoext", dest="outinfoext",
 o.add_option("--nodir", dest="nodir",
              action="store_true",
              help="do not create sub-directories")
+o.add_option("", "--resume", dest="resume",
+             action="store_true")
 
 
 conf, args = o.parse_args()
@@ -100,7 +105,8 @@ def gene2species(gene):
 
 def sim_tree(stree, params, duprate, lossrate, generate, use_spec,
              minsize=4,
-             infofile=sys.stdout):
+             infofile=sys.stdout,
+             generatefunc="gamma"):
     """simulate one tree"""
     
     # create gene tree using birth death model
@@ -118,14 +124,20 @@ def sim_tree(stree, params, duprate, lossrate, generate, use_spec,
         if len(tree.nodes) == 0:
             infofile.write("extinction\n")
         return sim_tree(stree, params, duprate, lossrate, generate, use_spec,
-                        infofile=infofile)
+                        infofile=infofile, generatefunc=generatefunc)
     
 
     # determine gene rate
     if generate is None:
         # randomly sample gene rate
-        generate = random.gammavariate(params["baserate"][0],
-                                       1.0 / params["baserate"][1])
+        if generatefunc == "gamma":
+            generate = random.gammavariate(params["baserate"][0],
+                                           1.0 / params["baserate"][1])
+        elif generatefunc == "invgamma":
+            generate = 1.0 / random.gammavariate(params["baserate"][0],
+                                                 1.0 / params["baserate"][1])
+        else:
+            raise Exception("unknown gene rate function '%s'" % generatefunc)
     
     for node in tree:
         if node == tree.root:
@@ -269,8 +281,6 @@ def main(conf):
     # simulate
     util.tic("simulating %d trees" % conf.ntrees)
     for i in range(conf.start, conf.ntrees):
-        util.logger("simulating", i)
-        
         # setup output directory
         if conf.nodir:
             dirname = conf.outtree
@@ -278,6 +288,11 @@ def main(conf):
             dirname = os.path.join(conf.outtree, str(i))
             if not os.path.exists(dirname):
                 os.makedirs(dirname)
+            elif conf.resume:
+                # skip families that already exist
+                continue
+
+        util.logger("simulating", i)
         
         # open information file
         infofilename = os.path.join(dirname, str(i) + conf.outinfoext)
@@ -289,7 +304,8 @@ def main(conf):
                                  generate,
                                  not conf.nospecrates,
                                  infofile=infofile,
-                                 minsize=conf.minsize)
+                                 minsize=conf.minsize,
+                                 generatefunc=conf.generatefunc)
         pretree.write(os.path.join(dirname, str(i) + ".times" +
                                    conf.outtreeext))
         tree.write(os.path.join(dirname, str(i) + conf.outtreeext))

@@ -2,17 +2,10 @@
 #define SPIDIR_SEARCH_H
 
 #include "spidir.h"
-#include <list>
-#include <vector>
 
 
 namespace spidir {
 
-using namespace std;
-
-
-//=============================================================================
-// proporsers
 
 class TopologyProposer
 {
@@ -32,7 +25,7 @@ public:
     virtual void setCorrect(Tree *tree) { correctTree = tree; }
     virtual Tree *getCorrect() { return correctTree; }
     virtual bool seenCorrect() { return correctSeen; }
-    virtual inline void testCorrect(Tree *tree)
+    virtual void testCorrect(Tree *tree)
     {
         // debug: keep track of correct tree in search
         if (correctTree) {
@@ -47,6 +40,7 @@ protected:
 };
 
 
+
 class NniProposer: public TopologyProposer
 {
 public:
@@ -55,6 +49,8 @@ public:
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
     virtual bool more();
+    virtual void setCorrect(Tree *tree) { correctTree = tree; }
+    virtual bool seenCorrect() { return correctSeen; }
     virtual void reset() { iter = 0; }
 
 protected:    
@@ -68,6 +64,8 @@ protected:
     int *gene2species;
     int niter;
     int iter;
+    Tree *correctTree;
+    bool correctSeen;
 };
 
 
@@ -79,6 +77,27 @@ public:
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
+};
+
+
+class SprNniProposer: public NniProposer
+{
+public:
+    SprNniProposer(SpeciesTree *stree=NULL, int *gene2species=NULL, 
+                   int niter=500, float sprRatio=0.5);
+
+    virtual void propose(Tree *tree);
+    virtual void revert(Tree *tree);    
+    
+protected:
+    typedef enum {
+        PROPOSE_NONE,
+        PROPOSE_NNI,
+        PROPOSE_SPR
+    } ProposeType;
+    
+    float sprRatio;
+    ProposeType lastPropose;
 };
 
 
@@ -102,6 +121,46 @@ protected:
     vector<int> pathdists;
 };
 
+
+class DupLossProposer: public TopologyProposer
+{
+public:
+    DupLossProposer(TopologyProposer *proposer, 
+                    SpeciesTree *stree,
+                    int *gene2species,
+                    float dupprob,
+                    float lossprob,
+                    int quickiter=100, int niter=500);
+
+    virtual ~DupLossProposer();
+
+    virtual void propose(Tree *tree);
+    virtual void revert(Tree *tree);
+    virtual bool more() { return iter < niter; }
+    virtual void reset() { iter = 0; }
+    
+protected:
+    TopologyProposer *proposer;
+    int quickiter;
+    int niter;
+    int iter;
+    Tree *correctTree;
+    bool correctSeen;
+    SpeciesTree *stree;
+    int *gene2species;
+    float dupprob;
+    float lossprob;
+    float *doomtable;
+    const static int maxdoom = 10;
+
+    ExtendArray<int> recon;
+    ExtendArray<int> events;
+    Tree *oldtop;
+};
+
+
+/*=============================================================================
+NEW DUP/LOSS PROPOSER
 
 class DupLossProposer: public TopologyProposer
 {
@@ -153,17 +212,15 @@ protected:
 };
 
 
-//=============================================================================
-// fitters
+=============================================================================*/
+
 
 class BranchLengthFitter
 {
 public:
-    BranchLengthFitter() :
-        runtime(0)
-    {}
+    BranchLengthFitter() : runtime(0.0) {}
     virtual ~BranchLengthFitter() {}
-    virtual float findLengths(Tree *tree) { return 0.0; }
+    virtual float findLengths(Tree *tree) {return 0.0;}
 
     float runtime;
 };
@@ -188,7 +245,8 @@ public:
 
 
 //=============================================================================
-// priors
+
+
 
 class Prior
 {
@@ -243,7 +301,6 @@ protected:
     bool estGenerate;
     float *doomtable;
 };
-
 
 
 class SampleFunc

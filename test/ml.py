@@ -21,8 +21,42 @@ util.rplot_set_viewer("display")
 
 
 class TestHKY (unittest.TestCase):
+
+
+    def test_ml_large(self):
+        """Test ML code"""
+
+        # params
+        bgfreq = [.258,.267,.266,.209]
+        kappa = 1.59
+
+        # data
+        tree = treelib.readTree("test/data/verts/19520/19520.ensembl.tree")
+        align = fasta.readFasta("test/data/verts/19520/19520.nt.mfa")
+
+
+        likes = []
+        dists = []
+
+        nodes = sorted(tree.nodes.values(), key=lambda x: x.dist)
+
+        l = spidir.calc_seq_likelihood_hky(tree, align, bgfreq, kappa)
+        print l
+        self.assert_(l != -util.INF)
+
+
+        l = spidir.find_ml_branch_lengths_hky(
+            tree,
+            util.mget(align, tree.leafNames()),
+            bgfreq, kappa,
+            parsinit=False,
+            maxiter=1)
+        print l
+        self.assert_(l != -util.INF)
+        
+
     
-    def test_ml(self):
+    def _test_ml(self):
         """Test ML code"""
 
         # params

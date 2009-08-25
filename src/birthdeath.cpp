@@ -1,4 +1,14 @@
+
+// c/c++ includes
 #include <math.h>
+
+// 3rd party
+#include <gsl/gsl_roots.h>
+#include <gsl/gsl_multimin.h>
+
+
+// spidir includes
+#include "Matrix.h"
 #include "Tree.h"
 #include "phylogeny.h"
 #include "birthdeath.h"
@@ -627,10 +637,10 @@ float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
                               int *events, float birthRate, float deathRate,
                               float *doomtable, int maxdoom)
 {
-    ExtendArray<int> recon2(0, tree->nnodes);
+    ExtendArray<int> recon2(0, 2 * tree->nnodes);
     recon2.extend(recon, tree->nnodes);
 
-    ExtendArray<int> events2(0, tree->nnodes);
+    ExtendArray<int> events2(0, 2 * tree->nnodes);
     events2.extend(events, tree->nnodes);
 
 
@@ -664,6 +674,398 @@ float birthDeathCount(int ngenes, float time, float birthRate, float deathRate)
 }
 
 
+// returns the probability of 'start' genes giving rise to 'end' genes after 
+// time 'time'
+// slower more stable computation
+float birthDeathCounts2(int start, int end, float time, 
+                       float birth, float death)
+{
+    const float l = birth;
+    const float u = death;
+    const float r = l - u;
+    const float a = u / l;
+
+    const float ertime = exp(-r*time);
+    const float ut = (1.0 - ertime) / (1.0 - a * ertime);
+    const float p0 = a*ut;
+    
+    // all 'start' genes die out
+    if (end == 0) {
+        return ipow(p0, start);
+    }
+    
+    const int iter = (start < end) ? start : end;
+    float p = 0.0;
+
+    for (int j=0; j<=iter; j++) {
+        //printf("j %d\n", j);
+        p += fchoose(start, j) *
+             fchoose(start + end - j - 1, start - 1) *
+             ipow(p0, start-j) *
+             ipow(ut, end-j) *
+             ipow(1 - p0 - ut, j);
+    }
+    
+    // do not allow invalid values to propogate
+    if (isnan(p) || isinf(p) || p > 1.0) {
+        printf("p=%e genes=(%d, %d) b=%f d=%f t=%f\n", p, start, end,
+               birth, death, time);
+        assert(0);
+    }
+    return p;
+}
+
+// returns the probability of 'start' genes giving rise to 'end' genes after 
+// time 'time'
+// much faster computation than birthDeathCounts2
+float birthDeathCounts(int start, int end, float time, 
+                       float birth, float death)
+{
+    if (start == 0) {
+        if (end == 0)
+            return 1.0;
+        else
+            return 0.0;
+    }
+
+    const double ertime = exp((birth-death)*time);
+    const double tmp = (ertime-1.0) / (birth*ertime - death);
+    const double a = death * tmp;
+    const double b = birth * tmp;
+    
+    // all 'start' genes die out
+    if (end == 0) {
+        return ipow(a, start);
+    }
+    
+    // compute base case
+    double f = ipow(a, start) * ipow(b, end);
+    if (start > 1)
+        f *= (start + end - 1);
+    for (int k=2; k<start; k++)
+        f *= (start + end - k) / double(k);
+
+
+    double p = f;
+    double x = start;
+    double y = end;
+    double z = start + end - 1;
+    const double oneab = 1.0 - a - b;
+    const int iter = (start < end) ? start : end;
+    for (int j=1; j<=iter; j++) {
+        f *= (oneab * x * y / (j * a * b * z));
+        //printf("p=%e f=%e j=%d\n", p, f, j);
+        p += f;
+        x--;
+        y--;
+        z--;
+    }
+
+    if (p < 0.0)
+        p = 0.0;
+    
+
+    if (p > 1.0) {
+        // resort to a slower more stable function
+        return birthDeathCounts2(start, end, time, birth, death);
+    }
+
+    return p;
+}
+
+
+//=============================================================================
+// gene counts on species tree
+
+
+double birthDeathTreeCounts(Tree *tree, int nspecies, int *counts, 
+                            float birth, float death, int maxgene,
+                            int rootgene, double **tab)
+{
+    // set up dynamic table
+    bool cleanup = false;
+    if (!tab) {
+        // allocate dynamic table
+        tab = allocMatrix<double>(tree->nnodes, maxgene);
+        cleanup = true;
+    }
+
+    // initialize leaves
+    for (int i=0; i<nspecies; i++) {
+        for (int j=0; j<maxgene; j++)
+            tab[i][j] = 0.0;
+        tab[i][counts[i]] = 1.0;
+    }
+
+    // perform post order traversal of tree
+    ExtendArray<Node*> postnodes(0, tree->nnodes);
+    getTreePostOrder(tree, &postnodes);
+    for (int a=0; a<tree->nnodes; a++) {
+        const Node *node = postnodes[a];
+        //const int i = node.name;
+
+        // skip leaves
+        if (node->isLeaf())
+            continue;
+
+        for (int j=0; j<maxgene; j++) {
+
+            // compute product over children
+            double prod = 1.0;        
+            for (int ci=0; ci<node->nchildren; ci++) {
+                const int c = node->children[ci]->name;
+                const double t = node->children[ci]->dist;
+                double sum = 0.0;
+                
+                for (int j2=0; j2<maxgene; j2++) {
+                    double f = birthDeathCounts(j, j2, t, birth, death) * 
+                           tab[c][j2];
+                    sum += f;
+                }
+
+                prod *= sum;
+            }
+
+            tab[node->name][j] = prod;
+        }
+    }
+
+    double prob = tab[tree->root->name][rootgene];
+
+    // cleanup
+    if (cleanup)
+        freeMatrix(tab, tree->nnodes);
+
+    return prob;
+}
+
+
+
+double birthDeathForestCounts(Tree *tree, int nspecies, int nfams,
+                              int **counts, int *mult,
+                              float birth, float death, int maxgene,
+                              int rootgene, double **tab)
+{
+    // set up dynamic table
+    bool cleanup = false;
+    if (!tab) {
+        tab = allocMatrix<double>(tree->nnodes, maxgene);
+        cleanup = true;
+    }
+
+    double logl = 0.0;
+
+    // loop through families
+    for (int i=0; i<nfams; i++) {
+        int top = 0;
+        for (int j=0; j<nspecies; j++) {
+            assert(counts[i][j] < maxgene);
+            if (counts[i][j] > top) top = counts[i][j];
+        }
+
+        int maxgene2 = top * 2;
+        if (maxgene2 < 20) maxgene2 = 10;
+        if (maxgene2 > maxgene) maxgene2 = maxgene;
+
+        logl += mult[i] * log(birthDeathTreeCounts(tree, nspecies, counts[i], 
+                                                   birth, death, maxgene2,
+                                                   rootgene, tab));
+    }
+
+    // cleanup
+    if (cleanup)
+        freeMatrix(tab, tree->nnodes);
+
+    return logl;
+}
+
+
+class BirthDeathCountsML
+{
+public:
+    BirthDeathCountsML(Tree *tree, int nspecies, int nfams,
+                       int **counts, int *mult, 
+                       double birth, double death, 
+                       double step,
+                       int maxgene,
+                       int rootgene=1) :
+        iter(0),
+        tree(tree),
+        nspecies(nspecies),
+        nfams(nfams),
+        counts(counts),
+        mult(mult),
+        birth(birth),
+        death(death),
+        maxgene(maxgene),
+        rootgene(rootgene)
+    {
+
+        // allocate dynamic table
+        tab = allocMatrix<double>(tree->nnodes, maxgene);
+
+        // allocate optimizer
+        opt = gsl_multimin_fminimizer_alloc(
+             gsl_multimin_fminimizer_nmsimplex2, 2);
+        func.f = &function;
+        func.n = 2;
+        func.params = this;
+                
+        // init optimizer
+        gsl_vector *init_x = gsl_vector_alloc(2);
+        gsl_vector *step_size = gsl_vector_alloc(2);
+        
+        gsl_vector_set(init_x, 0, birth);
+        gsl_vector_set(init_x, 1, death);
+        gsl_vector_set(step_size, 0, step);
+        gsl_vector_set(step_size, 1, step);
+        gsl_multimin_fminimizer_set(opt, &func, init_x, step_size);
+        gsl_vector_free(init_x);
+
+        /*
+        gsl_root_fsolver *sol_gene_rate = 
+            gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
+
+        // setup optimizer for gene rates
+        gsl_function opt_gene_rate;
+        opt_gene_rate.function = &gene_rate_f;
+        opt_gene_rate.params = NULL;
+        */
+    }
+
+    ~BirthDeathCountsML()
+    {
+        gsl_multimin_fminimizer_free(opt);
+        freeMatrix(tab, tree->nnodes);
+
+        /*
+        gsl_root_fsolver_free(sol_gene_rate);
+        gsl_multimin_fdfminimizer_free(sol_sp_rate);
+        */
+    }
+
+    static double function(const gsl_vector *x, void *params)
+    {
+        double birth = gsl_vector_get(x, 0);
+        double death = gsl_vector_get(x, 1);
+
+        if (birth < 0 || death < 0) {
+            birth = 0.00001;
+            death = 0.00002;
+        }
+        
+        BirthDeathCountsML *p = (BirthDeathCountsML*) params;
+
+        double prob = -birthDeathForestCounts(p->tree, p->nspecies, p->nfams,
+                                              p->counts, p->mult,
+                                              birth, death, p->maxgene,
+                                              p->rootgene, p->tab);
+        
+        return prob;
+    }
+
+
+    int iterate()
+    {
+        int status;
+        
+        // do one iteration
+        status = gsl_multimin_fminimizer_iterate(opt);
+        birth = gsl_vector_get(opt->x, 0);
+        death = gsl_vector_get(opt->x, 1);
+        if (status)
+            return status;
+
+        double epsabs = min(birth * .001, death * .001);
+        //double epsabs = .01;
+        double size = gsl_multimin_fminimizer_size(opt);
+        
+        // get gradient
+        status = gsl_multimin_test_size(size, epsabs);
+        
+        birth = gsl_vector_get(opt->x, 0);
+        death = gsl_vector_get(opt->x, 1);
+        
+        return status;
+    }    
+
+    void getBirthDeath(float *_birth, float *_death)
+    {
+        *_birth = birth;
+        *_death = death;
+    }
+
+    double getSize()
+    {
+        return gsl_multimin_fminimizer_size(opt);
+    }
+
+
+    int iter;
+    Tree *tree;
+    int nspecies;
+    int nfams;
+    int **counts;
+    int *mult;
+    double birth;
+    double death;
+    int maxgene;
+    int rootgene;
+    double **tab;
+
+    gsl_multimin_fminimizer *opt;
+    gsl_multimin_function func;
+};
+
+void *birthDeathCountsML_alloc(Tree *tree, int nspecies, int nfams,
+                               int **counts, int *mult,
+                               float birth, float death, float step,
+                               int maxgene,
+                               int rootgene)
+{
+    // copy arrays to separate memory
+    int **counts2 = allocMatrix<int>(nfams, nspecies);
+    int *mult2 = new int [nfams];
+
+    for (int i=0; i<nfams; i++) {
+        for (int j=0; j<nspecies; j++) {
+            counts2[i][j] = counts[i][j];
+        }
+        mult2[i] = mult[i];
+    }
+
+    return new BirthDeathCountsML(tree, nspecies, nfams,
+                                  counts2, mult2,
+                                  birth, death, step,
+                                  maxgene, rootgene);
+}
+
+void birthDeathCountsML_free(void *opt)
+{
+    BirthDeathCountsML* opt2 = (BirthDeathCountsML*) opt;
+    freeMatrix(opt2->counts, opt2->nfams);
+    delete [] opt2->mult;
+    delete opt2;
+}
+
+
+int birthDeathCountsML_iter(void *opt, float *birth, float *death, float *size)
+{
+    BirthDeathCountsML* opt2 = (BirthDeathCountsML*) opt;
+    int status = opt2->iterate();
+    opt2->getBirthDeath(birth, death);
+    *size = opt2->getSize();
+    return status;
+}
+
+/*
+double birthDeathCountsML(Tree *tree, int nspecies, int nfams,
+                          int **counts, int *mult,
+                          float *birth, float *death, int maxgene,
+                          int rootgene)
+{ 
+}
+*/
 
 
 //=============================================================================
@@ -899,35 +1301,6 @@ void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
 //=============================================================================
 // OLD CODE
 
-// returns the probability of 'start' genes giving rise to 'end' genes after 
-// time 'time'
-float birthDeathCount2(int start, int end, float time, float birthRate, float deathRate)
-{
-    const float l = birthRate;
-    const float u = deathRate;
-    const float r = l - u;
-    const float a = u / l;
-
-    const float ut = (1.0 - exp(-r*time)) / (1.0 - a * exp(-r*time));
-    const float p0 = a*ut;
-    
-    // all 'start' genes die out
-    if (end == 0) {
-        return ipow(p0, start);
-    }
-    
-    const int iter = (start < end) ? start : end;
-    float p = 0.0;
-    for (int j=0; j<iter; j++) {
-        p += choose(start, j) *
-             choose(start + end - j - 1, start - 1) *
-             ipow(p0, start-j) *
-             ipow(ut, end-j) *
-             ipow(1 - p0 - ut, j);
-    }
-        
-    return p;
-}
 
 
 

@@ -55,10 +55,16 @@ inline float frand(float min, float max)
 { return min + (rand() / float(RAND_MAX) * (max-min)); }
 
 inline int irand(int max)
-{ return int(rand() / float(RAND_MAX) * max); }
+{
+    const int i = int(rand() / float(RAND_MAX) * max); 
+    return (i == max) ? max - 1 : i;
+}
 
 inline int irand(int min, int max)
-{ return min + int(rand() / float(RAND_MAX) * (max - min)); }
+{
+    const int i = min + int(rand() / float(RAND_MAX) * (max - min)); 
+    return (i == max) ? max - 1 : i;
+}
 
 
 // computes the log(normalPdf(x | u, s^2))
@@ -79,26 +85,31 @@ extern "C" {
 float poisson(int x, float lambda);
 double gammln(double xx);
 double gamm(double x);
-float gammalog(float x, float a, float b);
-float gammaPdf(float x, float a, float b);
-float invgamma(float x, float a, float b);
-float invgammaCdf(float x, float a, float b);
-double quantInvgamma(double p, double a, double b);
+double gammalog(double x, double a, double b);
+double gammaPdf(double x, double a, double b);
+double invgammaPdf(double x, double a, double b);
+double loginvgammaPdf(double x, double a, double b);
+double invgammaDerivA(double x, double a, double b);
+double invgammaDerivB(double x, double a, double b);
+double invgammaDerivG(double x, double g);
+double invgammaDerivG2(double x, double g);
+//float invgammaCdf(float x, float a, float b);
+//double quantInvgamma(double p, double a, double b);
 
 // Derivative of Gamma distribution with respect to x
-float gammaDerivX(float x, float a, float b);
+double gammaDerivX(double x, double a, double b);
     
 // Derivative of Gamma distribution with respect to a
-float gammaDerivA(float x, float a, float b);
+double gammaDerivA(double x, double a, double b);
 
 // Derivative of Gamma distribution with respect to b
-float gammaDerivB(float x, float a, float b);
+double gammaDerivB(double x, double a, double b);
 
 // Derivative of Gamma distribution with respect to nu (its variance)
-float gammaDerivV(float x, float v);
+double gammaDerivV(double x, double v);
 
 // Second Derivative of Gamma distribution with respect to nu (its variance)
-double gammaDerivV2(float x, float v);
+double gammaDerivV2(double x, double v);
 
 // PDF of a sum of n gamma variables
 double gammaSumPdf(double y, int n, float *alpha, float *beta, 
@@ -137,7 +148,7 @@ double variance(T *vals, int size)
     for (int i=0; i<size; i++)
         tot += (vals[i] - mean) * (vals[i] - mean);
     
-    return tot / size;
+    return tot / (size - 1);
 }
 
 template <class T>
@@ -199,11 +210,11 @@ float bisectRoot(Func &f, float x0, float x1, const float err=.001)
 
 
 // computes log(a + b) given log(a) and log(b)
-inline float logadd(float lna, float lnb)
+inline double logadd(double lna, double lnb)
 {
-    float diff = lna - lnb;
+    double diff = lna - lnb;
     if (diff < 40.0)
-        return logf(expf(diff) + 1.0) + lnb;
+        return log(exp(diff) + 1.0) + lnb;
     else
         return lna;
 }

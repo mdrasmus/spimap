@@ -41,6 +41,7 @@ public:
         ntrees(ntrees),
         nspecies(nspecies), 
         gene_sizes(gene_sizes),
+        lengths(lengths),
         times(times),
         sp_alpha(sp_alpha),
         sp_beta(sp_beta),
@@ -50,8 +51,10 @@ public:
         gtab(ntrees, nrates),
         pgtab(ntrees, nrates)
     {
-        // setup gene rate optimizer
+        // allocate gene rate optimizer
 	sol_gene_rate = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
+
+        // setup optimizer for gene rates
 	opt_gene_rate.function = &gene_rate_f;
         opt_gene_rate.params = this; 
 
@@ -64,34 +67,14 @@ public:
         opt_sp_rate.fdf = &sp_rate_fdf;
         opt_sp_rate.n = ndim;
         opt_sp_rate.params = this;
-
-        // setup estep optimizer
-	sol_estep = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
-        opt_estep.function = &estep_f;
-        opt_estep.params = this;
-
-        // compute changes
-        changes = new int* [ntrees];
-        for (int j=0; j<ntrees; j++) {
-            changes[j] = new int [nspecies];
-            for (int i=0; i<nspecies; i++) {
-                changes[j][i] = int(lengths[j][i] * gene_sizes[j]);
-            }
-        }
-
     }
 
 
     ~RatesEM()
     {
+	//gsl_root_fdfsolver_free(sol_gene_rate);
 	gsl_root_fsolver_free(sol_gene_rate);
         gsl_multimin_fdfminimizer_free(sol_sp_rate);
-
-        // free changes matrix
-        for (int j=0; j<ntrees; j++)
-            delete [] changes[j];
-        delete [] changes;
-
     }
 
     // gene rates function and derivative
@@ -100,25 +83,33 @@ public:
     {
         RatesEM *em = (RatesEM*) params;
         double gene_nu = x;
-	double q = 1.0 / gene_nu;
 
         // clamp gamma params
         if (gene_nu < .001)
             gene_nu = .001;
 
+        double b = gene_nu;
+        double a = gene_nu + 1;
+
         double sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
-                double lngamma = gammalog(g, q, q);
-                double gamma = exp(lngamma);
+                double igamma = invgammaPdf(g, a, b);
+                double dgamma = invgammaDerivG(g, b);
+                
+                if (isinf(dgamma) || isnan(dgamma) ||
+                    isinf(igamma) || isnan(igamma)) {
+                    fprintf(stderr, "igamma=%f, dgamma=%f, b=%f\n", 
+                            igamma, dgamma, b);
+                }
 
-                if (!isnan(gamma) && gamma != 0.0) {
-                    sum += em->pgtab[j][k] * 
-                        gammaDerivV(g, gene_nu) / gamma;
+                if (!isnan(igamma) && igamma != 0.0) {
+                    sum += em->pgtab[j][k] * dgamma / igamma;
                 }
             }
         }
+        assert(!isnan(sum) && !isinf(sum));
 
         return sum;
     }
@@ -127,27 +118,30 @@ public:
     {
         RatesEM *em = (RatesEM*) params;
         double gene_nu = x;
-	double q = 1.0 / gene_nu;
-
         // clamp gamma params
         if (gene_nu < .001)
             gene_nu = .001;
+        
+        double b = gene_nu;
+        double a = gene_nu + 1;
 
         double sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
-                double lngamma = gammalog(g, q, q);
-                double gamma = exp(lngamma);
-		double dgamma = gammaDerivV(g, gene_nu);
+                double igamma = invgammaPdf(g, a, b);
+		double dgamma = invgammaDerivG(g, b);
+                double dgamma2 = invgammaDerivG2(g, b);
 
-                if (!isnan(gamma) && gamma != 0.0) {
+                if (!isnan(igamma) && igamma != 0.0) {
                     sum += em->pgtab[j][k] * 
-                        (gamma * gammaDerivV2(g, gene_nu) - dgamma*dgamma)
-			 / (gamma*gamma);
+                        (igamma * dgamma2 - dgamma*dgamma)
+			 / (igamma*igamma);
                 }
             }
         }
+
+        assert(!isnan(sum) && !isinf(sum));
 
         return sum;
     }
@@ -158,45 +152,39 @@ public:
     {
         RatesEM *em = (RatesEM*) params;
         double gene_nu = x;
-        double q = 1.0 / gene_nu;
-   
-        
+
         // clamp gamma params
         if (gene_nu < .001)
             gene_nu = .001;
 
-        //printf("try %f %f\n", gene_alpha, gene_beta);
-
+        double b = gene_nu;
+        double a = gene_nu + 1;
+        
         double sum = 0.0;
         double sum2 = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
-                double lngamma = gammalog(g, q, q);
-                double gamma = exp(lngamma);
-		double dgamma = gammaDerivV(g, gene_nu);
+                double igamma = invgammaPdf(g, a, b);
+		double dgamma = invgammaDerivG(g, b);
                 
                 // TODO: substitute a better test
-                if (gamma != 0.0) {
+                if (igamma != 0.0) {
 		    sum += em->pgtab[j][k] * 
-                        gammaDerivV(g, gene_nu) / gamma;
+                        invgammaDerivG(g, b) / igamma;
 		    sum2 += em->pgtab[j][k] * 
-                        (gamma * gammaDerivV2(g, gene_nu) - dgamma*dgamma)
-			 / (gamma*gamma);
+                        (igamma * invgammaDerivG2(g, b) - dgamma*dgamma)
+			 / (igamma*igamma);
                 }
             }
         }
 
+        assert(!isnan(sum) && !isinf(sum));
+        assert(!isnan(sum2) && !isinf(sum2));
+
         // set return
         *f = sum;
-
         *df = sum2;
-
-        //printf("gene f = %f; fdf = (%f, %f); a=%f, b=%f\n", 
-        //       sum,
-        //       alpha_sum / em->nrates, 
-        //       beta_sum / em->nrates,
-        //       gene_alpha, gene_beta);
     }
     
     
@@ -204,8 +192,8 @@ public:
     //======================================================
     // species rates function and derivative
 
-    // f(a_i, b_i) = sum_j sum_k pgtab_jk 
-    //                      log(NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
+    // f(a_i, b_i) = - sum_j sum_k pgtab_jk 
+    //                       log(NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
     static double sp_rate_f(const gsl_vector *x, void *params)
     {
         RatesEM *em = (RatesEM*) params;
@@ -216,23 +204,20 @@ public:
         double sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             for (int k=0; k<em->nrates; k++) {
-                double lnnb = log(negbinomPdf(em->changes[j][i], 
-                     sp_alpha_i, sp_beta_i / (em->gtab[j][k] *
-                                              em->gene_sizes[j] *
-                                              em->times[i] + sp_beta_i)));
-                if (!isnan(lnnb))
-                    sum += em->pgtab[j][k] * lnnb;
+                double lngamma = gammalog(em->lengths[j][i], sp_alpha_i, 
+                                sp_beta_i / (em->gtab[j][k] *
+                                             em->times[i]));
+                if (!isnan(lngamma))
+                    sum += em->pgtab[j][k] * lngamma;
             }
         }
 
-        // reverse for minimizer
         return -sum;
     }
     
-    // d/d a_i f(a_i, b_i) = sum_j sum_k pgtab_jk 
+    // d/d a_i f(a_i, b_i) = - sum_j sum_k pgtab_jk 
     //                (NB'_r(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)) /
     //                    NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
-    // d/d b_i f(a_i, b_i) = ...
     static void sp_rate_df(const gsl_vector *x, void *params, gsl_vector *df)
     {
         RatesEM *em = (RatesEM*) params;
@@ -243,24 +228,23 @@ public:
         double alpha_sum = 0.0;
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
+            double l = em->lengths[j][i];
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
-                double p = sp_beta_i / (g * em->gene_sizes[j] * em->times[i] + 
-                                        sp_beta_i);
-                int c = em->changes[j][i];
-                double nb = negbinomPdf(c, sp_alpha_i, p);
+                double bgt = sp_beta_i / (g * em->times[i]);
+                double lngamma = gammalog(l, sp_alpha_i, bgt);
+                double gamma = exp(lngamma);
 
-                if (nb != 0.0) {
+                if (gamma != 0.0) {
                     alpha_sum += em->pgtab[j][k] * 
-                        negbinomDerivR(c, sp_alpha_i, p) / nb;
+                        gammaDerivA(l, sp_alpha_i, bgt) / gamma;
                     beta_sum += em->pgtab[j][k] *
-                        negbinomDerivP(c, sp_alpha_i, p) / nb *
-                        (p + p*p) / sp_beta_i;
+                        gammaDerivB(l, sp_alpha_i, bgt) /
+                        (gamma * g * em->times[i]);
                 }
             }
         }
 
-        // reverse for minimizer
         gsl_vector_set(df, 0, -alpha_sum);
         gsl_vector_set(df, 1, -beta_sum);
     }
@@ -270,7 +254,6 @@ public:
     // d/d a_i f(a_i, b_i) = - sum_j sum_k pgtab_jk 
     //                (NB'_r(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)) /
     //                    NB(c_ij, a_i, b_i  / (g_jk d_j t_i + b_i)))
-    // d/d b_i f(a_i, b_i) = ...
     static void sp_rate_fdf(const gsl_vector *x, void *params, 
                               double *f, gsl_vector *df)
     {
@@ -283,33 +266,30 @@ public:
         double alpha_sum = 0.0;
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
+            double l = em->lengths[j][i];
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
-                double p = sp_beta_i / (g * em->gene_sizes[j] * em->times[i] + 
-                                        sp_beta_i);
-                int c = em->changes[j][i];
-                double nb = negbinomPdf(c, sp_alpha_i, p);
-                
-                sum += em->pgtab[j][k] * log(nb);
+                double bgt = sp_beta_i / (g * em->times[i]);
+                double lngamma = gammalog(l, sp_alpha_i, bgt);
+                double gamma = exp(lngamma);
 
-                if (nb != 0.0) {
-                    alpha_sum += em->pgtab[j][k] * 
-                        negbinomDerivR(c, sp_alpha_i, p) / nb;
-                    beta_sum += em->pgtab[j][k] *
-                        negbinomDerivP(c, sp_alpha_i, p) / nb *
-                        (p + p*p) / sp_beta_i;
+                sum += em->pgtab[j][k] * lngamma;
+                
+                if (gamma != 0.0) {
+                    alpha_sum += em->pgtab[j][k] *
+                        gammaDerivA(l, sp_alpha_i, bgt) / gamma;
+                    beta_sum += em->pgtab[j][k] * 
+                        gammaDerivB(l, sp_alpha_i, bgt) /
+                        (gamma * g * em->times[i]);
                 }
             }
         }
 
-        // set return, reverse for minimizer
+        // set return
         *f = -sum;
         gsl_vector_set(df, 0, -alpha_sum);
         gsl_vector_set(df, 1, -beta_sum);
     }
-
-
-
 
 
     float likelihood()
@@ -321,9 +301,8 @@ public:
             for (int k=0; k<nrates; k++) {
                 double prod = 0.0;
                 for (int i=0; i<nspecies; i++)
-                    prod += log(negbinomPdf(changes[j][i], sp_alpha[i], 
-                      sp_beta[i] / (times[i] * gene_sizes[j] * gtab[j][k] +
-                                    sp_beta[i])));
+                    prod += gammalog(lengths[j][i], sp_alpha[i], 
+				     sp_beta[i] / (times[i] * gtab[j][k]));
                 sum += pgtab[j][k] * exp(prod);
             }
             logl += log(sum);
@@ -336,101 +315,64 @@ public:
 
     void init_params()
     {
+        ExtendArray<float> vec(ntrees);
+        ExtendArray<float> vec2(ntrees);
+        ExtendArray<float> treelens(ntrees);
+
+        float meantreelens = 0.0;
+        for (int j=0; j<ntrees; j++) {
+            treelens[j] = 0.0;
+            for (int i=0; i<nspecies; i++)
+                treelens[j] += lengths[j][i];
+            meantreelens += treelens[j];
+        }
+        meantreelens /= ntrees;
+        
+        //printf("meantreelens=%f\n", meantreelens);
+        //printFloatArray(treelens, 5);
+
+        
         for (int i=0; i<nspecies; i++) {
-            sp_alpha[i] = 1.0;
-            sp_beta[i] = 1.0;
+            float sum = 0.0;
+            for (int j=0; j<ntrees; j++) {
+                vec2[j] = lengths[j][i];
+                vec[j] = lengths[j][i] / 
+                    (treelens[j] / meantreelens) / times[i];
+                sum += vec[j];
+            }
+
+            //printf("sp=%d t=%f ", i, times[i]);
+            //printFloatArray(vec.get(), 5);
+            //printFloatArray(vec2.get(), 5);
+
+            float mu = sum / ntrees;
+            float sigma = stdev(vec.get(), ntrees);
+            
+            sp_alpha[i] = mu*mu / sigma / sigma;
+            sp_beta[i] = mu / sigma / sigma;
         }
 
         gene_nu = 1.0; 
     }
 
-    // A = alpha_g - 1 + sum_i c_ij
-    // P(g_j|c_j, theta) = K g_j^A exp(-beta_g g_j) 
-    //                     prod_i (g_j d_j t_i + b_i)^(-a_i - c_ij)
-    double gene_post(double g, int j, double A)
+    inline double gene_post(double g, double A, double B)
     {
-        double prod = 0.0;
-        for (int i=0; i<nspecies; i++) {
-            prod += log(g * gene_sizes[j] * times[i] + sp_beta[i]) *
-                (- sp_alpha[i] - changes[j][i]);
-        }
-
-        double p = A*log(g) + (-gene_beta * g) + prod;
-        return p;
+        return loginvgammaPdf(g, A, B);
     }
     
 
-    double gene_post_deriv(double g, int j, double A)
-    {
-        double sum = 0.0;
-        double d = gene_sizes[j];
-        for (int i=0; i<nspecies; i++)
-            sum += (-sp_alpha[i] - changes[j][i]) * times[i] * d /
-                (g * times[i] * d + sp_beta[i]);
-
-        return A / g - gene_beta + sum;
-    }
-    
-    /*
-    double gene_post_deriv2(double g, int j, double A)
-    {
-        double sum = 0.0;
-        double d = gene_sizes[j];
-        for (int i=0; i<nspecies; i++) {
-            double a = times[i] * d / (g * times[i] * d - sp_beta[i]);
-            sum += (-sp_alpha[i] - changes[j][i]) * a * a;
-        }
-
-        return A / g / g + sum;
-    }*/
-
-
-    static double estep_f(double x, void *params)
-    {
-        RatesEM *em = (RatesEM*) params;
-        return em->gene_post_deriv(x, em->cur_tree, em->cur_coeff);
-    }
-
-
-    double gene_post_mode(int j, double A)
-    {
-        double low = .001, high = 20;
-        const static int maxiter = 10;
-
-        // optimize gene rate parameters
-	gsl_root_fsolver_set(sol_estep, &opt_estep, low, high);
-
-	int status = GSL_CONTINUE;
-	for (int iter=0; iter<maxiter && status==GSL_CONTINUE; iter++) {
-            // do one iteration
-	    status = gsl_root_fsolver_iterate(sol_estep);
-            if (status)
-                break;
-
-            // check convergence
-	    low = gsl_root_fsolver_x_lower(sol_estep);
-	    high = gsl_root_fsolver_x_upper(sol_estep);
-	    status = gsl_root_test_interval(low, high, 0, 0.01);
-	}
-
-	return gsl_root_fsolver_root(sol_estep);
-        
-    }
-
-
-    float find_upper_g(float m, int j, float A,
-                       float tol1=.05, float tol2=.01)
+    double find_upper_g(double m, double A, double B,
+                        double tol1=.05, double tol2=.01)
     {        
-        double fm = gene_post(m, j, A);
-        float top = 2*m;
-        float bot = m;
-        tol1 = log(tol1);
+        double fm = gene_post(m, A, B);
+        double top = 2*m;
+        double bot = m;
         tol2 = log(tol2);
+        tol1 = log(tol1);
 
         // extent top
         while (true) {
-            double ftop = gene_post(top, j, A);
-            //printf("ftop=%f, fm=%f, tol2=%f", ftop, fm, tol2);
+            double ftop = gene_post(top, A, B);
             if (ftop - fm <= tol2)
                 break;
             top *= 2;
@@ -438,8 +380,8 @@ public:
 
         // binary search
         while (true) {
-            float u = (top + bot) / 2.0;
-            double fu = gene_post(u, j, A);
+            double u = (top + bot) / 2.0;
+            double fu = gene_post(u, A, B);
 
             if (fu - fm > tol1)
                 bot = u;
@@ -451,19 +393,19 @@ public:
     }
 
 
-    float find_lower_g(float m, int j, float A,
-                       float tol1=.05, float tol2=.01)
+    double find_lower_g(double m, double A, double B,
+                       double tol1=.05, double tol2=.01)
     {
-        double fm = gene_post(m, j, A);
-        float top = m;
-        float bot = 0;
-        tol1 = log(tol1);
+        double fm = gene_post(m, A, B);
+        double top = m;
+        double bot = 0;
         tol2 = log(tol2);
+        tol1 = log(tol1);
 
         // binary search
         while (true) {
-            float u = (top + bot) / 2.0;
-            double fu = gene_post(u, j, A);
+            double u = (top + bot) / 2.0;
+            double fu = gene_post(u, A, B);
 
             if (fu - fm > tol1)
                 top = u;
@@ -481,49 +423,44 @@ public:
         // temp variables for PDF of posterior gene rate
         float x[nrates+1];
         double y[nrates+1];
-	float q = 1.0 / gene_nu;
-	float gene_alpha = q;
+
+        // determine commonly used coefficients
+        double A = gene_alpha;
+        for (int i=0; i<nspecies; i++)
+            A += sp_alpha[i];
+
 
         for (int j=0; j<ntrees; j++) {
+
             // determine commonly used coefficients
-            cur_tree = j;
-            float A = gene_alpha - 1.0;
+            double B = gene_beta;
             for (int i=0; i<nspecies; i++)
-                A += changes[j][i];
-            cur_coeff = A;
-            
+                B += sp_beta[i] * lengths[j][i] / times[i];
+
             // find main range of gene rates
-            float mid = gene_post_mode(j, A);
-            float top = find_upper_g(mid, j, A);
-            float bot = find_lower_g(mid, j, A);
+            double mid = B / (A+1);
+            double top = find_upper_g(mid, A, B);
+            double bot = find_lower_g(mid, A, B);
 
             int half_nrates = (nrates + 1) / 2;
-            float step1 = (mid - bot) / half_nrates;
-            float step2 = (top - mid) / (nrates + 1 - half_nrates);
-
-            float maxp = gene_post(mid, j, A);
+            double step1 = (mid - bot) / half_nrates;
+            double step2 = (top - mid) / (nrates + 1 - half_nrates);
 
             // compute x, y for posterior gene rate PDF
             for (int k=0; k<half_nrates; k++) {
                 x[k] = bot + step1 * k;
-                y[k] = exp(gene_post(x[k], j, A) - maxp);
+                y[k] = invgammaPdf(x[k], A, B);
             }
             for (int k=half_nrates; k<nrates+1; k++) {
                 x[k] = mid + step2 * (k-half_nrates);
-                y[k] = exp(gene_post(x[k], j, A) - maxp);
+                y[k] = invgammaPdf(x[k], A, B);
             }
 
             // compute gtab and pgtab
-            double total = 0.0;
             for (int k=0; k<nrates; k++) {
                 gtab[j][k] = (x[k] + x[k+1]) / 2.0;
                 pgtab[j][k] = (y[k] + y[k+1]) * (x[k+1] - x[k]) / 2.0;
-                total += pgtab[j][k];
             }
-
-            // normalize pgtab[j]
-            for (int k=0; k<nrates; k++)
-                pgtab[j][k] /= total;
         }
     }
     
@@ -533,15 +470,14 @@ public:
     void MStep()
     {
         // optimization config
-        double step_size = .1;
+        double step_size = .01;
         double tol = .1;
         const double epsabs = .01;
         gsl_vector *init_x = gsl_vector_alloc(2);
         int status;
-        //double r = 1.0, r0 = 1.0;
-	double low = .0001, high = gene_nu * 5;
+	double low = .0001, high = gene_nu * 20;
 	int iter = 0;
-	const int maxiter = 20;
+	const int maxiter = 10;
         
         // optimize gene rate parameters
 	gsl_root_fsolver_set(sol_gene_rate, &opt_gene_rate, low, high);
@@ -558,8 +494,10 @@ public:
 	    high = gsl_root_fsolver_x_upper(sol_gene_rate);
 	    status = gsl_root_test_interval(low, high, 0, 0.01);
 	}
-
 	gene_nu = gsl_root_fsolver_root(sol_gene_rate);
+	gene_alpha = gene_nu + 1;
+        gene_beta = gene_nu;
+        fprintf(stderr, "nu = %f (iter=%d)\n", gene_nu, iter);
         
         
         // optimize each species rate parmater set
@@ -570,17 +508,19 @@ public:
             gsl_multimin_fdfminimizer_set(sol_sp_rate, &opt_sp_rate, init_x, 
                                           step_size, tol);            
             status = GSL_CONTINUE;
+
+            
 	    for (iter=0; iter<maxiter && status==GSL_CONTINUE; iter++) {
                 // do one iteration
                 status = gsl_multimin_fdfminimizer_iterate(sol_sp_rate);
                 if (status)
                     break;        
                 // get gradient
-                status = gsl_multimin_test_gradient(sol_sp_rate->gradient, 
-                                                    epsabs);
+                status = gsl_multimin_test_gradient(sol_sp_rate->gradient, epsabs);
             }
 
-            //printf("iters: %d\n", iter);
+            double lk = likelihood();
+            fprintf(stderr, "species %d %d %f\n", i, iter, lk);
 
             sp_alpha[i] = gsl_vector_get(sol_sp_rate->x, 0);
             sp_beta[i] = gsl_vector_get(sol_sp_rate->x, 1);
@@ -595,7 +535,7 @@ public:
     int ntrees;
     int nspecies;
     int *gene_sizes;
-    int **changes;
+    float **lengths;
 
     // given fixed parameters
     float *times;
@@ -616,17 +556,10 @@ public:
 
     // optimizers
     gsl_multimin_fdfminimizer *sol_sp_rate;
-    gsl_multimin_function_fdf opt_sp_rate;
-
     gsl_root_fsolver *sol_gene_rate;
     gsl_function opt_gene_rate;
-
-    gsl_root_fsolver *sol_estep;
-    gsl_function opt_estep;
-
+    gsl_multimin_function_fdf opt_sp_rate;
     int cur_species;
-    int cur_tree;
-    double cur_coeff;
 };
 
 
@@ -691,7 +624,11 @@ RatesEM *allocRatesEM(int ntrees, int nspecies, int nrates,
 void freeRatesEM(RatesEM *em)
 {
     delete [] em->gene_sizes;
-    
+
+    for (int j=0; j<em->ntrees; j++)
+        delete [] em->lengths[j];
+    delete [] em->lengths;
+
     delete [] em->times;
     delete [] em->sp_alpha;
     delete [] em->sp_beta;
@@ -724,8 +661,8 @@ float RatesEM_likelihood(RatesEM *em)
 
 void RatesEM_getParams(RatesEM *em, float *params)
 {
-    params[0] = 1.0 / em->gene_nu; //em->gene_alpha;
-    params[1] = 1.0 / em->gene_nu; //em->gene_beta;
+    params[0] = em->gene_nu + 1; //em->gene_alpha;
+    params[1] = em->gene_nu; //em->gene_beta;
 
     for (int i=0; i<em->nspecies; i++) {
         params[2+2*i] = em->sp_alpha[i];

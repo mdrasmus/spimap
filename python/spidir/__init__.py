@@ -16,7 +16,7 @@ from ctypes import *
 libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
 spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
 
-
+    
 #=============================================================================
 # ctypes help functions
 
@@ -82,12 +82,16 @@ def export(lib, funcname, return_type, prototypes, scope=globals(),
 # additional C types
 c_float_p = POINTER(c_float)
 c_float_p_p = POINTER(POINTER(c_float))
+c_double_p = POINTER(c_double)
+c_double_p_p = POINTER(POINTER(c_double))
 c_int_p = POINTER(c_int)
+c_int_p_p = POINTER(POINTER(c_int))
 c_char_p_p = POINTER(c_char_p)
 
 c_int_list = (c_int_p, lambda x: c_list(c_int, x))
 c_float_list = (c_float_p, lambda x: c_list(c_float, x))
 c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
+c_int_matrix = (c_int_p_p, lambda x: c_matrix(c_int, x))
 
 
 #=============================================================================
@@ -95,12 +99,12 @@ c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
 
 # common functions
 export(spidir, "gamm", c_float, [c_float, "a"])
-export(spidir, "invgamma", c_float,
+export(spidir, "invgammaPdf", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "invgammaCdf", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "quantInvgamma", c_double,
-       [c_double, "p", c_double, "a", c_double, "b"])
+#export(spidir, "invgammaCdf", c_float,
+#       [c_float, "x", c_float, "a", c_float, "b"])
+#export(spidir, "quantInvgamma", c_double,
+#       [c_double, "p", c_double, "a", c_double, "b"])
 export(spidir, "gammalog", c_float,
        [c_float, "x", c_float, "a", c_float, "b"])
 export(spidir, "gammaPdf", c_float,
@@ -136,7 +140,7 @@ export(spidir, "makeTree", c_void_p, [c_int, "nnodes",
 export(spidir, "tree2ptree", c_int, [c_void_p, "tree", c_int_list, "ptree"],
        newname="ctree2ptree")
 export(spidir, "setTreeDists", c_void_p, [c_void_p, "tree",
-                                              c_float_p, "dists"])
+                                          c_float_p, "dists"])
 
 
 # search
@@ -160,6 +164,39 @@ export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
 export(spidir, "birthDeathCount", c_float,
        [c_int, "ngenes", c_float, "time",
         c_float, "birth", c_float, "death"])
+export(spidir, "birthDeathCounts", c_float,
+       [c_int, "start", c_int, "end", c_float, "time",
+        c_float, "birth", c_float, "death"])
+export(spidir, "birthDeathCounts", c_float,
+       [c_int, "start", c_int, "end", c_float, "time",
+        c_float, "birth", c_float, "death"])
+export(spidir, "birthDeathCounts2", c_float,
+       [c_int, "start", c_int, "end", c_float, "time",
+        c_float, "birth", c_float, "death"])
+
+# birth death tree counts
+export(spidir, "birthDeathTreeCounts", c_double,
+       [c_void_p, "tree", c_int, "nspecies", c_int_list, "counts", 
+        c_float, "birth", c_float, "death", c_int, "maxgene",
+        c_int, "rootgene", c_void_p, "tab"])
+export(spidir, "birthDeathForestCounts", c_double,
+       [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
+        c_int_matrix, "counts", c_int_list, "mult",
+        c_float, "birth", c_float, "death", c_int, "maxgene",
+        c_int, "rootgene", c_void_p, "tab"])
+
+export(spidir, "birthDeathCountsML_alloc", c_void_p,
+       [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
+        c_int_matrix, "counts", c_int_list, "mult",
+        c_float, "birth", c_float, "death", c_float, "step",
+        c_int, "maxgene", c_int, "rootgene"])
+export(spidir, "birthDeathCountsML_free", c_void_p,
+       [c_void_p, "opt"])
+export(spidir, "birthDeathCountsML_iter", c_int,
+       [c_void_p, "opt", c_float_list, "birth", c_float_list, "death",
+        c_float_list, "size"])
+
+# tree topology
 export(spidir, "calcDoomTable", c_int,
        [c_void_p, "tree", c_float, "birth", c_float, "death",
         c_int, "maxdoom", c_float_p, "doomtable"])
@@ -185,7 +222,7 @@ export(spidir, "sampleBirthWaitTime1", c_float,
 
 
 # branch prior functions
-export(spidir, "branchPrior", c_float,
+export(spidir, "branchPrior", c_double,
        [c_int, "nnodes", c_int_list, "ptree", c_float_list, "dists",
         c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
         c_int_list, "recon", c_int_list, "events",
@@ -202,6 +239,8 @@ export(spidir, "parsimony", c_void_p,
         c_char_p_p, "seqs", c_float, "dists",
         c_int, "buildAncestral", c_char_p_p, "ancetralSeqs"])
 
+c_floatlk = c_double
+c_floatlk_p = c_double_p
 
 # sequence likelihood functions
 export(spidir, "makeHkyMatrix", c_void_p,
@@ -213,26 +252,26 @@ export(spidir, "makeHkyDerivMatrix", c_void_p,
 export(spidir, "makeHkyDeriv2Matrix", c_void_p,
        [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
         c_float_p, "matrix"])
-export(spidir, "branchLikelihoodHky", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+export(spidir, "branchLikelihoodHky", c_floatlk,
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq", c_float, "kappa",
         c_float, "time"])
-export(spidir, "branchLikelihoodHkyDeriv", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+export(spidir, "branchLikelihoodHkyDeriv", c_floatlk,
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq",
         c_float, "kappa", c_float, "time"])       
-export(spidir, "branchLikelihoodHkyDeriv2", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+export(spidir, "branchLikelihoodHkyDeriv2", c_floatlk,
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq",
         c_float, "kappa", c_float, "time"])
 export(spidir, "mleDistanceHky", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq",
         c_float, "kappa", c_float, "t0", c_float, "t1"])
-export(spidir, "calcSeqProbHky", c_float,
+export(spidir, "calcSeqProbHky", c_floatlk,
        [c_void_p, "tree", c_int, "nseqs", c_char_p_p, "seqs",
         c_float_p, "bgfreq", c_float, "kappa"])
-export(spidir, "findMLBranchLengthsHky", c_float,
+export(spidir, "findMLBranchLengthsHky", c_floatlk,
        [c_int, "nnodes", c_int_p, "ptree", c_int, "nseqs",
         c_char_p_p, "seqs", c_float_p, "dists",
         c_float_p, "bgfreq", c_float, "kappa",
@@ -499,6 +538,88 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
     return p
 
 
+def birth_death_tree_counts(stree, counts, birth, death,
+                            maxgene=50, rootgene=1):
+    
+    if birth == death:
+        birth = 1.01 * death
+
+    ctree = tree2ctree(stree)
+    nspecies = len(counts)
+    
+    prob = birthDeathTreeCounts(ctree, nspecies, counts,
+                                birth, death, maxgene, rootgene, 0)
+    deleteTree(ctree)
+
+    return prob
+
+
+def birth_death_forest_counts(stree, counts, birth, death,
+                              maxgene=50, rootgene=1, mult=None):
+    
+    if birth == death:
+        birth = 1.01 * death
+
+    if mult is None:
+        hist = {}
+        for row in counts:
+            row = tuple(row)
+            hist[row] = hist.get(row, 0) + 1
+        counts, mult = zip(*hist.items())
+        counts = map(list, counts)
+        mult = list(mult)
+        
+
+    ctree = tree2ctree(stree)
+
+    nfams = len(counts)
+    nspecies = len(counts[0])
+    
+    logl = birthDeathForestCounts(ctree, nspecies, nfams, counts, mult,
+                                  birth, death, maxgene, rootgene, 0)
+    deleteTree(ctree)
+
+    return logl
+
+def birth_death_counts_ml_alloc(stree, counts, birth0, death0, step,
+                                maxgene=50, rootgene=1, mult=None):
+    
+    if birth0 == death0:
+        birth0 = 1.01 * death0
+
+    if mult is None:
+        hist = {}
+        for row in counts:
+            row = tuple(row)
+            hist[row] = hist.get(row, 0) + 1
+        counts, mult = zip(*hist.items())
+        counts = map(list, counts)
+        mult = list(mult)
+
+    ctree = tree2ctree(stree)
+
+    nfams = len(counts)
+    nspecies = len(counts[0])
+    
+    opt = birthDeathCountsML_alloc(ctree, nspecies, nfams, counts, mult,
+                                   birth0, death0, step, maxgene, rootgene)
+    return (ctree, opt)
+
+def birth_death_counts_ml_free(opt):
+    birthDeathCountsML_free(opt[1])
+    deleteTree(opt[0])
+
+
+def birth_death_counts_ml_iter(opt):
+
+    birth = [0.0]
+    death = [0.0]
+    size = [0.0]
+    status = birthDeathCountsML_iter(opt[1], birth, death, size)
+
+    return status, size[0], (birth[0], death[0])
+
+
 #=============================================================================
 # branch prior
 
@@ -639,6 +760,53 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
 
 #=============================================================================
 # training
+
+def mean(vals):
+    return sum(vals) / float(len(vals))
+    
+
+
+def read_length_matrix(filename, minlen=.0001, maxlen=1.0,
+                       nooutliers=True):
+    """Read a length matrix made by spidir-prep"""
+
+    from rasmus import util
+
+    dat = [line.rstrip().split("\t") for line in open(filename)]
+    species = dat[0][2:]
+    lens = util.map2(float, util.submatrix(dat, range(1, len(dat)),
+                                           range(2, len(dat[0]))))
+    gene_sizes = map(int, util.cget(dat[1:], 1))
+    files = util.cget(dat[1:], 0)
+
+    if nooutliers:
+        treelens = map(sum, lens)
+        m = mean(treelens)
+        ind = util.find(lambda x: x<5*m, treelens)
+        files, gene_sizes, lens, treelens = [util.mget(x, ind) for x in
+                                             files, gene_sizes, lens, treelens]
+
+
+
+    for row in lens:
+        for i in xrange(len(row)):
+            if row[i] < minlen:
+                row[i] = minlen
+
+    '''
+    # remove high lengths
+    cols = zip(* lens)
+    means = map(mean, cols)
+
+    for row in lens:
+        for i in xrange(len(row)):
+            if row[i] > maxlen:
+                row[i] = means[i]
+    '''
+    
+    return species, lens, gene_sizes, files
+
+
 
 def train_params(gene_sizes, length_matrix, times, species,
                  nrates=10, max_iter=10):

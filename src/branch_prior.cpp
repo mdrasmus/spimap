@@ -28,205 +28,11 @@ BranchParams NULL_PARAM;
 
 
 
-//=============================================================================
-// gene rate estimation
-
-
-// solves x^3 + ax^2 + bx + x = 0 for x
-//   in our case there is only one positive root; find it
-float maxCubicRoot(float a, float b, float c)
-{
-    float const accuracy = .001;
-    float x = 0.0;
-    float y;
-    
-    // first estimate should be negative    
-    assert (x*x*x + a*x*x + b*x + c <= 0);
-    
-    // increase x until y is positive
-    x = .01;
-    do {
-        x *= 2.0;
-        y = x*x*x + a*x*x + b*x + c;
-    } while (y < 0);
-    
-    // binary search to find root
-    float min = x / 2.0;
-    float max = x;
-    
-    while (max - min > accuracy) {
-        x = (max + min) / 2.0;
-        y = x*x*x + a*x*x + b*x + c;
-        
-        if (y == 0)
-            return x;
-        else if (y > 0)
-            max = x;
-        else
-            min = x;
-    }
-    
-    return x;
-}
-
-int floatcmp(const void *a, const void *b)
-{
-    float fa = *((float*)a);
-    float fb = *((float*)b);
-    
-    if (fa < fb)
-        return -1;
-    else if (fa > fb)
-        return 1;
-    else
-        return 0;
-}
-
-
-float mleGeneRate(int count, float *dists, float *means, float *sdevs,
-                  float alpha, float beta)
-{
-    float a, b, c;
-    float threshold = 0;
-    
-    a = (1.0 - alpha) / beta;
-
-    // b = sum(means[i] * lens[i] / sdevs[i]**2
-    //         for i in range(len(lens))) / beta    
-    // c = - sum(lens[i] ** 2 / sdevs[i] ** 2
-    //          for i in range(len(lens))) / beta    
-    
-
-    ExtendArray<float> dists2(0, count);
-    dists2.extend(dists, count);
-    qsort((void*) dists2.get(), dists2.size(), sizeof(float), floatcmp);
-    //printFloatArray(dists2, dists2.size());
-    //printFloatArray(dists, dists2.size());
-    int limit = int(count * .5) + 1;
-    if (limit < 4) limit = 4;
-    threshold = dists2[limit];
-    //printf("threshold %f\n", threshold);
-    
-    
-    b = 0.0;
-    c = 0.0;    
-    for (int i=0; i<count; i++) {
-        if (dists[i] > threshold && sdevs[i] > 0.0001) {
-            b += means[i] * dists[i] / (sdevs[i] * sdevs[i]);
-            c += dists[i] * dists[i] / (sdevs[i] * sdevs[i]);
-        }
-    }
-    b /= beta;
-    c = -c / beta;
-    
-    return maxCubicRoot(a, b, c);
-}
-
-
-// help set depths for every node
-// depth is distance to next subtree root
-void estimateGeneRate_helper(Tree *tree, Node *node, float *depths, int *sroots,
-                             int *recon, int *events, bool free)
-{
-    int name = node->name;
-    
-    if (events[name] == EVENT_SPEC)
-        free = false;
-    
-    if (node != tree->root) {
-        int parent = node->parent->name;
-        
-        if (free) {
-            // mark freebranches with -1
-            depths[name] = -1;
-            sroots[name] = sroots[parent];
-        } else {
-            if (events[parent] == EVENT_DUP) {
-                depths[name] = depths[parent] + node->dist;
-                sroots[name] = sroots[parent];
-            } else {
-                depths[name] = node->dist;
-                sroots[name] = recon[parent];
-            }
-        }
-    }
-    
-    for (int i=0; i<node->nchildren; i++)
-        estimateGeneRate_helper(tree, node->children[i], 
-                                depths, sroots, recon, events, free);    
-}
-
-
+// TODO: remove
 float estimateGeneRate(Tree *tree, SpeciesTree *stree, 
                        int *recon, int *events, SpidirParams *params)
-{
-    float *depths = new float [tree->nnodes];
-    int *sroots = new int [tree->nnodes];   // species roots
-    
-    depths[tree->root->name] = 0;
-    sroots[tree->root->name] = recon[tree->root->name];
-    
-    // determine if top subtree is free
-    bool free = (recon[tree->root->name] == stree->root->name && 
-                 events[tree->root->name] == EVENT_DUP);
-    
-    estimateGeneRate_helper(tree, tree->root, depths, sroots, 
-                            recon, events, free);
-    
-    //printFloatArray(depths, tree->nnodes);
-    //printIntArray(sroots, tree->nnodes);
-    
-    float *dists = new float [tree->nnodes];
-    float *means = new float [tree->nnodes];
-    float *sdevs = new float [tree->nnodes];
-    
-    // make quick access to params
-    float *mu = params->sp_alpha;
-    float *sigma = params->sp_beta;
-    
-    int count = 0;
-    
-    for (int i=0; i<tree->nnodes; i++) {
-        if (events[i] != EVENT_DUP && i != tree->root->name) {
-            // we are at subtree leaf
-            
-            // figure out species branches that we cross
-            // get total mean and variance of this path            
-            float u = 0.0;
-            float s2 = 0.0;   
-            int snode = recon[i];
-            
-            // branch is also free if we do not cross any more species
-            // don't estimate baserates from extra branches
-            if (snode != sroots[i] && depths[i] != -1) {
-                while (snode != sroots[i] && snode != stree->root->name) {
-                    u += mu[snode];
-                    s2 += sigma[snode]*sigma[snode];
-                    snode = stree->nodes[snode]->parent->name;
-                }
-                assert(fabs(s2) > .0000001);
-                                
-                // save dist and params
-                dists[count] = depths[i];
-                means[count] = u;
-                sdevs[count] = sqrt(s2);
-                count++;
-            }
-        }
-    }
-    
-    
-    float generate = (count > 0) ? mleGeneRate(count, dists, means, sdevs, 
-                                   params->gene_alpha, params->gene_beta) :
-                                   0.0; // catch unusual case
-    
-    delete [] depths;
-    delete [] sroots;
-    delete [] dists;
-    delete [] means;
-    delete [] sdevs;    
-    
-    return generate;
+{    
+    return 0.0;
 }
 
 
@@ -236,14 +42,14 @@ float estimateGeneRate(Tree *tree, SpeciesTree *stree,
 // branch prior functions
 
 
-float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
-		     bool approx)
+double approxGammaSum(int nparams, double x, float *gs_alpha, float *gs_beta,
+                      bool approx)
 {
-    const float tol = .001;
-    const float minfrac = .01;
+    const double tol = .001;
+    const double minfrac = .01;
 
     // filter for extreme parameters
-    float mean = 0.0;
+    double mean = 0.0;
     for (int i=0; i<nparams; i++) {
 	if (isinf(gs_beta[i]) || isnan(gs_beta[i])) {
 	    gs_alpha[i] = gs_alpha[--nparams];
@@ -255,8 +61,8 @@ float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
     }
 
     // remove params with effectively zero mean
-    float mu = 0.0;
-    float var = 0.0;
+    double mu = 0.0;
+    double var = 0.0;
     for (int i=0; i<nparams; i++) {	
 	if (gs_alpha[i] / gs_beta[i] < minfrac * mean) {
 	    gs_alpha[i] = gs_alpha[--nparams];
@@ -275,11 +81,11 @@ float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
     
     //float dist = node->dist / generate;
     
-    float logp;
+    double logp;
     if (approx) {
 	// approximation
-	float a2 = mean*mean/var;
-	float b2 = mean/var;
+	double a2 = mean*mean/var;
+	double b2 = mean/var;
 	logp = gammalog(x, a2, b2);
     } else {
 	logp = log(gammaSumPdf(x, nparams, gs_alpha, gs_beta, tol));
@@ -315,13 +121,13 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
 			float birth, float death)
 {
     const float esp = .0001;
-    
+
     // deal with pre-duplications
     if (root == tree->root->name) {
 	do {
 	    reconparams->pretime = 
 		expovariate(reconparams->params->pretime_lambda);
-	} while (reconparams->pretime <= 0.0);
+	} while (reconparams->pretime <= esp);
     }
 
     for (int i=0; i<nsubnodes; i++) {
@@ -351,11 +157,27 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
 		time = stree->nodes[snode]->dist;
 	    }
 
-	    assert(time > 0.0);
+            const float k = sampleBirthWaitTime1(remain * time * 
+                                                 (1.0 - esp), 
+                                                 birth, death);
+            reconparams->midpoints[node->name] = lastpoint +
+                esp * remain + k / time;
 
-	    reconparams->midpoints[node->name] = lastpoint + esp * remain +
-		sampleBirthWaitTime1(remain * time * (1.0 - esp), 
-				     birth, death) / time;
+            if (reconparams->midpoints[node->name] == 1.0) {
+                reconparams->midpoints[node->name] = 
+                    1.0 - ((1.0 - lastpoint) / 2.0);
+            }
+
+            // try again if samples lead to zero length branches
+            if (reconparams->midpoints[node->name] == 1.0 ||
+                reconparams->midpoints[node->name] == lastpoint)
+            {
+                return setRandomMidpoints(root, tree, stree,
+                                          subnodes, nsubnodes, 
+                                          recon, events, 
+                                          reconparams,
+                                          birth, death);
+            }
 
         } else {
             // genes or speciations reconcile exactly to the end of the branch
@@ -481,7 +303,7 @@ void getReconParams(Tree *tree, Node *node,
 		    float generate,
 		    float *times,
 		    float *gs_alpha,
-		    float *gs_beta)
+		    float *gs_beta, int nparams)
 {
     SpidirParams *params = reconparams->params;
     ExtendArray<BranchPart> &parts = reconparams->parts[node->name];
@@ -490,15 +312,22 @@ void getReconParams(Tree *tree, Node *node,
 	int snode = parts[j].species;
 	gs_alpha[j] = params->sp_alpha[snode];
 	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
+
+        // DEBUG
+        if (isinf(gs_beta[j])) {
+            printf("> %f %f %f\n", params->sp_beta[snode], 
+                   generate, times[j]);
+            assert(0);
+        }
     }
 }
 
 
 
 // Calculate branch probability
-float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
-		 float generate, ReconParams *reconparams,
-		 bool approx=true)
+double branchprob(Tree *tree, SpeciesTree *stree, Node *node,
+                  float generate, ReconParams *reconparams,
+                  bool approx=true)
 {
     // get times
     ExtendArray<float> times(0, tree->nnodes);
@@ -509,7 +338,7 @@ float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
     float gs_alpha[nparams];
     float gs_beta[nparams];
     getReconParams(tree, node, reconparams,
-		   generate, times, gs_alpha, gs_beta);
+		   generate, times, gs_alpha, gs_beta, nparams);
    
     // compute gamma sum
     return approxGammaSum(nparams, node->dist, gs_alpha, gs_beta, approx);
@@ -517,9 +346,9 @@ float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
 
 
 // Calculate branch probability
-float branchprob_unfold(Tree *tree, SpeciesTree *stree, 
-			float generate, ReconParams *reconparams,
-			bool approx=true)
+double branchprobUnfold(Tree *tree, SpeciesTree *stree, 
+                        float generate, ReconParams *reconparams,
+                        bool approx=true)
 {
     Node *node0 = tree->root->children[0];
     Node *node1 = tree->root->children[1];
@@ -534,12 +363,13 @@ float branchprob_unfold(Tree *tree, SpeciesTree *stree,
     // get gamma sum terms 
     float gs_alpha[nparams];
     float gs_beta[nparams];
+
     getReconParams(tree, node0, reconparams,
-		   generate, times0, gs_alpha, gs_beta);
+		   generate, times0, gs_alpha, gs_beta, times0.size());
     getReconParams(tree, node1, reconparams,
 		   generate, times1, 
 		   gs_alpha + times0.size(), 
-		   gs_beta + times0.size());
+		   gs_beta + times0.size(), times1.size());
 
     // compute gamma sum
     return approxGammaSum(nparams, node0->dist + node1->dist, 
@@ -614,13 +444,13 @@ public:
 
 
     // subtree prior conditioned on divergence times
-    float subtreeprior_cond(Tree *tree, SpeciesTree *stree,
-			    int *recon, float generate,
-			    ReconParams *reconparams,
-			    ExtendArray<Node*> &subnodes,
-			    bool unfold)
+    double subtreeprior_cond(Tree *tree, SpeciesTree *stree,
+                             int *recon, float generate,
+                             ReconParams *reconparams,
+                             ExtendArray<Node*> &subnodes,
+                             bool unfold)
     {
-	float logp = 0.0;
+	double logp = 0.0;
         
 	// loop through all branches in subtree
 	for (int j=0; j<subnodes.size(); j++) {
@@ -638,8 +468,8 @@ public:
 		    continue;
 		} else if (node == tree->root->children[0]) {
 		    // unfold left branch
-		    logp += branchprob_unfold(tree, stree,
-					      generate, reconparams);
+		    logp += branchprobUnfold(tree, stree,
+                                             generate, reconparams);
 		    continue;
 		}
 	    }
@@ -652,11 +482,11 @@ public:
 
 
     // Calculate the likelihood of a subtree
-    float subtreeprior(int root, float generate, ReconParams *reconparams)
+    double subtreeprior(int root, float generate, ReconParams *reconparams)
     {
    
 	// set reconparams by traversing subtree
-	ExtendArray<Node*> subnodes(0, tree->nnodes);
+	ExtendArray<Node*> subnodes(0, tree->nnodes); // MOVE to class
 	bool dupsPresent = getSubtree(tree->nodes[root], events, &subnodes);
     
 	// reconcile each branch
@@ -671,6 +501,12 @@ public:
 
 	
 	if (!dupsPresent) {
+
+            setRandomMidpoints(root, tree, stree,
+                               subnodes, subnodes.size(),
+                               recon, events, reconparams,
+                               birth, death);
+
 	    return subtreeprior_cond(tree, stree, recon, 
 				     generate, reconparams, subnodes,
 				     unfold);
@@ -682,7 +518,7 @@ public:
 	    //if (nsamples > 2000) nsamples = 2000;
         	
 	    // perform integration by sampling
-	    double prob = 0.0;
+	    double prob = 1.0;
 	    for (int i=0; i<nsamples; i++) {
 		double sampleLogl = 0.0;
             
@@ -698,12 +534,14 @@ public:
 					       subnodes,
 					       unfold);
 	    
-		prob += exp(sampleLogl) / nsamples;
+		//prob += exp(sampleLogl) / nsamples;
+                prob = logadd(prob, sampleLogl);
 	    }
         
-	    return log(prob);
+	    return prob - log(nsamples);
 	}
     }
+
 
 
     
@@ -718,7 +556,7 @@ public:
         
         // gene rate probability
         if (params->gene_alpha > 0 && params->gene_beta > 0)
-            logp += gammalog(generate, params->gene_alpha, params->gene_beta);
+            logp += loginvgammaPdf(generate, params->gene_alpha, params->gene_beta);
 	
         printLog(LOG_HIGH, "generate: %f %f\n", generate, exp(logp));
         return logp;
@@ -732,15 +570,11 @@ public:
 
     double calc()
     {
-	double maxprob = -INFINITY;
-	float argmax_generate = params->gene_alpha / params->gene_beta;
-	float est_generate = estimateGeneRate(tree, stree, recon, events, params);
-        printLog(LOG_HIGH, "est_generate: %f\n", est_generate);
-        
 	// TODO: make this equal portions of gamma
-        double logp = -INFINITY;       
-        float gstart = params->gene_alpha / params->gene_beta * 0.05;
-        float gend = params->gene_alpha / params->gene_beta * 3.0;
+        double logp = -INFINITY;
+        float mid = params->gene_beta / (params->gene_alpha - 1.0);
+        float gstart = mid * 0.01;
+        float gend = mid * 3.0;
         float step = (gend - gstart) / 20.0;
 
 
@@ -751,20 +585,10 @@ public:
 	    
             logp = logadd(logp, p);
             printLog(LOG_HIGH, "generate_int: %f %f\n", gi, p);
-            if (p > maxprob) {
-                maxprob = p;
-                argmax_generate = gi;
-            }
         }
         
         // multiply probabilty by integration step
         logp += log(step);
-        
-        printLog(LOG_HIGH, "argmax gene rate: %f\n", argmax_generate);
-        if (est_generate > 0.0)
-            printLog(LOG_HIGH, "branch prior: %f %f %f\n", maxprob, logp,
-		     calc_cond(est_generate));
-
 	return logp;
     }
     
@@ -788,14 +612,14 @@ protected:
   
 
 // TODO: move birth, death into param
-float branchPrior(Tree *tree,
-		  SpeciesTree *stree,
-		  int *recon, int *events, SpidirParams *params,
-		  float generate,
-		  float pretime_lambda, float birth, float death,
-		  int nsamples, bool approx)
+double branchPrior(Tree *tree,
+                   SpeciesTree *stree,
+                   int *recon, int *events, SpidirParams *params,
+                   float generate,
+                   float pretime_lambda, float birth, float death,
+                   int nsamples, bool approx)
 {
-    float logl = 0.0; // log likelihood
+    double logl = 0.0; // log likelihood
     Timer timer;
 
     
@@ -819,13 +643,13 @@ float branchPrior(Tree *tree,
 extern "C" {
 
 // Calculate the likelihood of a tree
-float branchPrior(int nnodes, int *ptree, float *dists,
-		  int nsnodes, int *pstree, float *sdists,
-		  int *recon, int *events,
-		  float *sp_alpha, float *sp_beta, float generate,
-		  float pretime_lambda, float birth, float death,
-		  float gene_alpha, float gene_beta,
-		  int nsamples, bool approx)
+double branchPrior(int nnodes, int *ptree, float *dists,
+                   int nsnodes, int *pstree, float *sdists,
+                   int *recon, int *events,
+                   float *sp_alpha, float *sp_beta, float generate,
+                   float pretime_lambda, float birth, float death,
+                   float gene_alpha, float gene_beta,
+                   int nsamples, bool approx)
 {
     // create tree objects
     Tree tree(nnodes);
@@ -862,38 +686,11 @@ float branchPrior(int nnodes, int *ptree, float *dists,
 // Gene rate estimation
 
 
-// functor of gene rate posterior derivative
-class GeneRateDerivative 
-{
-public:
-    GeneRateDerivative(Tree *tree, SpeciesTree *stree,
-                       int *recon, int *events, SpidirParams *params) :
-        lkcalc(tree, stree, recon, events, params, 0.0001, 0.0002)
-    {
-    }
-    
-    float operator()(float generate)
-    {
-        const float step = .05;
-        return lkcalc.calc_cond(generate + step) - lkcalc.calc_cond(generate);
-    }
-    
-    BranchPriorCalculator lkcalc;
-};
-
-
 // Ignores sequence data, assumes given branch lengths are perfectly known
 float maxPosteriorGeneRate(Tree *tree, SpeciesTree *stree,
                            int *recon, int *events, SpidirParams *params)
 {
-    // get initial estimate of gene rate and a bound to search around
-    float est_generate = estimateGeneRate(tree, stree, recon, events, params);
-    float maxg = est_generate * 1.5; //params->alpha / params->beta * 2.0;
-    float ming = est_generate / 1.5;
-    
-    // find actual max posterior of gene rate
-    GeneRateDerivative df(tree, stree, recon, events, params);
-    return bisectRoot(df, ming, maxg, (maxg - ming) / 1000.0);
+    return 0.0;
 }
 
 
@@ -903,18 +700,7 @@ float maxPosteriorGeneRate(int nnodes, int *ptree, float *dists,
                            float *mu, float *sigma,
                            float alpha, float beta)
 {
-    // create tree objects
-    Tree tree(nnodes);
-    ptree2tree(nnodes, ptree, &tree);
-    tree.setDists(dists);
-    
-    SpeciesTree stree(nsnodes);
-    ptree2tree(nsnodes, pstree, &stree);
-    stree.setDepths();    
-
-    SpidirParams params = SpidirParams(nsnodes, NULL, mu, sigma, alpha, beta);
-    
-    return maxPosteriorGeneRate(&tree, &stree, recon, events, &params);
+    return 0.0;
 }
 
 
@@ -928,28 +714,10 @@ void samplePosteriorGeneRate(Tree *tree,
                              geneRateCallback callback,
                              void *userdata)
 {
-    // use parsimonious reconciliation as default
-    ExtendArray<int> recon(tree->nnodes);
-    ExtendArray<int> events(tree->nnodes);
-    reconcile(tree, stree, gene2species, recon);
-    labelEvents(tree, recon, events);
-
-    // check events
-    for (int i=0; i<tree->nnodes; i++) {
-	assert(events[i] <= 2 && events[i] >= 0);
-    }
-
-    samplePosteriorGeneRate(tree,
-                            nseqs, seqs, 
-                            bgfreq, ratio,
-                            stree,
-                            recon, events, params,
-                            nsamples,
-                            callback,
-                            userdata);
 }
 
 
+// TODO: repare
 // Uses MCMC to sample from P(B,G|T,D)
 void samplePosteriorGeneRate(Tree *tree,
                              int nseqs, char **seqs, 

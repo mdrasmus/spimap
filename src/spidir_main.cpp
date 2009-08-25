@@ -12,6 +12,9 @@
 #include <string>
 #include <vector>
 
+// third party
+#include <gsl/gsl_errno.h>
+
 // spidir headers
 #include "common.h"
 #include "phylogeny.h"
@@ -71,7 +74,7 @@ public:
 	config.add(new ConfigParam<string>
 		   ("-f", "--bgfreq", "<A freq>,<C ferq>,<G freq>,<T freq>", 
 		    &bgfreqstr, "",
-		    "background frequencies (default=0.25,0.25,0.25,0.25)"));
+		    "background frequencies (default: estimate)"));
 
 	config.add(new ConfigParamComment("Dup/loss evolution model"));
 	config.add(new ConfigParam<string>
@@ -427,15 +430,15 @@ int main(int argc, char **argv)
     // init topology proposer
     const int radius = 3;
     TopologyProposer *proposer2;
-    if (c.noSprNbr)
-        proposer2 = new SprProposer(&stree, gene2species, c.niter);
-    else
-        proposer2 = new SprNbrProposer(&stree, gene2species, c.niter, radius);
+    //if (c.noSprNbr)
+        proposer2 = new SprNniProposer(&stree, gene2species, c.niter);
+    //else
+    //    proposer2 = new SprNbrProposer(&stree, gene2species, c.niter, radius);
 
     DupLossProposer proposer(proposer2, &stree, gene2species, 
 			     c.duprate, c.lossrate,
-                             c.quickiter, c.niter, 
-                             c.quickSamples);
+                             c.quickiter, c.niter);//, 
+    //                             c.quickSamples);
     
 
     TreeSearch *search = NULL;
@@ -462,6 +465,11 @@ int main(int argc, char **argv)
     time_t startTime = time(NULL);
     
     //=======================================================
+    // setup gsl
+    gsl_set_error_handler_off();
+
+
+    //=======================================================
     // search
     Tree *toptree;
     
@@ -481,6 +489,9 @@ int main(int argc, char **argv)
     
     //========================================================
     // output final tree
+    
+    displayTree(toptree);
+
     toptree->setLeafNames(genes);
     toptree->writeNewick(outtreeFilename.c_str());
     
@@ -499,6 +510,7 @@ int main(int argc, char **argv)
             printLog(LOG_LOW, "RESULT: wrong\n");
         }
     }
+
         
     // log runtime
     time_t runtime = time(NULL) - startTime;
@@ -509,8 +521,7 @@ int main(int argc, char **argv)
     printLog(LOG_LOW, "runtime minutes:\t%.1f\n", float(runtime / 60.0));
     printLog(LOG_LOW, "runtime hours:\t%.1f\n", float(runtime / 3600.0));
     closeLogFile();
-
-
+    
     // clean up
     delete toptree;
     delete params;

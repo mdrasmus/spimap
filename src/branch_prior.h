@@ -95,22 +95,22 @@ public:
 
 
 
-float branchPrior(int nnodes, int *ptree, float *dists,
-		  int nsnodes, int *pstree, float *sdists,
-		  int *recon, int *events,
-		  float *sp_alpha, float *sp_beta, float generate, 
-		  float predupprob=1.0, float dupprob=1.0, float lossprob=1.0,
-		  float gene_alpha=0, float gene_beta=0,
-		  int nsamples=1000, bool approx=true);
+double branchPrior(int nnodes, int *ptree, float *dists,
+                   int nsnodes, int *pstree, float *sdists,
+                   int *recon, int *events,
+                   float *sp_alpha, float *sp_beta, float generate, 
+                   float predupprob=1.0, float dupprob=1.0, float lossprob=1.0,
+                   float gene_alpha=0, float gene_beta=0,
+                   int nsamples=1000, bool approx=true);
 
 } // extern "C"
 
-float branchPrior(Tree *tree,
-		  SpeciesTree *stree,
-		  int *recon, int *events, SpidirParams *params,
-		  float generate, 
-		  float predupprob, float dupprob, float lossprob,
-		  int nsamples=1000, bool approx=true);
+double branchPrior(Tree *tree,
+                   SpeciesTree *stree,
+                   int *recon, int *events, SpidirParams *params,
+                   float generate, 
+                   float predupprob, float dupprob, float lossprob,
+                   int nsamples=1000, bool approx=true);
 
 // get nodes in preorder (starting with given node)
 //void getSubtree(int **ftree, int node, int *events, ExtendArray<int> *subnodes);
@@ -137,13 +137,8 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
 			float birth, float death);
 
 
-float rareEventsLikelihood(Tree *tree, SpeciesTree *stree, int *recon, 
-                           int *events,
-                           float predupprob, float dupprob, float lossprob);
-
-float rareEventsLikelihood_old(Tree *tree, SpeciesTree *stree, int *recon, 
-                               int *events,
-                               float predupprob, float dupprob);
+//=============================================================================
+// old code
 
 float maxPosteriorGeneRate(Tree *tree, SpeciesTree *stree,
                            int *recon, int *events, SpidirParams *params);

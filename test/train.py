@@ -15,7 +15,7 @@ import spidir
 from rasmus.common import *
 from test import *
 
-if os.system("xpdf 2&> /dev/null") != 0:
+if os.system("which xpdf 2&>/dev/null") != 0:
     rplot_set_viewer("display")
 
 

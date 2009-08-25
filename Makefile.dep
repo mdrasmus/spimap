@@ -1,11 +1,14 @@
 # DO NOT DELETE
 
 src/Sequences.o: src/spidir.h src/Sequences.h src/common.h
-src/Sequences.o: /usr/include/stdlib.h /usr/include/features.h
+src/Sequences.o: /usr/include/sys/time.h /usr/include/features.h
 src/Sequences.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+src/Sequences.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
 src/Sequences.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/Sequences.o: /usr/include/stdio.h /usr/include/bits/types.h
-src/Sequences.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+src/Sequences.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/Sequences.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/Sequences.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/Sequences.o: /usr/include/stdlib.h /usr/include/stdio.h
 src/Sequences.o: /usr/include/libio.h /usr/include/_G_config.h
 src/Sequences.o: /usr/include/wchar.h /usr/include/bits/wchar.h
 src/Sequences.o: /usr/include/gconv.h
@@ -25,21 +28,27 @@ src/Tree.o: /usr/include/_G_config.h /usr/include/wchar.h
 src/Tree.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/Tree.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/Tree.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
-src/Tree.o: src/Tree.h /usr/include/stdlib.h src/common.h /usr/include/math.h
-src/Tree.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-src/Tree.o: /usr/include/bits/mathcalls.h /usr/include/string.h
-src/Tree.o: src/ExtendArray.h src/Matrix.h
+src/Tree.o: src/Tree.h /usr/include/stdlib.h src/common.h
+src/Tree.o: /usr/include/sys/time.h /usr/include/time.h
+src/Tree.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/Tree.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/Tree.o: /usr/include/math.h /usr/include/bits/huge_val.h
+src/Tree.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+src/Tree.o: /usr/include/string.h src/ExtendArray.h src/Matrix.h
 src/birthdeath.o: /usr/include/math.h /usr/include/features.h
 src/birthdeath.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/birthdeath.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 src/birthdeath.o: /usr/include/bits/mathcalls.h src/Tree.h
 src/birthdeath.o: /usr/include/stdlib.h
 src/birthdeath.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/birthdeath.o: src/common.h /usr/include/stdio.h /usr/include/bits/types.h
-src/birthdeath.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/birthdeath.o: /usr/include/libio.h /usr/include/_G_config.h
-src/birthdeath.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/birthdeath.o: /usr/include/gconv.h
+src/birthdeath.o: src/common.h /usr/include/sys/time.h
+src/birthdeath.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+src/birthdeath.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/birthdeath.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/birthdeath.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/birthdeath.o: /usr/include/stdio.h /usr/include/libio.h
+src/birthdeath.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/birthdeath.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/birthdeath.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/birthdeath.o: /usr/include/bits/stdio_lim.h
 src/birthdeath.o: /usr/include/bits/sys_errlist.h /usr/include/assert.h
@@ -58,30 +67,13 @@ src/branch_prior.o: /usr/include/bits/stdio_lim.h
 src/branch_prior.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
 src/branch_prior.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 src/branch_prior.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
-src/branch_prior.o: /usr/include/time.h /usr/include/bits/time.h src/common.h
+src/branch_prior.o: /usr/include/time.h src/common.h /usr/include/sys/time.h
+src/branch_prior.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/branch_prior.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
 src/branch_prior.o: /usr/include/string.h src/ExtendArray.h
 src/branch_prior.o: src/branch_prior.h src/Tree.h src/spidir.h
 src/branch_prior.o: src/birthdeath.h src/phylogeny.h src/HashTable.h
 src/branch_prior.o: src/seq_likelihood.h
-src/branch_prior.old.o: /usr/include/stdlib.h /usr/include/features.h
-src/branch_prior.old.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
-src/branch_prior.old.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/branch_prior.old.o: /usr/include/stdio.h /usr/include/bits/types.h
-src/branch_prior.old.o: /usr/include/bits/wordsize.h
-src/branch_prior.old.o: /usr/include/bits/typesizes.h /usr/include/libio.h
-src/branch_prior.old.o: /usr/include/_G_config.h /usr/include/wchar.h
-src/branch_prior.old.o: /usr/include/bits/wchar.h /usr/include/gconv.h
-src/branch_prior.old.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
-src/branch_prior.old.o: /usr/include/bits/stdio_lim.h
-src/branch_prior.old.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
-src/branch_prior.old.o: /usr/include/bits/huge_val.h
-src/branch_prior.old.o: /usr/include/bits/mathdef.h
-src/branch_prior.old.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
-src/branch_prior.old.o: /usr/include/time.h /usr/include/bits/time.h
-src/branch_prior.old.o: src/common.h /usr/include/string.h src/ExtendArray.h
-src/branch_prior.old.o: src/branch_prior.h src/Tree.h src/spidir.h
-src/branch_prior.old.o: src/birthdeath.h src/phylogeny.h src/HashTable.h
-src/branch_prior.old.o: src/seq_likelihood.h
 src/branch_sample.o: /usr/include/stdlib.h /usr/include/features.h
 src/branch_sample.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/branch_sample.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
@@ -95,8 +87,10 @@ src/branch_sample.o: /usr/include/bits/stdio_lim.h
 src/branch_sample.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
 src/branch_sample.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 src/branch_sample.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
-src/branch_sample.o: /usr/include/time.h /usr/include/bits/time.h
-src/branch_sample.o: src/common.h /usr/include/string.h src/ExtendArray.h
+src/branch_sample.o: /usr/include/time.h src/common.h /usr/include/sys/time.h
+src/branch_sample.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/branch_sample.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/branch_sample.o: /usr/include/string.h src/ExtendArray.h
 src/branch_sample.o: src/branch_prior.h src/Tree.h src/spidir.h
 src/branch_sample.o: src/birthdeath.h src/phylogeny.h src/HashTable.h
 src/branch_sample.o: src/seq_likelihood.h
@@ -113,18 +107,22 @@ src/common.o: /usr/include/libio.h /usr/include/_G_config.h
 src/common.o: /usr/include/wchar.h /usr/include/bits/wchar.h
 src/common.o: /usr/include/gconv.h /usr/include/bits/stdio_lim.h
 src/common.o: /usr/include/bits/sys_errlist.h /usr/include/string.h
-src/common.o: src/igammaf/igammaf.h src/igammaf/libs/ap.h
-src/common.o: src/igammaf/libs/apvt.h src/igammaf/gammaf.h
-src/common.o: src/igammaf/normaldistr.h src/common.h src/ExtendArray.h
+src/common.o: src/common.h /usr/include/sys/time.h /usr/include/time.h
+src/common.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/common.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/common.o: src/ExtendArray.h
 src/hky.o: src/hky.h src/spidir.h /usr/include/assert.h
 src/hky.o: /usr/include/features.h /usr/include/sys/cdefs.h
 src/hky.o: /usr/include/gnu/stubs.h /usr/include/math.h
 src/hky.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-src/hky.o: /usr/include/bits/mathcalls.h src/common.h /usr/include/stdlib.h
+src/hky.o: /usr/include/bits/mathcalls.h src/common.h /usr/include/sys/time.h
+src/hky.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
 src/hky.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/hky.o: /usr/include/stdio.h /usr/include/bits/types.h
-src/hky.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/hky.o: /usr/include/libio.h /usr/include/_G_config.h /usr/include/wchar.h
+src/hky.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/hky.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/hky.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/hky.o: /usr/include/stdlib.h /usr/include/stdio.h /usr/include/libio.h
+src/hky.o: /usr/include/_G_config.h /usr/include/wchar.h
 src/hky.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/hky.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/hky.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
@@ -141,7 +139,10 @@ src/maxml.o: /usr/include/wchar.h /usr/include/bits/wchar.h
 src/maxml.o: /usr/include/gconv.h
 src/maxml.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/maxml.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
-src/maxml.o: src/common.h /usr/include/math.h /usr/include/bits/huge_val.h
+src/maxml.o: src/common.h /usr/include/sys/time.h /usr/include/time.h
+src/maxml.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/maxml.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/maxml.o: /usr/include/math.h /usr/include/bits/huge_val.h
 src/maxml.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
 src/maxml.o: /usr/include/assert.h /usr/include/string.h src/ExtendArray.h
 src/maxml.o: src/phylogeny.h src/Tree.h src/HashTable.h src/parsimony.h
@@ -161,17 +162,22 @@ src/parsimony.o: /usr/include/gconv.h
 src/parsimony.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/parsimony.o: /usr/include/bits/stdio_lim.h
 src/parsimony.o: /usr/include/bits/sys_errlist.h /usr/include/string.h
-src/parsimony.o: src/common.h src/ExtendArray.h src/spidir.h src/parsimony.h
-src/parsimony.o: src/Tree.h
+src/parsimony.o: src/common.h /usr/include/sys/time.h /usr/include/time.h
+src/parsimony.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/parsimony.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/parsimony.o: src/ExtendArray.h src/spidir.h src/parsimony.h src/Tree.h
 src/phylogeny.o: src/phylogeny.h src/Tree.h /usr/include/stdlib.h
 src/phylogeny.o: /usr/include/features.h /usr/include/sys/cdefs.h
 src/phylogeny.o: /usr/include/gnu/stubs.h
 src/phylogeny.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/phylogeny.o: src/common.h /usr/include/stdio.h /usr/include/bits/types.h
-src/phylogeny.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/phylogeny.o: /usr/include/libio.h /usr/include/_G_config.h
-src/phylogeny.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/phylogeny.o: /usr/include/gconv.h
+src/phylogeny.o: src/common.h /usr/include/sys/time.h
+src/phylogeny.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+src/phylogeny.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/phylogeny.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/phylogeny.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/phylogeny.o: /usr/include/stdio.h /usr/include/libio.h
+src/phylogeny.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/phylogeny.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/phylogeny.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/phylogeny.o: /usr/include/bits/stdio_lim.h
 src/phylogeny.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
@@ -179,14 +185,16 @@ src/phylogeny.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 src/phylogeny.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
 src/phylogeny.o: /usr/include/string.h src/ExtendArray.h src/HashTable.h
 src/phylogeny.o: src/Matrix.h
-src/search.o: src/common.h /usr/include/stdlib.h /usr/include/features.h
+src/search.o: src/common.h /usr/include/sys/time.h /usr/include/features.h
 src/search.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+src/search.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
 src/search.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/search.o: /usr/include/stdio.h /usr/include/bits/types.h
-src/search.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/search.o: /usr/include/libio.h /usr/include/_G_config.h
-src/search.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/search.o: /usr/include/gconv.h
+src/search.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/search.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/search.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/search.o: /usr/include/stdlib.h /usr/include/stdio.h /usr/include/libio.h
+src/search.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/search.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/search.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/search.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 src/search.o: /usr/include/math.h /usr/include/bits/huge_val.h
@@ -200,14 +208,15 @@ src/seq_likelihood.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/seq_likelihood.o: /usr/include/bits/huge_val.h
 src/seq_likelihood.o: /usr/include/bits/mathdef.h
 src/seq_likelihood.o: /usr/include/bits/mathcalls.h /usr/include/time.h
+src/seq_likelihood.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
 src/seq_likelihood.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/seq_likelihood.o: /usr/include/bits/time.h /usr/include/bits/types.h
-src/seq_likelihood.o: /usr/include/bits/wordsize.h
 src/seq_likelihood.o: /usr/include/bits/typesizes.h src/common.h
-src/seq_likelihood.o: /usr/include/stdlib.h /usr/include/stdio.h
-src/seq_likelihood.o: /usr/include/libio.h /usr/include/_G_config.h
-src/seq_likelihood.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/seq_likelihood.o: /usr/include/gconv.h
+src/seq_likelihood.o: /usr/include/sys/time.h /usr/include/bits/time.h
+src/seq_likelihood.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/seq_likelihood.o: /usr/include/bits/sigset.h /usr/include/stdlib.h
+src/seq_likelihood.o: /usr/include/stdio.h /usr/include/libio.h
+src/seq_likelihood.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/seq_likelihood.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/seq_likelihood.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/seq_likelihood.o: /usr/include/bits/stdio_lim.h
 src/seq_likelihood.o: /usr/include/bits/sys_errlist.h /usr/include/assert.h
@@ -218,8 +227,11 @@ src/spidir.o: src/spidir.h src/phylogeny.h src/Tree.h /usr/include/stdlib.h
 src/spidir.o: /usr/include/features.h /usr/include/sys/cdefs.h
 src/spidir.o: /usr/include/gnu/stubs.h
 src/spidir.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/spidir.o: src/common.h /usr/include/stdio.h /usr/include/bits/types.h
+src/spidir.o: src/common.h /usr/include/sys/time.h /usr/include/bits/types.h
 src/spidir.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+src/spidir.o: /usr/include/time.h /usr/include/bits/time.h
+src/spidir.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/spidir.o: /usr/include/bits/sigset.h /usr/include/stdio.h
 src/spidir.o: /usr/include/libio.h /usr/include/_G_config.h
 src/spidir.o: /usr/include/wchar.h /usr/include/bits/wchar.h
 src/spidir.o: /usr/include/gconv.h
@@ -241,24 +253,28 @@ src/spidir_main.o: /usr/include/gconv.h
 src/spidir_main.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/spidir_main.o: /usr/include/bits/stdio_lim.h
 src/spidir_main.o: /usr/include/bits/sys_errlist.h /usr/include/time.h
-src/spidir_main.o: /usr/include/bits/time.h src/common.h /usr/include/math.h
-src/spidir_main.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
-src/spidir_main.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
-src/spidir_main.o: /usr/include/string.h src/ExtendArray.h src/phylogeny.h
-src/spidir_main.o: src/Tree.h src/HashTable.h src/parsimony.h src/search.h
-src/spidir_main.o: src/spidir.h src/Matrix.h src/ConfigParam.h
-src/spidir_main.o: src/Sequences.h
+src/spidir_main.o: src/common.h /usr/include/sys/time.h
+src/spidir_main.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/spidir_main.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/spidir_main.o: /usr/include/math.h /usr/include/bits/huge_val.h
+src/spidir_main.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
+src/spidir_main.o: /usr/include/assert.h /usr/include/string.h
+src/spidir_main.o: src/ExtendArray.h src/phylogeny.h src/Tree.h
+src/spidir_main.o: src/HashTable.h src/parsimony.h src/search.h src/spidir.h
+src/spidir_main.o: src/Matrix.h src/ConfigParam.h src/Sequences.h
 src/train.o: /usr/include/math.h /usr/include/features.h
 src/train.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/train.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 src/train.o: /usr/include/bits/mathcalls.h /usr/include/time.h
+src/train.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
 src/train.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/train.o: /usr/include/bits/time.h /usr/include/bits/types.h
-src/train.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/train.o: src/common.h /usr/include/stdlib.h /usr/include/stdio.h
-src/train.o: /usr/include/libio.h /usr/include/_G_config.h
-src/train.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/train.o: /usr/include/gconv.h
+src/train.o: /usr/include/bits/typesizes.h src/common.h
+src/train.o: /usr/include/sys/time.h /usr/include/bits/time.h
+src/train.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/train.o: /usr/include/bits/sigset.h /usr/include/stdlib.h
+src/train.o: /usr/include/stdio.h /usr/include/libio.h
+src/train.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/train.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/train.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/train.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 src/train.o: /usr/include/assert.h /usr/include/string.h src/ExtendArray.h
@@ -287,11 +303,14 @@ src/Matrix.o: /usr/include/_G_config.h /usr/include/wchar.h
 src/Matrix.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/Matrix.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/Matrix.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
-src/Sequences.o: src/common.h /usr/include/stdlib.h /usr/include/features.h
+src/Sequences.o: src/common.h /usr/include/sys/time.h /usr/include/features.h
 src/Sequences.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+src/Sequences.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
 src/Sequences.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/Sequences.o: /usr/include/stdio.h /usr/include/bits/types.h
-src/Sequences.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+src/Sequences.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/Sequences.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/Sequences.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/Sequences.o: /usr/include/stdlib.h /usr/include/stdio.h
 src/Sequences.o: /usr/include/libio.h /usr/include/_G_config.h
 src/Sequences.o: /usr/include/wchar.h /usr/include/bits/wchar.h
 src/Sequences.o: /usr/include/gconv.h
@@ -304,8 +323,11 @@ src/Sequences.o: /usr/include/string.h src/ExtendArray.h
 src/Tree.o: /usr/include/stdlib.h /usr/include/features.h
 src/Tree.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/Tree.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/Tree.o: src/common.h /usr/include/stdio.h /usr/include/bits/types.h
+src/Tree.o: src/common.h /usr/include/sys/time.h /usr/include/bits/types.h
 src/Tree.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
+src/Tree.o: /usr/include/time.h /usr/include/bits/time.h
+src/Tree.o: /usr/include/sys/select.h /usr/include/bits/select.h
+src/Tree.o: /usr/include/bits/sigset.h /usr/include/stdio.h
 src/Tree.o: /usr/include/libio.h /usr/include/_G_config.h
 src/Tree.o: /usr/include/wchar.h /usr/include/bits/wchar.h
 src/Tree.o: /usr/include/gconv.h
@@ -317,11 +339,14 @@ src/Tree.o: /usr/include/assert.h /usr/include/string.h src/ExtendArray.h
 src/birthdeath.o: src/Tree.h /usr/include/stdlib.h /usr/include/features.h
 src/birthdeath.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/birthdeath.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/birthdeath.o: src/common.h /usr/include/stdio.h /usr/include/bits/types.h
-src/birthdeath.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/birthdeath.o: /usr/include/libio.h /usr/include/_G_config.h
-src/birthdeath.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/birthdeath.o: /usr/include/gconv.h
+src/birthdeath.o: src/common.h /usr/include/sys/time.h
+src/birthdeath.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+src/birthdeath.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/birthdeath.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/birthdeath.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/birthdeath.o: /usr/include/stdio.h /usr/include/libio.h
+src/birthdeath.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/birthdeath.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/birthdeath.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/birthdeath.o: /usr/include/bits/stdio_lim.h
 src/birthdeath.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
@@ -331,9 +356,12 @@ src/birthdeath.o: /usr/include/string.h src/ExtendArray.h src/spidir.h
 src/branch_prior.o: src/Tree.h /usr/include/stdlib.h /usr/include/features.h
 src/branch_prior.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/branch_prior.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/branch_prior.o: src/common.h /usr/include/stdio.h
+src/branch_prior.o: src/common.h /usr/include/sys/time.h
 src/branch_prior.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
-src/branch_prior.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+src/branch_prior.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/branch_prior.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/branch_prior.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/branch_prior.o: /usr/include/stdio.h /usr/include/libio.h
 src/branch_prior.o: /usr/include/_G_config.h /usr/include/wchar.h
 src/branch_prior.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/branch_prior.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
@@ -343,14 +371,16 @@ src/branch_prior.o: /usr/include/bits/huge_val.h /usr/include/bits/mathdef.h
 src/branch_prior.o: /usr/include/bits/mathcalls.h /usr/include/assert.h
 src/branch_prior.o: /usr/include/string.h src/ExtendArray.h src/spidir.h
 src/branch_prior.o: src/birthdeath.h
-src/common.o: /usr/include/stdlib.h /usr/include/features.h
+src/common.o: /usr/include/sys/time.h /usr/include/features.h
 src/common.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
+src/common.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
 src/common.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/common.o: /usr/include/stdio.h /usr/include/bits/types.h
-src/common.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/common.o: /usr/include/libio.h /usr/include/_G_config.h
-src/common.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/common.o: /usr/include/gconv.h
+src/common.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/common.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/common.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/common.o: /usr/include/stdlib.h /usr/include/stdio.h /usr/include/libio.h
+src/common.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/common.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/common.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/common.o: /usr/include/bits/stdio_lim.h /usr/include/bits/sys_errlist.h
 src/common.o: /usr/include/math.h /usr/include/bits/huge_val.h
@@ -363,11 +393,14 @@ src/hky.o: /usr/include/bits/mathdef.h /usr/include/bits/mathcalls.h
 src/parsimony.o: src/Tree.h /usr/include/stdlib.h /usr/include/features.h
 src/parsimony.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/parsimony.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/parsimony.o: src/common.h /usr/include/stdio.h /usr/include/bits/types.h
-src/parsimony.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/parsimony.o: /usr/include/libio.h /usr/include/_G_config.h
-src/parsimony.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/parsimony.o: /usr/include/gconv.h
+src/parsimony.o: src/common.h /usr/include/sys/time.h
+src/parsimony.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+src/parsimony.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/parsimony.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/parsimony.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/parsimony.o: /usr/include/stdio.h /usr/include/libio.h
+src/parsimony.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/parsimony.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/parsimony.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/parsimony.o: /usr/include/bits/stdio_lim.h
 src/parsimony.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
@@ -377,11 +410,14 @@ src/parsimony.o: /usr/include/string.h src/ExtendArray.h
 src/phylogeny.o: src/Tree.h /usr/include/stdlib.h /usr/include/features.h
 src/phylogeny.o: /usr/include/sys/cdefs.h /usr/include/gnu/stubs.h
 src/phylogeny.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/phylogeny.o: src/common.h /usr/include/stdio.h /usr/include/bits/types.h
-src/phylogeny.o: /usr/include/bits/wordsize.h /usr/include/bits/typesizes.h
-src/phylogeny.o: /usr/include/libio.h /usr/include/_G_config.h
-src/phylogeny.o: /usr/include/wchar.h /usr/include/bits/wchar.h
-src/phylogeny.o: /usr/include/gconv.h
+src/phylogeny.o: src/common.h /usr/include/sys/time.h
+src/phylogeny.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
+src/phylogeny.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/phylogeny.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/phylogeny.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/phylogeny.o: /usr/include/stdio.h /usr/include/libio.h
+src/phylogeny.o: /usr/include/_G_config.h /usr/include/wchar.h
+src/phylogeny.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/phylogeny.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h
 src/phylogeny.o: /usr/include/bits/stdio_lim.h
 src/phylogeny.o: /usr/include/bits/sys_errlist.h /usr/include/math.h
@@ -393,9 +429,12 @@ src/seq_likelihood.o: src/Tree.h /usr/include/stdlib.h
 src/seq_likelihood.o: /usr/include/features.h /usr/include/sys/cdefs.h
 src/seq_likelihood.o: /usr/include/gnu/stubs.h
 src/seq_likelihood.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stddef.h
-src/seq_likelihood.o: src/common.h /usr/include/stdio.h
+src/seq_likelihood.o: src/common.h /usr/include/sys/time.h
 src/seq_likelihood.o: /usr/include/bits/types.h /usr/include/bits/wordsize.h
-src/seq_likelihood.o: /usr/include/bits/typesizes.h /usr/include/libio.h
+src/seq_likelihood.o: /usr/include/bits/typesizes.h /usr/include/time.h
+src/seq_likelihood.o: /usr/include/bits/time.h /usr/include/sys/select.h
+src/seq_likelihood.o: /usr/include/bits/select.h /usr/include/bits/sigset.h
+src/seq_likelihood.o: /usr/include/stdio.h /usr/include/libio.h
 src/seq_likelihood.o: /usr/include/_G_config.h /usr/include/wchar.h
 src/seq_likelihood.o: /usr/include/bits/wchar.h /usr/include/gconv.h
 src/seq_likelihood.o: /usr/lib64/gcc-lib/x86_64-suse-linux/3.3.4/include/stdarg.h

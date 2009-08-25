@@ -20,8 +20,6 @@
 #include <gsl/gsl_sf.h>
 
 
-#include "igammaf/igammaf.h"
-
 // spidir headers
 #include "common.h"
 
@@ -53,7 +51,7 @@ double fchoose(int n, int k)
     
     double t = 1.0;
     double m = n;
-    for (double i=1; i<k+1; i++)
+    for (double i=1; i<=k; i++)
         t *= (m - i + 1) / i;
     return t;
 }
@@ -118,7 +116,7 @@ double gamm(double x)
 
 
 // natural log of the gamma distribution PDF
-float gammalog(float x, float a, float b)
+double gammalog(double x, double a, double b)
 {
     if (x <= 0 || a <= 0 || b <= 0)
         return 0.0;
@@ -127,7 +125,7 @@ float gammalog(float x, float a, float b)
 }
 
 // the gamma distribution PDF
-float gammaPdf(float x, float a, float b)
+double gammaPdf(double x, double a, double b)
 {
     if (x <= 0 || a <= 0 || b <= 0)
         return 0.0;
@@ -137,11 +135,77 @@ float gammaPdf(float x, float a, float b)
 
 
 // Inverse gamma distribution PDF
-float invgamma(float x, float a, float b)
+double invgammaPdf(double x, double a, double b)
 {
-    return pow(b, a) / gamm(a) * pow(1/x, a+1) * exp(-b/x);
+    return exp(loginvgammaPdf(x, a, b));
+    //return pow(b, a) / gamm(a) * pow(1/x, a+1) * exp(-b/x);
 }
 
+
+// Log Inverse gamma distribution PDF
+double loginvgammaPdf(double x, double a, double b)
+{
+    return a*log(b) - gammln(a) + (a+1)*log(1/x) - b/x;
+}
+
+
+double invgammaDerivA(double x, double a, double b)
+{
+    return gammaDerivA(1/x, a, b) / x / x;
+}
+
+
+double invgammaDerivB(double x, double a, double b)
+{
+    return gammaDerivB(1/x, a, b) / x / x;
+}
+
+
+double invgammaDerivG(double x, double d)
+{
+    double logd = log(d);
+    double logix = log(1/x);
+    double p = - gammln(1+d) + d*logd - d/x + (3+d)*logix;
+    return exp(p) * (d * (-1 + x) + x + d*x*(logd + logix) - 
+                     d*x*gsl_sf_psi_n(0, 1+d));
+    /*
+    return (1/gamm(1+d) * pow(d,d) * exp(-d/x) * pow(1/x, 3+d)) * 
+            (d * (-1 + x) + x + d*x*(log(d) + log(1/x)) - 
+             d*x*gsl_sf_psi_n(0, 1+d));
+    */
+}
+
+double invgammaDerivG2(double x, double d)
+{
+
+    double logd = log(d);
+    double logix = log(1/x);
+    double dxlogdix = d*x*(logd + logix);
+    double psi1 = gsl_sf_psi_n(0, 1 + d);
+    double psi2 = gsl_sf_psi_n(1, 1 + d);
+
+    double p = - gammln(1 + d) + d*log(d) -d/x + (4+d)*log(1/x);
+
+    return exp(p) * (d - 2*(1 + d)*x + (3 + d)*x*x + 
+         x*(logd + logix)*(2*(d*(-1 + x) + x) + dxlogdix) + 
+         x*(-2*(d*(-1 + x) + x + dxlogdix)*
+            psi1 + d*x*psi1*psi1 - d*x*psi2));
+    return exp(p);
+    
+    /*
+    return (1/gamm(1 + d))*pow(d,d)*exp(-d/x)*pow(1/x, 4 + d) *
+        (d - 2*(1 + d)*x + (3 + d)*x*x + 
+         x*(log(d) + log(1/x))*(2*(d*(-1 + x) + x) + 
+                                d*x*(log(d) + log(1/x))) + 
+         x*(-2*(d*(-1 + x) + x + d*x*(log(d) + log(1/x)))*
+            gsl_sf_psi_n(0, 1 + d) + 
+            d*x*pow(gsl_sf_psi_n(0, 1 + d), 2) - 
+            d*x*gsl_sf_psi_n(1, 1 + d)));
+    */
+}
+
+
+/*
 float invgammaCdf(float x, float a, float b)
 {
     return incompletegammac(a, b / x) / gamm(a);
@@ -151,34 +215,37 @@ double quantInvgamma(double p, double a, double b)
 {
     return b / invincompletegammac(a, gamm(a) * p);
 }
-
+*/
 
 // Derivative of Gamma distribution with respect to x
-float gammaDerivX(float x, float a, float b)
+double gammaDerivX(double x, double a, double b)
 { 
     return pow(b, a) / gamm(a) * exp(-b*x) * pow(x, a-2) * (a - b*x - 1);
 }
     
 // Derivative of Gamma distribution with respect to a
-float gammaDerivA(float x, float a, float b)
+double gammaDerivA(double x, double a, double b)
 {
     return exp(-b*x) * pow(x,a-1) * pow(b, a) / gamm(a) * 
         (log(b) + log(x) - gsl_sf_psi_n(0, a));
 }
 
 // Derivative of Gamma distribution with respect to b
-float gammaDerivB(float x, float a, float b)
+double gammaDerivB(double x, double a, double b)
 {
     return pow(x, a-1) / gamm(a) * exp(-b*x) * pow(b, a-1) * (a - x*b);
 }
 
+
 // Derivative of Gamma distribution with respect to nu (its variance)
-float gammaDerivV(float x, float v)
+double gammaDerivV(double x, double v)
 {
     float q = 1.0 / v;
     
-    double w = log(q)*(q+2) + log(x)*(q-1) -x * q - gammln(q);
-    double z = 1 - x + log(q) + log(x) - gsl_sf_psi_n(0, q);
+    double lnq = log(q);
+    double lnx = log(x);
+    double w = lnq*(q+2) + lnx*(q-1) - x * q - gammln(q);
+    double z = 1 - x + lnq + lnx - gsl_sf_psi_n(0, q);
 
     if (z > 0)
 	return -exp(w + log(z));
@@ -191,14 +258,14 @@ float gammaDerivV(float x, float v)
 }
 
 // Second Derivative of Gamma distribution with respect to nu (its variance)
-double gammaDerivV2(float x, float v)
+double gammaDerivV2(double x, double v)
 {
-    float q = 1.0 / v;
-    float lnx = log(x);
-    float lnq = log(q);
-    float A = 1.0 + v - x + lnx;
-    float psi0 = gsl_sf_psi_n(0, q);
-    float psi1 = gsl_sf_psi_n(1, q);
+    double q = 1.0 / v;
+    double lnx = log(x);
+    double lnq = log(q);
+    double A = 1.0 + v - x + lnx;
+    double psi0 = gsl_sf_psi_n(0, q);
+    double psi1 = gsl_sf_psi_n(1, q);
 
     double w = -x*q + lnq*(q+4) + lnx*(q-1) - gammln(q);
     double z = 1 + 3*v - 2*x - 2*v*x + x*x + lnq*lnq - lnx*lnx +
@@ -227,11 +294,6 @@ double gammaDerivV2(float x, float v)
     */
 }
 
-
-double incompleteGammaC(double s, double x)
-{
-    return incompletegammac(s, x);
-}
 
 
 // PDF of a sum of n gamma variables
