@@ -41,14 +41,14 @@ class TestProg (unittest.TestCase):
                    "-S test/data/verts/ensembl.smap "
                    "-s test/data/verts/ensembl.stree "
                    "-p test/data/verts/ensembl.param "
-                   "-o /a "
+                   "-o %s/a "
                    "-k 1.59 "
                    "--duprate .4 "
                    "--lossrate .39 "
                    "--quicksamples 1 "
                    "-i 50 "
                    "--quickiter 1000 "
-                   "-V 2 --log - ")
+                   "-V 2 --log - " % outdir)
 
         print cmd
         self.assertEqual(os.system(cmd), 0)

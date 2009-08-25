@@ -28,7 +28,7 @@ o.add_option("-g", "--generate", dest="generate", metavar="<gene rate>",
              default=None, type="float")
 o.add_option("", "--generatefunc", dest="generatefunc",
              metavar="<gene rate function>",
-             default="gamma")
+             default="invgamma")
 o.add_option("-l", "--genelen", dest="genelen",
              metavar="<gene length in base pairs>",
              default=1000,
@@ -106,7 +106,7 @@ def gene2species(gene):
 def sim_tree(stree, params, duprate, lossrate, generate, use_spec,
              minsize=4,
              infofile=sys.stdout,
-             generatefunc="gamma"):
+             generatefunc="invgamma"):
     """simulate one tree"""
     
     # create gene tree using birth death model

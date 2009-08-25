@@ -33,22 +33,22 @@ class TestAllTerms (unittest.TestCase):
         """Test all terms"""
 
         prep_dir("test/output/all_terms")
-        out = open("test/output/all_terms/flies.nt.txt", "w")
+        out = open("test/output/all_terms/flies.txt", "w")
         #out = sys.stderr
 
-        treeids = os.listdir("test/data/flies-ones")[:100]
+        treeids = os.listdir("test/data/flies")[:100]
         #treeids = ["0"]
 
         for treeid in treeids:
         
-            tree = readTree("test/data/flies-ones/%s/%s.tree" % (treeid, treeid))
-            align = readFasta("test/data/flies-ones/%s/%s.align" % (treeid, treeid))
+            tree = readTree("test/data/flies/%s/%s.nt.tree" % (treeid, treeid))
+            align = readFasta("test/data/flies/%s/%s.nt.align" % (treeid, treeid))
 
             print >>out, treeid
-            drawTree(tree, out=out)
+            draw_tree(tree, out=out)
             
-            stree = readTree("test/data/flies.norm.stree")
-            gene2species = genomeutil.readGene2species("test/data/flies.smap")
+            stree = read_tree("test/data/flies.norm.stree")
+            gene2species = phylo.read_gene2species("test/data/flies.smap")
             params = spidir.read_params("test/data/flies.nt.param")
             birth = .4
             death = .39
@@ -59,7 +59,7 @@ class TestAllTerms (unittest.TestCase):
             kappa = 1.59
         
             recon = phylo.reconcile(tree, stree, gene2species)
-            events = phylo.labelEvents(tree, recon)
+            events = phylo.label_events(tree, recon)
 
             branchp, topp, seqlk = spidir.calc_joint_prob(
                 align, tree, stree, recon, events, params,
@@ -81,10 +81,10 @@ class TestAllTerms (unittest.TestCase):
         """Test all terms"""
 
         prep_dir("test/output/all_terms_search")
-        out = open("test/output/all_terms_search/flies.nt.txt", "w")
+        out = open("test/output/all_terms_search/flies.txt", "w")
         #out = sys.stderr
 
-        treeids = os.listdir("test/data/flies.nt")
+        treeids = os.listdir("test/data/flies")
         #treeids = ["3"]
 
         for treeid in treeids:
