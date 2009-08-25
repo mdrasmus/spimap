@@ -82,6 +82,8 @@ def export(lib, funcname, return_type, prototypes, scope=globals(),
 # additional C types
 c_float_p = POINTER(c_float)
 c_float_p_p = POINTER(POINTER(c_float))
+c_double_p = POINTER(c_double)
+c_double_p_p = POINTER(POINTER(c_double))
 c_int_p = POINTER(c_int)
 c_int_p_p = POINTER(POINTER(c_int))
 c_char_p_p = POINTER(c_char_p)
@@ -214,7 +216,7 @@ export(spidir, "sampleBirthWaitTime1", c_float,
 
 
 # branch prior functions
-export(spidir, "branchPrior", c_float,
+export(spidir, "branchPrior", c_double,
        [c_int, "nnodes", c_int_list, "ptree", c_float_list, "dists",
         c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
         c_int_list, "recon", c_int_list, "events",
@@ -231,6 +233,8 @@ export(spidir, "parsimony", c_void_p,
         c_char_p_p, "seqs", c_float, "dists",
         c_int, "buildAncestral", c_char_p_p, "ancetralSeqs"])
 
+c_floatlk = c_double
+c_floatlk_p = c_double_p
 
 # sequence likelihood functions
 export(spidir, "makeHkyMatrix", c_void_p,
@@ -242,26 +246,26 @@ export(spidir, "makeHkyDerivMatrix", c_void_p,
 export(spidir, "makeHkyDeriv2Matrix", c_void_p,
        [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
         c_float_p, "matrix"])
-export(spidir, "branchLikelihoodHky", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+export(spidir, "branchLikelihoodHky", c_floatlk,
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq", c_float, "kappa",
         c_float, "time"])
-export(spidir, "branchLikelihoodHkyDeriv", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+export(spidir, "branchLikelihoodHkyDeriv", c_floatlk,
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq",
         c_float, "kappa", c_float, "time"])       
-export(spidir, "branchLikelihoodHkyDeriv2", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+export(spidir, "branchLikelihoodHkyDeriv2", c_floatlk,
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq",
         c_float, "kappa", c_float, "time"])
 export(spidir, "mleDistanceHky", c_float,
-       [c_float_p, "probs1", c_float_p, "probs2",
+       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
         c_int, "seqlen", c_float_p, "bgfreq",
         c_float, "kappa", c_float, "t0", c_float, "t1"])
-export(spidir, "calcSeqProbHky", c_float,
+export(spidir, "calcSeqProbHky", c_floatlk,
        [c_void_p, "tree", c_int, "nseqs", c_char_p_p, "seqs",
         c_float_p, "bgfreq", c_float, "kappa"])
-export(spidir, "findMLBranchLengthsHky", c_float,
+export(spidir, "findMLBranchLengthsHky", c_floatlk,
        [c_int, "nnodes", c_int_p, "ptree", c_int, "nseqs",
         c_char_p_p, "seqs", c_float_p, "dists",
         c_float_p, "bgfreq", c_float, "kappa",

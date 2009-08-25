@@ -40,22 +40,20 @@ class TestHKY (unittest.TestCase):
 
         nodes = sorted(tree.nodes.values(), key=lambda x: x.dist)
 
-        util.tic("find ML")
-        for i in range(1):
-            l = spidir.find_ml_branch_lengths_hky(
-                    tree,
-                    util.mget(align, tree.leafNames()),
-                    bgfreq, kappa,
-                    parsinit=False,
-                    maxiter=0)
-            
-            dists.append([n.dist for n in nodes])
-            likes.append(l)
-        util.toc()
+        l = spidir.calc_seq_likelihood_hky(tree, align, bgfreq, kappa)
+        print l
+        self.assert_(l != -util.INF)
 
-        print likes
 
-        self.assert_(likes[0] != -util.INF)
+        l = spidir.find_ml_branch_lengths_hky(
+            tree,
+            util.mget(align, tree.leafNames()),
+            bgfreq, kappa,
+            parsinit=False,
+            maxiter=1)
+        print l
+        self.assert_(l != -util.INF)
+        
 
     
     def _test_ml(self):

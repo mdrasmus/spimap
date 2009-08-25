@@ -85,12 +85,12 @@ extern "C" {
 float poisson(int x, float lambda);
 double gammln(double xx);
 double gamm(double x);
-float gammalog(float x, float a, float b);
-float gammaPdf(float x, float a, float b);
-float invgammaPdf(float x, float a, float b);
-float loginvgammaPdf(float x, float a, float b);
-float invgammaDerivA(float x, float a, float b);
-float invgammaDerivB(float x, float a, float b);
+double gammalog(double x, double a, double b);
+double gammaPdf(double x, double a, double b);
+double invgammaPdf(double x, double a, double b);
+double loginvgammaPdf(double x, double a, double b);
+double invgammaDerivA(double x, double a, double b);
+double invgammaDerivB(double x, double a, double b);
 double invgammaDerivG(double x, double g);
 double invgammaDerivG2(double x, double g);
 //float invgammaCdf(float x, float a, float b);
@@ -208,11 +208,11 @@ float bisectRoot(Func &f, float x0, float x1, const float err=.001)
 
 
 // computes log(a + b) given log(a) and log(b)
-inline float logadd(float lna, float lnb)
+inline double logadd(double lna, double lnb)
 {
-    float diff = lna - lnb;
+    double diff = lna - lnb;
     if (diff < 40.0)
-        return logf(expf(diff) + 1.0) + lnb;
+        return log(exp(diff) + 1.0) + lnb;
     else
         return lna;
 }

@@ -116,7 +116,7 @@ double gamm(double x)
 
 
 // natural log of the gamma distribution PDF
-float gammalog(float x, float a, float b)
+double gammalog(double x, double a, double b)
 {
     if (x <= 0 || a <= 0 || b <= 0)
         return 0.0;
@@ -125,7 +125,7 @@ float gammalog(float x, float a, float b)
 }
 
 // the gamma distribution PDF
-float gammaPdf(float x, float a, float b)
+double gammaPdf(double x, double a, double b)
 {
     if (x <= 0 || a <= 0 || b <= 0)
         return 0.0;
@@ -135,7 +135,7 @@ float gammaPdf(float x, float a, float b)
 
 
 // Inverse gamma distribution PDF
-float invgammaPdf(float x, float a, float b)
+double invgammaPdf(double x, double a, double b)
 {
     return exp(loginvgammaPdf(x, a, b));
     //return pow(b, a) / gamm(a) * pow(1/x, a+1) * exp(-b/x);
@@ -143,19 +143,19 @@ float invgammaPdf(float x, float a, float b)
 
 
 // Log Inverse gamma distribution PDF
-float loginvgammaPdf(float x, float a, float b)
+double loginvgammaPdf(double x, double a, double b)
 {
     return a*log(b) - gammln(a) + (a+1)*log(1/x) - b/x;
 }
 
 
-float invgammaDerivA(float x, float a, float b)
+double invgammaDerivA(double x, double a, double b)
 {
     return gammaDerivA(1/x, a, b) / x / x;
 }
 
 
-float invgammaDerivB(float x, float a, float b)
+double invgammaDerivB(double x, double a, double b)
 {
     return gammaDerivB(1/x, a, b) / x / x;
 }

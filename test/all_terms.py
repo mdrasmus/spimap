@@ -29,20 +29,20 @@ def exc_default(func, val, exc=Exception):
 class TestAllTerms (unittest.TestCase):
 
 
-    def _test_all_terms(self):
+    def test_all_terms(self):
         """Test all terms"""
 
         prep_dir("test/output/all_terms")
         out = open("test/output/all_terms/flies.nt.txt", "w")
         #out = sys.stderr
 
-        treeids = os.listdir("test/data/flies.nt")[:100]
+        treeids = os.listdir("test/data/flies-ones")[:100]
         #treeids = ["0"]
 
         for treeid in treeids:
         
-            tree = readTree("test/data/flies.nt/%s/%s.tree" % (treeid, treeid))
-            align = readFasta("test/data/flies.nt/%s/%s.align" % (treeid, treeid))
+            tree = readTree("test/data/flies-ones/%s/%s.tree" % (treeid, treeid))
+            align = readFasta("test/data/flies-ones/%s/%s.align" % (treeid, treeid))
 
             print >>out, treeid
             drawTree(tree, out=out)
@@ -136,4 +136,4 @@ class TestAllTerms (unittest.TestCase):
         out.close()
         
 if __name__ == "__main__":
-    unittest.main(testRunner=TestRunner())
+    unittest.main(testRunner=TestRunner(), argv=sys.argv)

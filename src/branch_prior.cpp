@@ -42,14 +42,14 @@ float estimateGeneRate(Tree *tree, SpeciesTree *stree,
 // branch prior functions
 
 
-float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
-		     bool approx)
+double approxGammaSum(int nparams, double x, float *gs_alpha, float *gs_beta,
+                      bool approx)
 {
-    const float tol = .001;
-    const float minfrac = .01;
+    const double tol = .001;
+    const double minfrac = .01;
 
     // filter for extreme parameters
-    float mean = 0.0;
+    double mean = 0.0;
     for (int i=0; i<nparams; i++) {
 	if (isinf(gs_beta[i]) || isnan(gs_beta[i])) {
 	    gs_alpha[i] = gs_alpha[--nparams];
@@ -61,8 +61,8 @@ float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
     }
 
     // remove params with effectively zero mean
-    float mu = 0.0;
-    float var = 0.0;
+    double mu = 0.0;
+    double var = 0.0;
     for (int i=0; i<nparams; i++) {	
 	if (gs_alpha[i] / gs_beta[i] < minfrac * mean) {
 	    gs_alpha[i] = gs_alpha[--nparams];
@@ -81,11 +81,11 @@ float approxGammaSum(int nparams, float x, float *gs_alpha, float *gs_beta,
     
     //float dist = node->dist / generate;
     
-    float logp;
+    double logp;
     if (approx) {
 	// approximation
-	float a2 = mean*mean/var;
-	float b2 = mean/var;
+	double a2 = mean*mean/var;
+	double b2 = mean/var;
 	logp = gammalog(x, a2, b2);
     } else {
 	logp = log(gammaSumPdf(x, nparams, gs_alpha, gs_beta, tol));
@@ -325,9 +325,9 @@ void getReconParams(Tree *tree, Node *node,
 
 
 // Calculate branch probability
-float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
-		 float generate, ReconParams *reconparams,
-		 bool approx=true)
+double branchprob(Tree *tree, SpeciesTree *stree, Node *node,
+                  float generate, ReconParams *reconparams,
+                  bool approx=true)
 {
     // get times
     ExtendArray<float> times(0, tree->nnodes);
@@ -346,9 +346,9 @@ float branchprob(Tree *tree, SpeciesTree *stree, Node *node,
 
 
 // Calculate branch probability
-float branchprob_unfold(Tree *tree, SpeciesTree *stree, 
-			float generate, ReconParams *reconparams,
-			bool approx=true)
+double branchprobUnfold(Tree *tree, SpeciesTree *stree, 
+                        float generate, ReconParams *reconparams,
+                        bool approx=true)
 {
     Node *node0 = tree->root->children[0];
     Node *node1 = tree->root->children[1];
@@ -444,13 +444,13 @@ public:
 
 
     // subtree prior conditioned on divergence times
-    float subtreeprior_cond(Tree *tree, SpeciesTree *stree,
-			    int *recon, float generate,
-			    ReconParams *reconparams,
-			    ExtendArray<Node*> &subnodes,
-			    bool unfold)
+    double subtreeprior_cond(Tree *tree, SpeciesTree *stree,
+                             int *recon, float generate,
+                             ReconParams *reconparams,
+                             ExtendArray<Node*> &subnodes,
+                             bool unfold)
     {
-	float logp = 0.0;
+	double logp = 0.0;
         
 	// loop through all branches in subtree
 	for (int j=0; j<subnodes.size(); j++) {
@@ -468,8 +468,8 @@ public:
 		    continue;
 		} else if (node == tree->root->children[0]) {
 		    // unfold left branch
-		    logp += branchprob_unfold(tree, stree,
-					      generate, reconparams);
+		    logp += branchprobUnfold(tree, stree,
+                                             generate, reconparams);
 		    continue;
 		}
 	    }
@@ -482,7 +482,7 @@ public:
 
 
     // Calculate the likelihood of a subtree
-    float subtreeprior(int root, float generate, ReconParams *reconparams)
+    double subtreeprior(int root, float generate, ReconParams *reconparams)
     {
    
 	// set reconparams by traversing subtree
@@ -518,7 +518,7 @@ public:
 	    //if (nsamples > 2000) nsamples = 2000;
         	
 	    // perform integration by sampling
-	    double prob = 0.0;
+	    double prob = 1.0;
 	    for (int i=0; i<nsamples; i++) {
 		double sampleLogl = 0.0;
             
@@ -534,10 +534,11 @@ public:
 					       subnodes,
 					       unfold);
 	    
-		prob += exp(sampleLogl) / nsamples;
+		//prob += exp(sampleLogl) / nsamples;
+                prob = logadd(prob, sampleLogl);
 	    }
         
-	    return log(prob);
+	    return prob - log(nsamples);
 	}
     }
 
@@ -611,14 +612,14 @@ protected:
   
 
 // TODO: move birth, death into param
-float branchPrior(Tree *tree,
-		  SpeciesTree *stree,
-		  int *recon, int *events, SpidirParams *params,
-		  float generate,
-		  float pretime_lambda, float birth, float death,
-		  int nsamples, bool approx)
+double branchPrior(Tree *tree,
+                   SpeciesTree *stree,
+                   int *recon, int *events, SpidirParams *params,
+                   float generate,
+                   float pretime_lambda, float birth, float death,
+                   int nsamples, bool approx)
 {
-    float logl = 0.0; // log likelihood
+    double logl = 0.0; // log likelihood
     Timer timer;
 
     
@@ -642,13 +643,13 @@ float branchPrior(Tree *tree,
 extern "C" {
 
 // Calculate the likelihood of a tree
-float branchPrior(int nnodes, int *ptree, float *dists,
-		  int nsnodes, int *pstree, float *sdists,
-		  int *recon, int *events,
-		  float *sp_alpha, float *sp_beta, float generate,
-		  float pretime_lambda, float birth, float death,
-		  float gene_alpha, float gene_beta,
-		  int nsamples, bool approx)
+double branchPrior(int nnodes, int *ptree, float *dists,
+                   int nsnodes, int *pstree, float *sdists,
+                   int *recon, int *events,
+                   float *sp_alpha, float *sp_beta, float generate,
+                   float pretime_lambda, float birth, float death,
+                   float gene_alpha, float gene_beta,
+                   int nsamples, bool approx)
 {
     // create tree objects
     Tree tree(nnodes);
