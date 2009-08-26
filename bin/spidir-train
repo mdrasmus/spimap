@@ -25,39 +25,10 @@ o.add_option("-r", "--nrates", dest="nrates",
              default=20)
 o.add_option("-p", "--params", dest="params",
              metavar="<output parameters file>")
-<<<<<<< HEAD:bin/spidir-train
-
-
-
-def read_length_matrix(filename, minlen=.0001, maxlen=1.0):
-    """Read a length matrix"""
-    
-    dat = util.read_delim(filename)
-    species = dat[0][2:]
-    lens = util.map2(float, util.submatrix(dat, range(1, len(dat)),
-                                           range(2, len(dat[0]))))
-    gene_sizes = map(int, util.cget(dat[1:], 1))
-
-    #for row in lens:
-    #    for i in xrange(len(row)):
-    #        if row[i] <= 0.0:
-    #            row[i] = minlen
-
-    # remove high lengths
-    cols = zip(* lens)
-    means = map(stats.mean, cols)
-
-    for row in lens:
-        for i in xrange(len(row)):
-            if row[i] > maxlen:
-                row[i] = means[i]
-    
-    return species, lens, gene_sizes
-=======
 o.add_option("-f", "--filter", dest="filter",
              metavar="<treelen percentile>",
              type="float", default=1.00)
->>>>>>> gamma-gamma:bin/spidir-train
+
 
     
 def write_params_list(filename, species, params, logls):
@@ -90,9 +61,6 @@ def main(conf, args):
     stree = treelib.read_tree(conf.stree)
     times = [node.dist for node in stree.postorder() if node.parent]
 
-<<<<<<< HEAD:bin/spidir-train
-    species, lens, gene_sizes = read_length_matrix(conf.lenmatrix)
-=======
     species, lens, gene_sizes, files = spidir.read_length_matrix(conf.lenmatrix)
 
     # filter
@@ -106,7 +74,6 @@ def main(conf, args):
     util.logger("using %d trees" % len(lens))
     
     
->>>>>>> gamma-gamma:bin/spidir-train
     for i, sp in enumerate(species):
         if isinstance(sp, basestring) and sp.isdigit():
             species[i] = int(sp)

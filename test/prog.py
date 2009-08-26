@@ -32,66 +32,60 @@ class TestProg (unittest.TestCase):
     def test_prog(self):
         """Test the main program"""
 
-        prep_dir("test/output/prog")
+        outdir = "test/output/prog"
+        prep_dir(outdir)
 
-        treeids = os.listdir("test/data/flies.nt")[:1]
+        treeids = os.listdir("test/data/flies-duploss")[:1]
 
         for treeid in treeids:
 
-            alignfile = "test/data/flies.nt/%s/%s.align" % (treeid, treeid)
-            tree_correct = "test/data/flies.nt/%s/%s.tree" % (treeid, treeid)
+            alignfile = "test/data/flies-duploss/%s/%s.align" % (treeid, treeid)
+            tree_correct = "test/data/flies-duploss/%s/%s.tree" % (treeid, treeid)
 
-            cmd = (#"valgrind "
+            self.run_spidir(alignfile, tree_correct, outdir+"/"+treeid)
+
+
+    def test_prog_many(self):
+        """Test the main program"""
+
+        outdir = "test/output/prog"
+        prep_dir(outdir)
+
+        treeids = os.listdir("test/data/flies-duploss")
+
+        for treeid in treeids:
+
+            alignfile = "test/data/flies-duploss/%s/%s.align" % (treeid, treeid)
+            tree_correct = "test/data/flies-duploss/%s/%s.tree" % (treeid, treeid)
+
+            self.run_spidir(alignfile, tree_correct, outdir+"/"+treeid)
+
+
+    def run_spidir(self, alignfile, tree_correct, outprefix):
+        """Test the main program"""
+
+        
+        
+        cmd = (#"valgrind "
                    "bin/spidir "
                    "-a %s "
                    "-S test/data/flies.smap "
-                   "-s test/data/flies.norm.stree "
-                   "-p test/data/flies.nt.param "
-                   "-o test/output/prog/%s "
+                   "-s test/data/flies.stree "
+                   "-p test/data/flies.param "
+                   "-o %s "
                    "-k 1.59 "
                    "--duprate .4 "
                    "--lossrate .39 "
                    "--no_spr_nbr --quicksamples 1 "
                    "-i 50 "
-                   "--quickiter 1000 "
+                   "--quickiter 100 "
                    "--correct %s "
                    "-V 1 --log - ") \
-                   % (alignfile, treeid, tree_correct)
+                   % (alignfile, outprefix, tree_correct)
 
-            print cmd
-            self.assertEqual(os.system(cmd), 0)
+        print cmd
+        self.assertEqual(os.system(cmd), 0)
 
-    def _test_prog_many(self):
-        """Test the main program on many inputs"""
-
-        prep_dir("test/output/prog_many")
-
-        treeids = os.listdir("test/data/flies.nt")
-
-        for treeid in treeids:
-
-            alignfile = "test/data/flies.nt/%s/%s.align" % (treeid, treeid)
-            tree_correct = "test/data/flies.nt/%s/%s.tree" % (treeid, treeid)
-
-            cmd = ("bin/spidir "
-                   "-a %s "
-                   "-S test/data/flies.smap "
-                   "-s test/data/flies.norm.stree "
-                   "-p test/data/flies.nt.param "
-                   "-o test/output/prog_many/%s "
-                   "-k 1.59 "
-                   "--bgfreq .258,.267,.266,.209 "
-                   "--duprate .4 "
-                   "--lossrate .39 "
-                   "-i 1 "
-                   "--quickiter 10 "
-                   "--correct %s "
-                   "-V 2 --log - ") \
-                   % (alignfile, treeid, tree_correct)
-
-            print "treeid:", treeid
-            self.assertEqual(os.system(cmd), 0)
-            
               
         
 if __name__ == "__main__":
