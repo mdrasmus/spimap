@@ -17,11 +17,11 @@ int inumTopologyHistories(Tree *tree);
 double numTopologyHistories(Tree *tree);
 
 void calcDoomTable(Tree *tree, float birth, float death, int maxdoom,
-                   float *doomtable);
+                   double *doomtable);
 
-float birthDeathCount(int ngenes, float time, float birth, float death);
-float birthDeathCounts(int start, int end, float time, 
-                       float birth, float death);
+double birthDeathCount(int ngenes, float time, float birth, float death);
+double birthDeathCounts(int start, int end, float time, 
+                        float birth, float death);
 
 double birthDeathTreeCounts(Tree *tree, int nspecies, int *counts, 
                             float birth, float death, int maxgene,
@@ -32,25 +32,25 @@ double birthDeathForestCounts(Tree *tree, int nspecies, int nfams,
                               float birth, float death, int maxgene,
                               int rootgene, double **tab=NULL);
 
-float birthDeathDensity(float *times, int ntimes, float maxtime, 
+double birthDeathDensity(float *times, int ntimes, float maxtime, 
                         float birth, float death);
 
-float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
+double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
                           int *events, float birth, float death,
-                          float *doomtable, int maxdoom);
+                          double *doomtable, int maxdoom);
 
-float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
+double birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
                               int *events, float birth, float death,
-                              float *doomtable, int maxdoom);
+                              double *doomtable, int maxdoom);
 
-float birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
-                               int *events, float birth, float death);
+double birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
+                                int *events, float birth, float death);
 
 void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
                     float birth, float death);
 
 
-float sampleBirthWaitTime1(float T, float birth, float death);
+double sampleBirthWaitTime1(float T, float birth, float death);
 
 
 }

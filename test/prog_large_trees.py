@@ -29,7 +29,7 @@ def exc_default(func, val, exc=Exception):
 
 class TestProg (unittest.TestCase):
        
-    def test_prog(self):
+    def test_vert(self):
         """Test the main program"""
 
         outdir = "test/output/prog_large_trees"
@@ -53,7 +53,30 @@ class TestProg (unittest.TestCase):
         print cmd
         self.assertEqual(os.system(cmd), 0)
 
-              
+
+    def test_fungi(self):
+        """Test the main program"""
+
+        outdir = "test/output/prog_large_trees"
+        prep_dir(outdir)
+        
+        cmd = (#"valgrind "
+                   "bin/spidir "
+                   "-a test/data/fungi/10515/10515.align "
+                   "-S test/data/fungi.smap "
+                   "-s test/data/fungi.stree "
+                   "-p test/data/fungi.param "
+                   "-o %s/a "
+                   "-k 3.483 "
+                   "--duprate 0.000732 "
+                   "--lossrate 0.000859 "
+                   "--quicksamples 1 "
+                   "-i 50 "
+                   "--quickiter 1 "
+                   "-V 2 --log - " % outdir)
+
+        print cmd
+        self.assertEqual(os.system(cmd), 0)
         
 if __name__ == "__main__":
     unittest.main(testRunner=TestRunner())

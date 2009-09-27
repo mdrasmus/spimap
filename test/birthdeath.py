@@ -295,7 +295,7 @@ class TestBirthDeath2 (unittest.TestCase):
         
 
 
-class TestBirthDeath (object): #unittest.TestCase):
+class TestBirthDeath (unittest.TestCase):
 
     def setUp(self):
         pass
@@ -377,7 +377,7 @@ class TestBirthDeath (object): #unittest.TestCase):
         treelib.drawTree(tree, scale=10)
 
         doomtable = [0] * len(tree.nodes)
-        doomtable = spidir.c_list(ctypes.c_float, doomtable)
+        doomtable = spidir.c_list(ctypes.c_double, doomtable)
         spidir.calcDoomTable(ctree, l, u, maxdoom, doomtable)
         spidir.deleteTree(ctree)
         
@@ -541,7 +541,23 @@ class TestBirthDeath (object): #unittest.TestCase):
         tree = treelib.parseNewick("((((a1,a3),b2),(a2,b1)),c1)")
         self.assertEqual(numRedunantTopology(tree.root, gene2species), 6)
 
+
+
+    def test_birthDeathPrior_large(self):
+        """test birth death prior for large trees"""
         
+        l = 0.000732 
+        u = 0.000859
+        maxdoom = 20
+        
+        stree = treelib.read_tree("test/data/fungi.stree")
+        gene2species = phylo.read_gene2species("test/data/fungi.smap")
+        tree = treelib.read_tree("test/data/fungi/10169/10169.tree")
+        recon = phylo.reconcile(tree, stree, gene2species)
+
+        p = c_calcBirthDeathPrior(tree, stree, recon, l, u, maxdoom)
+        print p
+        self.assert_(p != -INF)
 
 if __name__ == "__main__":
     unittest.main(testRunner=TestRunner())

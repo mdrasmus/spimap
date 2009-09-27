@@ -511,7 +511,8 @@ floatlk calcSeqProbHky(Tree *tree, int nseqs, char **seqs,
 // find MLE branch lengths
 
 
-// TODO: need to think about more carefully
+// rootings are stored as edges (node1, node2).  A root order is 
+// a concatenation of rooting pairs.
 void getRootOrder(Tree *tree, ExtendArray<Node*> *nodes, Node *node=NULL)
 {
     if (!node) {
@@ -531,18 +532,6 @@ void getRootOrder(Tree *tree, ExtendArray<Node*> *nodes, Node *node=NULL)
         // recurse
         for (int i=0; i<node->nchildren; i++)
             getRootOrder(tree, nodes, node->children[i]);
-        
-        /*
-        // record post-process
-        if (!node->isLeaf()) {
-            if (node->parent == tree->root) {
-                nodes->append(tree->root->children[0]);
-                nodes->append(tree->root->children[1]);
-            } else {
-                nodes->append(node);
-                nodes->append(node->parent);
-            }
-        }*/
     }
 }
 

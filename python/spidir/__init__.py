@@ -98,27 +98,27 @@ c_int_matrix = (c_int_p_p, lambda x: c_matrix(c_int, x))
 # wrap functions from c library
 
 # common functions
-export(spidir, "gamm", c_float, [c_float, "a"])
-export(spidir, "invgammaPdf", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-#export(spidir, "invgammaCdf", c_float,
-#       [c_float, "x", c_float, "a", c_float, "b"])
+export(spidir, "gamm", c_double, [c_double, "a"])
+export(spidir, "invgammaPdf", c_double,
+       [c_double, "x", c_double, "a", c_double, "b"])
+#export(spidir, "invgammaCdf", c_double,
+#       [c_double, "x", c_double, "a", c_double, "b"])
 #export(spidir, "quantInvgamma", c_double,
 #       [c_double, "p", c_double, "a", c_double, "b"])
-export(spidir, "gammalog", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "gammaPdf", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "gammaDerivX", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "gammaDerivA", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "gammaDerivB", c_float,
-       [c_float, "x", c_float, "a", c_float, "b"])
-export(spidir, "gammaDerivV", c_float,
-       [c_float, "x", c_float, "v"])
+export(spidir, "gammalog", c_double,
+       [c_double, "x", c_double, "a", c_double, "b"])
+export(spidir, "gammaPdf", c_double,
+       [c_double, "x", c_double, "a", c_double, "b"])
+export(spidir, "gammaDerivX", c_double,
+       [c_double, "x", c_double, "a", c_double, "b"])
+export(spidir, "gammaDerivA", c_double,
+       [c_double, "x", c_double, "a", c_double, "b"])
+export(spidir, "gammaDerivB", c_double,
+       [c_double, "x", c_double, "a", c_double, "b"])
+export(spidir, "gammaDerivV", c_double,
+       [c_double, "x", c_double, "v"])
 export(spidir, "gammaDerivV2", c_double,
-       [c_float, "x", c_float, "v"])
+       [c_double, "x", c_double, "v"])
 export(spidir, "gammaSumPdf", c_double,
        [c_double, "y", c_int, "n", c_float_list, "alpha",
         c_float_list, "beta", 
@@ -161,16 +161,16 @@ export(spidir, "searchClimb", c_void_p,
 export(spidir, "inumHistories", c_int, [c_int, "nleaves"])
 export(spidir, "numHistories", c_double, [c_int, "nleaves"])
 export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
-export(spidir, "birthDeathCount", c_float,
+export(spidir, "birthDeathCount", c_double,
        [c_int, "ngenes", c_float, "time",
         c_float, "birth", c_float, "death"])
-export(spidir, "birthDeathCounts", c_float,
+export(spidir, "birthDeathCounts", c_double,
        [c_int, "start", c_int, "end", c_float, "time",
         c_float, "birth", c_float, "death"])
-export(spidir, "birthDeathCounts", c_float,
+export(spidir, "birthDeathCounts", c_double,
        [c_int, "start", c_int, "end", c_float, "time",
         c_float, "birth", c_float, "death"])
-export(spidir, "birthDeathCounts2", c_float,
+export(spidir, "birthDeathCounts2", c_double,
        [c_int, "start", c_int, "end", c_float, "time",
         c_float, "birth", c_float, "death"])
 
@@ -199,24 +199,24 @@ export(spidir, "birthDeathCountsML_iter", c_int,
 # tree topology
 export(spidir, "calcDoomTable", c_int,
        [c_void_p, "tree", c_float, "birth", c_float, "death",
-        c_int, "maxdoom", c_float_p, "doomtable"])
-export(spidir, "birthDeathTreePrior", c_float,
+        c_int, "maxdoom", c_double_p, "doomtable"])
+export(spidir, "birthDeathTreePrior", c_double,
        [c_void_p, "tree", c_void_p, "stree",
         c_int_p, "recon", c_int_p, "events",
         c_float, "birth", c_float, "death",
-        c_float_p, "doomtable", c_int, "maxdoom"])
-export(spidir, "birthDeathTreePriorFull", c_float,
+        c_double_p, "doomtable", c_int, "maxdoom"])
+export(spidir, "birthDeathTreePriorFull", c_double,
        [c_void_p, "tree", c_void_p, "stree",
         c_int_p, "recon", c_int_p, "events",
         c_float, "birth", c_float, "death",
-        c_float_p, "doomtable", c_int, "maxdoom"])
+        c_double_p, "doomtable", c_int, "maxdoom"])
 export(spidir, "sampleDupTimes", c_int,
        [c_void_p, "tree", c_void_p, "stree",
         c_int_p, "recon", c_int_p, "events",
         c_float, "birth", c_float, "death"])
-export(spidir, "sampleBirthWaitTime", c_float,
+export(spidir, "sampleBirthWaitTime", c_double,
        [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
-export(spidir, "sampleBirthWaitTime1", c_float,
+export(spidir, "sampleBirthWaitTime1", c_double,
        [c_float, "T", c_float, "birth", c_float, "death"])
 
 
@@ -525,7 +525,7 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
     recon2 = make_recon_array(tree, recon, nodes, snodelookup)
     events2 = make_events_array(nodes, events)
 
-    doomtable = c_list(c_float, [0] * len(stree.nodes))
+    doomtable = c_list(c_double, [0] * len(stree.nodes))
     calcDoomTable(cstree, birth, death, maxdoom, doomtable)
     
     p = birthDeathTreePriorFull(ctree, cstree,
@@ -708,21 +708,22 @@ def make_hky_deriv2_matrix(bgfreq, kappa, t):
 
 
 def branch_likelihood_hky(probs1, probs2, seqlen, bgfreq, kappa, time):
-    return branchLikelihoodHky(c_list(c_float, probs1), c_list(c_float, probs2),
+    return branchLikelihoodHky(c_list(c_floatlk, probs1),
+                               c_list(c_floatlk, probs2),
                                seqlen, c_list(c_float, bgfreq), kappa, time)
 
 def branch_likelihood_hky_deriv(probs1, probs2, seqlen, bgfreq, kappa, time):
     return branchLikelihoodHkyDeriv(
-        c_list(c_float, probs1), c_list(c_float, probs2), seqlen, 
+        c_list(c_floatlk, probs1), c_list(c_floatlk, probs2), seqlen, 
         c_list(c_float, bgfreq), kappa, time)
 
 def branch_likelihood_hky_deriv2(probs1, probs2, seqlen, bgfreq, kappa, time):
     return branchLikelihoodHkyDeriv2(
-        c_list(c_float, probs1), c_list(c_float, probs2), seqlen, 
+        c_list(c_floatlk, probs1), c_list(c_floatlk, probs2), seqlen, 
         c_list(c_float, bgfreq), kappa, time)
 
 def mle_distance_hky(probs1, probs2, seqlen, bgfreq, kappa, t0, t1):    
-    return mleDistanceHky(c_list(c_float, probs1), c_list(c_float, probs2),
+    return mleDistanceHky(c_list(c_floatlk, probs1), c_list(c_floatlk, probs2),
                           seqlen, c_list(c_float, bgfreq), kappa,
                           t0, t1)
 

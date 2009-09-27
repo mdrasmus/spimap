@@ -256,24 +256,24 @@ double numRedunantTopologies(Tree *tree, Node *root,
     
     qsort((void*) leafhashes.get(), leafhashes.size(), sizeof(int), intCmp);
 
-    double val = 1.0;
+    double val = 0.0;
     double colorsize = 1;
     for (int i=1; i<leaves.size(); i++) {
 	if (leafhashes[i] != leafhashes[i-1]) {
 	    // val *= factorial(colorsize)
 	    for (double j=2; j<=colorsize; j+=1.0)
-		val *= j;
+		val += logf(j);
 	    colorsize = 1.0;
 	} else {
 	    colorsize += 1.0;
 	}
     }
     for (double j=2; j<=colorsize; j+=1.0)
-	val *= j;
+	val += logf(j);
 
     //printf("c val=%f, nmirrors = %d\n", val, nmirrors);
     for (int i=0; i<nmirrors; i++)
-        val /=  2.0;
+        val -=  logf(2.0);
     //printf("val=%f\n", val);
     return val;
 }
@@ -316,7 +316,7 @@ double numRedunantTopologies2(Tree *tree, Node *root,
 
 
 
-float birthDeathTopology(Node *node, float birthRate, float deathRate,
+double birthDeathTopology(Node *node, float birthRate, float deathRate,
                          ExtendArray<Node*> &leaves)
 {
     // numTopologyHistories(subtree) / numHistories(ngenes)
@@ -326,7 +326,7 @@ float birthDeathTopology(Node *node, float birthRate, float deathRate,
 
 // computes the entries of the doom probabilty table
 void calcDoomTable(Tree *tree, float birthRate, float deathRate, int maxdoom,
-                   float *doomtable)
+                   double *doomtable)
 {
     // get nodes in post order
     ExtendArray<Node*> nodes(0, tree->nnodes);
@@ -339,11 +339,11 @@ void calcDoomTable(Tree *tree, float birthRate, float deathRate, int maxdoom,
         if (node->isLeaf()) {
             doomtable[node->name] = -INFINITY;
         } else {
-            float prod = 0.0;
+            double prod = 0.0;
             
             for (int j=0; j<node->nchildren; j++) {
                 Node *child = node->children[j];
-                float sum = 0.0;
+                double sum = 0.0;
 
                 for (int ndoom=0; ndoom<=maxdoom; ndoom++) {                    
                     sum += (birthDeathCount(ndoom, child->dist, 
@@ -549,9 +549,9 @@ void getHashIds(Tree *tree, int *recon, int *hashids)
 
 // TODO: does not handle branches above the species tree root yet
 // NOTE: assumes binary species tree
-float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
-                          int *events, float birthRate, float deathRate,
-                          float *doomtable, int maxdoom)
+double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
+                           int *events, float birthRate, float deathRate,
+                           double *doomtable, int maxdoom)
 {
 
     double prob = 0.0;
@@ -593,9 +593,9 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
 
 		    // correct subtrees that have leaves
 		    if (subleaves[0]->isLeaf()) {
-			nhist *= numRedunantTopologies(tree, node, 
-						       subleaves, 
-						       hashids);
+			nhist *= exp(numRedunantTopologies(tree, node, 
+                                                           subleaves, 
+                                                           hashids));
 		    }
 		}
 		
@@ -622,7 +622,7 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
 	    leaves.append(tree->nodes[i]);
     }
     double x = numRedunantTopologies(tree, tree->root, leaves, hashids);
-    prob -= log(x);
+    prob -= x;
     //printf("c x = %f\n", x);
     
     return prob;
@@ -633,9 +633,9 @@ float birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
 // Convenience function
 // Adds and removes implied species nodes to the gene tree
 // NOTE: assumes binary species tree
-float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
+double birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
                               int *events, float birthRate, float deathRate,
-                              float *doomtable, int maxdoom)
+                              double *doomtable, int maxdoom)
 {
     ExtendArray<int> recon2(0, 2 * tree->nnodes);
     recon2.extend(recon, tree->nnodes);
@@ -645,9 +645,9 @@ float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
 
 
     int addedNodes = addImpliedSpecNodes(tree, stree, recon2, events2);
-    float p = birthDeathTreePrior(tree, stree, recon2, events2, 
-                                  birthRate, deathRate,
-                                  doomtable,  maxdoom);
+    double p = birthDeathTreePrior(tree, stree, recon2, events2, 
+                                   birthRate, deathRate,
+                                   doomtable,  maxdoom);
     removeImpliedSpecNodes(tree, addedNodes);
 
     return p;
@@ -656,15 +656,16 @@ float birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
 
 
 // returns the probability of 1 gene giving rise to ngenes after time 'time'
-float birthDeathCount(int ngenes, float time, float birthRate, float deathRate)
+double birthDeathCount(int ngenes, float time, 
+                       float birthRate, float deathRate)
 {
-    const float l = birthRate;
-    const float u = deathRate;
-    const float r = l - u;
-    const float a = u / l;
+    const double l = birthRate;
+    const double u = deathRate;
+    const double r = l - u;
+    const double a = u / l;
 
-    const float ut = (1.0 - exp(-r*time)) / (1.0 - a * exp(-r*time));
-    const float p0 = a*ut;
+    const double ut = (1.0 - exp(-r*time)) / (1.0 - a * exp(-r*time));
+    const double p0 = a*ut;
     
     if (ngenes == 0)
         return p0;
@@ -677,17 +678,17 @@ float birthDeathCount(int ngenes, float time, float birthRate, float deathRate)
 // returns the probability of 'start' genes giving rise to 'end' genes after 
 // time 'time'
 // slower more stable computation
-float birthDeathCounts2(int start, int end, float time, 
-                       float birth, float death)
+double birthDeathCounts2(int start, int end, float time, 
+                         float birth, float death)
 {
-    const float l = birth;
-    const float u = death;
-    const float r = l - u;
-    const float a = u / l;
+    const double l = birth;
+    const double u = death;
+    const double r = l - u;
+    const double a = u / l;
 
-    const float ertime = exp(-r*time);
-    const float ut = (1.0 - ertime) / (1.0 - a * ertime);
-    const float p0 = a*ut;
+    const double ertime = exp(-r*time);
+    const double ut = (1.0 - ertime) / (1.0 - a * ertime);
+    const double p0 = a*ut;
     
     // all 'start' genes die out
     if (end == 0) {
@@ -695,7 +696,7 @@ float birthDeathCounts2(int start, int end, float time,
     }
     
     const int iter = (start < end) ? start : end;
-    float p = 0.0;
+    double p = 0.0;
 
     for (int j=0; j<=iter; j++) {
         //printf("j %d\n", j);
@@ -718,7 +719,7 @@ float birthDeathCounts2(int start, int end, float time,
 // returns the probability of 'start' genes giving rise to 'end' genes after 
 // time 'time'
 // much faster computation than birthDeathCounts2
-float birthDeathCounts(int start, int end, float time, 
+double birthDeathCounts(int start, int end, float time, 
                        float birth, float death)
 {
     if (start == 0) {
@@ -1105,12 +1106,12 @@ void setNodeTimes(Tree *tree, float *times)
 //  Probability density for for next birth at time 't' given
 //  'n' lineages starting at time 0, evolving until time 'T' with a
 //  'birth' and 'death' rates for a reconstructed process.
-float birthWaitTime(float t, int n, float T, float birth, float death)
+double birthWaitTime(float t, int n, float T, float birth, float death)
 {    
-    const float l = birth;
-    const float u = death;
-    const float r = l - u;
-    const float a = u / l;
+    const double l = birth;
+    const double u = death;
+    const double r = l - u;
+    const double a = u / l;
 
     return n * r * exp(-n*r*t) * \
            pow(1.0 - a * exp(-r * (T - t)), n-1) / \
@@ -1120,13 +1121,13 @@ float birthWaitTime(float t, int n, float T, float birth, float death)
 //  Probability density for for next birth at time 't' given
 //  'n' lineages starting at time 0, evolving until time 'T' with a
 //  'birth' and 'death' rates for a reconstructed process.
-float birthWaitTime_part(float t, int n, float T, float birth, float death,
-		    float denom)
+double birthWaitTime_part(float t, int n, float T, float birth, float death,
+                          double denom)
 {    
-    const float l = birth;
-    const float u = death;
-    const float r = l - u;
-    const float a = u / l;
+    const double l = birth;
+    const double u = death;
+    const double r = l - u;
+    const double a = u / l;
 
     return n * r * exp(-n*r*t) * \
            pow(1.0 - a * exp(-r * (T - t)), n-1) / denom;
@@ -1135,12 +1136,12 @@ float birthWaitTime_part(float t, int n, float T, float birth, float death,
 //  Probability density for for next birth at time 't' given
 //  'n' lineages starting at time 0, evolving until time 'T' with a
 //  'birth' and 'death' rates for a reconstructed process.
-float birthWaitTimeDenom(int n, float T, float birth, float death)
+double birthWaitTimeDenom(int n, float T, float birth, float death)
 {    
-    const float l = birth;
-    const float u = death;
-    const float r = l - u;
-    const float a = u / l;
+    const double l = birth;
+    const double u = death;
+    const double r = l - u;
+    const double a = u / l;
 
     return pow(1.0 - a * exp(-r * T), n);
 }
@@ -1149,11 +1150,11 @@ float birthWaitTimeDenom(int n, float T, float birth, float death)
 // Probability of no birth from 'n' lineages starting at time 0, 
 // evolving until time 'T' with 'birth' and 'death' rates
 // for a reconstructed process.
-float probNoBirth(int n, float T, float birth, float death) 
+double probNoBirth(int n, float T, float birth, float death) 
 {
-    const float l = birth;
-    const float u = death;
-    const float r = l - u;
+    const double l = birth;
+    const double u = death;
+    const double r = l - u;
 
     return (1.0 - (l*(1.0 - exp(-r * T)))) / \
 	   pow(l - u * exp(-r * T), n);
@@ -1164,21 +1165,21 @@ float probNoBirth(int n, float T, float birth, float death)
 // Let there be 'n' lineages at time 0 that evolve until time 'T' with
 // 'birth' and 'death' rates.
 // Conditioned that a birth will occur
-float sampleBirthWaitTime(int n, float T, float birth, float death)
+double sampleBirthWaitTime(int n, float T, float birth, float death)
 {
     
     // TODO: could make this much more efficient (use straight line instead of
     // flat line).
     
     // uses rejection sampling
-    float denom = birthWaitTimeDenom(n, T, birth, death);
-    float start_y = birthWaitTime_part(0, n, T, birth, death, denom);
-    float end_y = birthWaitTime_part(T, n, T, birth, death, denom);
-    float M = max(start_y, end_y);
+    double denom = birthWaitTimeDenom(n, T, birth, death);
+    double start_y = birthWaitTime_part(0, n, T, birth, death, denom);
+    double end_y = birthWaitTime_part(T, n, T, birth, death, denom);
+    double M = max(start_y, end_y);
     
     while (true) {
-        float t = frand(T);
-        float f = birthWaitTime_part(t, n, T, birth, death, denom);
+        double t = frand(T);
+        double f = birthWaitTime_part(t, n, T, birth, death, denom);
 
         if (frand() <= f / M)
             return t;
@@ -1191,12 +1192,12 @@ float sampleBirthWaitTime(int n, float T, float birth, float death)
 //  Probability density for for next birth at time 't' given
 //  'n'=1 lineages starting at time 0, evolving until time 'T' with a
 //  'birth' and 'death' rates for a reconstructed process.
-float birthWaitTime1(float t, float T, float birth, float death,
+double birthWaitTime1(float t, float T, float birth, float death,
 		    float denom)
 {    
-    const float l = birth;
-    const float u = death;
-    const float r = l - u;
+    const double l = birth;
+    const double u = death;
+    const double r = l - u;
 
     return r * exp(-r*t) / denom;
 }
@@ -1204,12 +1205,12 @@ float birthWaitTime1(float t, float T, float birth, float death,
 //  Probability density for for next birth at time 't' given
 //  'n'=1 lineages starting at time 0, evolving until time 'T' with a
 //  'birth' and 'death' rates for a reconstructed process.
-float birthWaitTimeDenom1(float T, float birth, float death)
+double birthWaitTimeDenom1(float T, float birth, float death)
 {    
-    const float l = birth;
-    const float u = death;
-    const float r = l - u;
-    const float a = u / l;
+    const double l = birth;
+    const double u = death;
+    const double r = l - u;
+    const double a = u / l;
 
     return 1.0 - a * exp(-r * T);
 }
@@ -1219,21 +1220,21 @@ float birthWaitTimeDenom1(float T, float birth, float death)
 // Let there be 'n'=1 lineages at time 0 that evolve until time 'T' with
 // 'birth' and 'death' rates.
 // Conditioned that a birth will occur
-float sampleBirthWaitTime1(float T, float birth, float death)
+double sampleBirthWaitTime1(float T, float birth, float death)
 {
     
     // TODO: could make this much more efficient (use straight line instead of
     // flat line).
     
     // uses rejection sampling
-    float denom = birthWaitTimeDenom1(T, birth, death);
-    float start_y = birthWaitTime1(0, T, birth, death, denom);
-    float end_y = birthWaitTime1(T, T, birth, death, denom);
-    float M = max(start_y, end_y);
+    double denom = birthWaitTimeDenom1(T, birth, death);
+    double start_y = birthWaitTime1(0, T, birth, death, denom);
+    double end_y = birthWaitTime1(T, T, birth, death, denom);
+    double M = max(start_y, end_y);
     
     while (true) {
-        float t = frand(T);
-        float f = birthWaitTime1(t, T, birth, death, denom);
+        double t = frand(T);
+        double f = birthWaitTime1(t, T, birth, death, denom);
 
         if (frand() <= f / M)
             return t;
@@ -1305,18 +1306,18 @@ void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
 
 
 
-float birthDeathDensityNoExtinct(float *times, int ntimes, float maxtime, 
+double birthDeathDensityNoExtinct(float *times, int ntimes, float maxtime, 
                                  float birthRate, float deathRate)
 {
-    const float l = birthRate;
-    const float u = deathRate;
-    const float r = l - u;
-    const float a = u / l;
-    const float T = maxtime;
+    const double l = birthRate;
+    const double u = deathRate;
+    const double r = l - u;
+    const double a = u / l;
+    const double T = maxtime;
             
     assert(ntimes >= 2);
 
-    float p = 1.0;
+    double p = 1.0;
 
     // (n - 1)! r^(n-2) (1 - a)^n
     for (int i=1; i<=ntimes-2; i++)
@@ -1324,15 +1325,15 @@ float birthDeathDensityNoExtinct(float *times, int ntimes, float maxtime,
     p *= (ntimes - 1) * (1.0 - a) * (1.0 - a);
 
     // exp( r * sum_{i=3}^n x_i)
-    float sum = 0.0;
+    double sum = 0.0;
     for (int i=2; i<ntimes; i++)
         sum += T - times[i];
     p *= exp(r * sum);
 
     // prod_{i=2}^n 1/(exp(r x_i) - a)^2
-    float prod = 1.0;
+    double prod = 1.0;
     for (int i=1; i<ntimes; i++) {
-        float tmp = exp(r*(T-times[i])) - a;
+        double tmp = exp(r*(T-times[i])) - a;
         prod *= (tmp*tmp);
     }
     p *= 1.0 / prod;
@@ -1341,27 +1342,27 @@ float birthDeathDensityNoExtinct(float *times, int ntimes, float maxtime,
 }
 
 
-float birthDeathDensity(float *times, int ntimes, float maxtime, 
-                        float birthRate, float deathRate)
+double birthDeathDensity(float *times, int ntimes, float maxtime, 
+                         float birthRate, float deathRate)
 {
-    const float l = birthRate;
-    const float u = deathRate;
-    const float r = l - u;
-    const float a = u / l;
-    const float T = maxtime;
+    const double l = birthRate;
+    const double u = deathRate;
+    const double r = l - u;
+    const double a = u / l;
+    const double T = maxtime;
 
-    const float uT = (1.0 - exp(-r*T)) / (1.0 - a * exp(-r*T));
-    const float p0 = a*uT;
+    const double uT = (1.0 - exp(-r*T)) / (1.0 - a * exp(-r*T));
+    const double p0 = a*uT;
     
     
     
     if (ntimes == 0) {
         return p0;
     } else if (ntimes == 1) {
-        const float p1 = (1.0 - a*uT) * (1.0 - uT);       
+        const double p1 = (1.0 - a*uT) * (1.0 - uT);       
         return p1;
     } else {
-        float p = (1.0 - p0);
+        double p = (1.0 - p0);
         
         // (n - 1)! r^(n-2) (1 - a)^n
         for (int i=1; i<=ntimes-2; i++)
@@ -1371,15 +1372,15 @@ float birthDeathDensity(float *times, int ntimes, float maxtime,
         //printf("p_1 %f\n", p);
         
         // exp( r * sum_{i=3}^n x_i)
-        float sum = 0.0;
+        double sum = 0.0;
         for (int i=2; i<ntimes; i++)
             sum += T - times[i];
         p *= exp(r * sum);
         
         // prod_{i=2}^n 1/(exp(r x_i) - a)^2
-        float prod = 1.0;
+        double prod = 1.0;
         for (int i=1; i<ntimes; i++) {
-            float tmp = exp(r*(T-times[i])) - a;
+            double tmp = exp(r*(T-times[i])) - a;
             prod *= (tmp*tmp);
         }
         p *= 1.0 / prod;
@@ -1643,7 +1644,7 @@ void getHashIds2(Tree *tree, int *recon, int *hashids)
 
 // NOTE: assumes binary species tree
 // branch lengths are ignored, only counts are used
-float birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
+double birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
                                int *events, float birthRate, float deathRate)
 {   
 

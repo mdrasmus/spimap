@@ -123,6 +123,10 @@ public:
 		   ("", "--prior_exact", 
 		    &priorExact,
 		    "Use an exact calculation of branch prior"));
+	config.add(new ConfigParam<int>
+		   ("", "--lkiter", "<max number of likelihood iterations>",
+		    &lkiter, 10,
+		    "max number of iterations in maximum likelihood fitting (default: 10)"));
 	config.add(new ConfigSwitch
 		   ("-g", "--gene_rate", &estGenerate, "estimate generate"));
         config.add(new ConfigParam<int>
@@ -198,6 +202,7 @@ public:
     int bootiter;
     int quickiter;
     int quickSamples;
+    int lkiter;
     bool noSprNbr;
 };
 
@@ -393,21 +398,6 @@ int main(int argc, char **argv)
 				c.priorSamples,
 				!c.priorExact,
 				c.estGenerate);
-    /*
-    else if (c.lkfuncopt == "duploss")
-        lkfunc = new SpidirBranchLikelihoodFunc(nnodes, &stree, params, 
-                                                gene2species,
-                                                c.pretime, 
-						c.duprate,
-						c.lossrate, 
-                                                c.estGenerate,
-                                                true);
-    else if (c.lkfuncopt == "hky") 
-        lkfunc = new HkyBranchLikelihoodFunc(aln->nseqs, aln->seqlen, aln->seqs, 
-                                             bgfreq, c.tsvratio);
-    else if (c.lkfuncopt == "birthdeath") 
-        lkfunc = new BranchLikelihoodFunc();
-    */
     else {
         printError("unknown prior '%s'", c.prioropt.c_str());
         return 1;
@@ -419,9 +409,8 @@ int main(int argc, char **argv)
     
     // determine branch length algorithm
     BranchLengthFitter *fitter = NULL;
-    const int maxiter = 10;
-    fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs, 
-			   bgfreq, c.kappa, maxiter);
+    fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs,  
+			   bgfreq, c.kappa, c.lkiter);
     
     
     //========================================================
@@ -431,15 +420,17 @@ int main(int argc, char **argv)
     const int radius = 3;
     TopologyProposer *proposer2;
     //if (c.noSprNbr)
-        proposer2 = new SprNniProposer(&stree, gene2species, c.niter);
+    proposer2 = new SprNniProposer(&stree, gene2species, c.niter, .5);
     //else
     //    proposer2 = new SprNbrProposer(&stree, gene2species, c.niter, radius);
 
-    DupLossProposer proposer(proposer2, &stree, gene2species, 
-			     c.duprate, c.lossrate,
+
+    UniqueProposer proposer3(proposer2, c.niter);
+    DupLossProposer proposer(&proposer3, &stree, gene2species, 
+                             c.duprate, c.lossrate,
                              c.quickiter, c.niter);//, 
     //                             c.quickSamples);
-    
+
 
     TreeSearch *search = NULL;
     if (c.search == "climb") {
@@ -517,6 +508,7 @@ int main(int argc, char **argv)
     printLog(LOG_LOW, "seq runtime:\t%f\n", fitter->runtime);
     printLog(LOG_LOW, "branch runtime:\t%f\n", prior->branch_runtime);
     printLog(LOG_LOW, "topology runtime:\t%f\n", prior->top_runtime);
+    printLog(LOG_LOW, "proposal runtime:\t%f\n", search->proposal_runtime);
     printLog(LOG_LOW, "runtime seconds:\t%d\n", runtime);
     printLog(LOG_LOW, "runtime minutes:\t%.1f\n", float(runtime / 60.0));
     printLog(LOG_LOW, "runtime hours:\t%.1f\n", float(runtime / 3600.0));

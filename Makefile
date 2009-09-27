@@ -35,7 +35,7 @@ ifdef PROFILE
 endif
 
 # debugging
-ifdef DEBUG
+ifdef DEBUG	
 	CFLAGS := $(CFLAGS) -g
 else
 	CFLAGS := $(CFLAGS) -O3

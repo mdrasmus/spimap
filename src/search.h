@@ -2,9 +2,43 @@
 #define SPIDIR_SEARCH_H
 
 #include "spidir.h"
+#include <set>
 
 
 namespace spidir {
+
+using namespace std;
+
+
+struct lttree
+{
+    bool operator()(const int* k1, const int* k2) const
+    {
+        for (int i=0; k1[i] != -2; i++) {
+            if (k1[i] < k2[i])
+                return true;
+            if (k1[i] > k2[i])
+                return false;
+        }
+        return false;
+    }
+};
+
+class TreeSet
+{
+public:
+    TreeSet() : key(100) {}
+    ~TreeSet();
+
+    void clear();
+    bool insert(Tree *tree);
+    bool has(Tree *tree);
+    int size() { return trees.size(); }
+
+    ExtendArray<int> key;
+    typedef set<int*, lttree> Set;
+    Set trees;
+};
 
 
 class TopologyProposer
@@ -48,10 +82,9 @@ public:
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
-    virtual bool more();
-    virtual void setCorrect(Tree *tree) { correctTree = tree; }
-    virtual bool seenCorrect() { return correctSeen; }
+    virtual bool more() { return iter < niter; }
     virtual void reset() { iter = 0; }
+
 
 protected:    
     Node *nodea;
@@ -101,6 +134,29 @@ protected:
 };
 
 
+class MixProposer: public NniProposer
+{
+public:
+    MixProposer(int niter=500) : niter(niter), iter(0) {}
+
+    virtual void propose(Tree *tree);
+    virtual void revert(Tree *tree);    
+    virtual bool more() { return iter < niter; }
+    virtual void reset() { iter = 0; }
+
+    void addProposer(TopologyProposer *proposer, float weight);
+
+protected:
+
+    float totalWeight;
+    typedef pair<TopologyProposer*,float> Method;
+    vector<Method> methods;
+    int lastPropose;
+    int niter;
+    int iter;
+};
+
+
 class SprNbrProposer: public NniProposer
 {
 public:
@@ -137,7 +193,10 @@ public:
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
     virtual bool more() { return iter < niter; }
-    virtual void reset() { iter = 0; }
+    virtual void reset() {
+        uniques.clear();
+        iter = 0; 
+    }
     
 protected:
     TopologyProposer *proposer;
@@ -150,14 +209,43 @@ protected:
     int *gene2species;
     float dupprob;
     float lossprob;
-    float *doomtable;
+    double *doomtable;
     const static int maxdoom = 10;
+    TreeSet uniques;
 
     ExtendArray<int> recon;
     ExtendArray<int> events;
     Tree *oldtop;
+
 };
 
+
+class UniqueProposer: public TopologyProposer
+{
+public:
+    UniqueProposer(TopologyProposer *proposer, int niter=-1, int ntries=10) : 
+        proposer(proposer), niter(niter), iter(0), ntries(ntries) {}
+    virtual ~UniqueProposer();
+
+    virtual void propose(Tree *tree);
+    virtual void revert(Tree *tree) { return proposer->revert(tree); }
+    virtual bool more() { 
+        if (niter == -1)
+            return proposer->more(); 
+        else 
+            return iter < niter;
+    }
+    virtual void reset() { 
+        seenTrees.clear();
+        return proposer->reset(); 
+    }
+    
+    TopologyProposer *proposer;
+    TreeSet seenTrees;
+    int niter;
+    int iter;
+    int ntries;
+};
 
 /*=============================================================================
 NEW DUP/LOSS PROPOSER
@@ -220,7 +308,7 @@ class BranchLengthFitter
 public:
     BranchLengthFitter() : runtime(0.0) {}
     virtual ~BranchLengthFitter() {}
-    virtual float findLengths(Tree *tree) {return 0.0;}
+    virtual double findLengths(Tree *tree) {return 0.0;}
 
     float runtime;
 };
@@ -231,7 +319,7 @@ class HkyFitter : public BranchLengthFitter
 public:
     HkyFitter(int nseqs, int seqlen, char **seqs, 
               float *bgfreq, float tsvratio, int maxiter, bool useLogl=true);
-    virtual float findLengths(Tree *tree);
+    virtual double findLengths(Tree *tree);
 
     int nseqs;
     int seqlen;
@@ -257,8 +345,8 @@ public:
     {}
     virtual ~Prior() {}
     
-    virtual float branchPrior(Tree *tree) { return 0.0; }
-    virtual float topologyPrior(Tree *tree) { return 0.0; }
+    virtual double branchPrior(Tree *tree) { return 0.0; }
+    virtual double topologyPrior(Tree *tree) { return 0.0; }
 
     virtual SpeciesTree *getSpeciesTree() { return NULL; }
     virtual int *getGene2species() { return NULL; }
@@ -280,8 +368,8 @@ public:
 
     virtual ~SpidirPrior();
 
-    virtual float branchPrior(Tree *tree);
-    virtual float topologyPrior(Tree *tree);
+    virtual double branchPrior(Tree *tree);
+    virtual double topologyPrior(Tree *tree);
 
     virtual SpeciesTree *getSpeciesTree() { return stree; }
     virtual int *getGene2species() { return gene2species; }
@@ -299,7 +387,7 @@ protected:
     int nsamples;
     bool approx;
     bool estGenerate;
-    float *doomtable;
+    double *doomtable;
 };
 
 
@@ -331,7 +419,8 @@ class TreeSearch
 {
 public:
 
-    TreeSearch()
+    TreeSearch() :
+        proposal_runtime(0.0)
     {}
 
     virtual ~TreeSearch()
@@ -342,6 +431,7 @@ public:
 			 int nseqs, int seqlen, char **seqs)
     { return NULL; }
 
+    double proposal_runtime;
 };
 
 
@@ -358,7 +448,6 @@ public:
     virtual Tree *search(Tree *initTree, 
 			 string *genes, 
 			 int nseqs, int seqlen, char **seqs);
-
 
 protected:
     Prior *prior;
