@@ -417,21 +417,17 @@ int main(int argc, char **argv)
     // initialize search
     
     // init topology proposer
-    const int radius = 3;
-    TopologyProposer *proposer2;
-    //if (c.noSprNbr)
-    proposer2 = new SprNniProposer(&stree, gene2species, c.niter, .5);
-    //else
-    //    proposer2 = new SprNbrProposer(&stree, gene2species, c.niter, radius);
-
-
-    UniqueProposer proposer3(proposer2, c.niter);
-    DupLossProposer proposer(&proposer3, &stree, gene2species, 
+    NniProposer nni(&stree, gene2species, c.niter);
+    SprProposer spr(&stree, gene2species, c.niter);
+    MixProposer mix(c.niter);
+    mix.addProposer(&nni, .5);
+    mix.addProposer(&spr, .5);
+    UniqueProposer unique(&mix, c.niter);
+    DupLossProposer proposer(&unique, &stree, gene2species, 
                              c.duprate, c.lossrate,
-                             c.quickiter, c.niter);//, 
-    //                             c.quickSamples);
+                             c.quickiter, c.niter);
 
-
+    // init search
     TreeSearch *search = NULL;
     if (c.search == "climb") {
 	search = new TreeSearchClimb(prior, &proposer, fitter);
@@ -520,7 +516,6 @@ int main(int argc, char **argv)
     delete fitter;
     delete prior;
     delete search;
-    delete proposer2;
 }
 
 

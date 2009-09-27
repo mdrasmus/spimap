@@ -357,10 +357,10 @@ void MixProposer::propose(Tree *tree)
     iter++;
 
     // randomly choose method
-    float choice = frand();
-    float sum = 0.0;
-    int i = -1;
-    while ((unsigned int) i < methods.size() && sum < choice) {
+    float choice = frand() * totalWeight;
+    float sum = methods[0].second;
+    int i = 0;
+    while ((unsigned int) i < methods.size()-1 && sum < choice) {
         i++;
         sum += methods[i].second;
     }
