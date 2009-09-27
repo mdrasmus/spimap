@@ -87,18 +87,15 @@ public:
 
 
 protected:    
+    int niter;
+    int iter;
+
     Node *nodea;
     Node *nodeb;
-    Node *nodec;
-    Node *noded;
     Node *oldroot1;
     Node *oldroot2;
     SpeciesTree *stree;
     int *gene2species;
-    int niter;
-    int iter;
-    Tree *correctTree;
-    bool correctSeen;
 };
 
 
@@ -110,31 +107,39 @@ public:
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
+
+protected:    
+    int niter;
+    int iter;
+
+    Node *nodea;
+    Node *nodeb;
+    Node *nodec;
 };
 
 
-class SprNniProposer: public NniProposer
+class SprNbrProposer: public NniProposer
 {
 public:
-    SprNniProposer(SpeciesTree *stree=NULL, int *gene2species=NULL, 
-                   int niter=500, float sprRatio=0.5);
+    SprNbrProposer(SpeciesTree *stree=NULL, int *gene2species=NULL, 
+                   int niter=500, int radius=4);
 
     virtual void propose(Tree *tree);
-    virtual void revert(Tree *tree);    
-    
+    virtual void revert(Tree *tree);
+    void SprNbrProposer::reset() { iter = 0; }
+
+    void pickNewSubtree();
+
 protected:
-    typedef enum {
-        PROPOSE_NONE,
-        PROPOSE_NNI,
-        PROPOSE_SPR
-    } ProposeType;
-    
-    float sprRatio;
-    ProposeType lastPropose;
+    int radius;
+    Tree *basetree;
+    Node *subtree;
+    list<Node*> queue;
+    vector<int> pathdists;
 };
 
 
-class MixProposer: public NniProposer
+class MixProposer: public TopologyProposer
 {
 public:
     MixProposer(int niter=500) : niter(niter), iter(0) {}
@@ -157,24 +162,30 @@ protected:
 };
 
 
-class SprNbrProposer: public NniProposer
+class ReconRootProposer: public TopologyProposer
 {
 public:
-    SprNbrProposer(SpeciesTree *stree=NULL, int *gene2species=NULL, 
-                   int niter=500, int radius=4);
+    ReconRootProposer(TopologyProposer *proposer,
+                      SpeciesTree *stree=NULL, int *gene2species=NULL) :
+        proposer(proposer),
+        stree(stree),
+        gene2species(gene2species),
+        oldroot1(NULL),
+        oldroot2(NULL)
+    {}
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
-    virtual void reset();
-
-    void pickNewSubtree();
+    virtual bool more() { return proposer->more(); }
+    virtual void reset() { return proposer->reset(); }
+    virtual void accept(bool accepted) { proposer->accept(accepted); }
 
 protected:
-    int radius;
-    Tree *basetree;
-    Node *subtree;
-    list<Node*> queue;
-    vector<int> pathdists;
+    TopologyProposer *proposer;
+    SpeciesTree *stree;
+    int *gene2species;
+    Node *oldroot1;
+    Node *oldroot2;
 };
 
 
@@ -216,7 +227,6 @@ protected:
     ExtendArray<int> recon;
     ExtendArray<int> events;
     Tree *oldtop;
-
 };
 
 

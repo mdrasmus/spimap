@@ -241,40 +241,29 @@ void proposeRandomSpr(Tree *tree, Node **subtree, Node **newpos)
 
 NniProposer::NniProposer(SpeciesTree *stree, int *gene2species,
                          int niter) :
+    niter(niter),
+    iter(0),
     nodea(NULL),
     nodeb(NULL),
-    nodec(NULL),
-    noded(NULL),
     oldroot1(NULL),
     oldroot2(NULL),
     stree(stree),
-    gene2species(gene2species),
-    niter(niter),
-    iter(0),
-    correctTree(NULL),
-    correctSeen(false)
+    gene2species(gene2species)
 {}
 
 
 void NniProposer::propose(Tree *tree)
 {
     const float rerootProb = 1.0;
-    const float doubleNniProb = 0.0; // NO double NNI
     
     // increase iteration
     iter++;
     
-    nodea = nodeb = nodec = noded = NULL;
+    nodea = nodeb = NULL;
 
     // propose new tree
     proposeRandomNni(tree, &nodea, &nodeb);
     performNni(tree, nodea, nodeb);
-
-    if (frand() < doubleNniProb) {
-        //printLog(LOG_MEDIUM, "search: double NNI\n");
-        proposeRandomNni(tree, &nodec, &noded);
-        performNni(tree, nodec, noded);
-    }
     
     // reroot tree if stree is given
     if (frand() < rerootProb) {
@@ -294,15 +283,10 @@ void NniProposer::propose(Tree *tree)
 void NniProposer::revert(Tree *tree)
 {
     // reject, undo topology change
-
-
     if (oldroot1)
         tree->reroot(oldroot1, oldroot2);
     
-    if (nodec)
-        performNni(tree, nodec, noded);
-    if (nodea)
-        performNni(tree, nodea, nodeb);
+    performNni(tree, nodea, nodeb);
 }
 
 
@@ -379,61 +363,6 @@ void MixProposer::revert(Tree *tree)
 
 
 //=============================================================================
-// SPR + NNI Proposer
-// 
-// NNI is a special case of SPR (it is a SPR that is very local).
-// This proposer will make both far and close proposals.
-
-SprNniProposer::SprNniProposer(SpeciesTree *stree, int *gene2species,
-                               int niter, float sprRatio) :
-    NniProposer(stree, gene2species, niter),
-    sprRatio(sprRatio)
-{
-}
-    
-    
-void SprNniProposer::propose(Tree *tree)
-{
-    float choice = frand();
-
-    if (choice < sprRatio) {
-        lastPropose = PROPOSE_SPR;
-        
-        // increase iteration
-        iter++;
-        
-        proposeRandomSpr(tree, &nodea, &nodeb);
-        
-        // remember sibling of nodea
-        const Node *p = nodea->parent;
-        nodec = (p->children[0] == nodea) ? p->children[1] : p->children[0];
-        
-        performSpr(tree, nodea, nodeb);
-    } else {
-        lastPropose = PROPOSE_NNI;
-        NniProposer::propose(tree);
-    }
-
-    assert(tree->assertTree());
-}
-
-void SprNniProposer::revert(Tree *tree)
-{
-    if (lastPropose == PROPOSE_SPR) {
-        performSpr(tree, nodea, nodec);
-    
-    } else if (lastPropose == PROPOSE_NNI) {
-        NniProposer::revert(tree);
-    } else {
-        assert(false);
-    }
-}
-
-
-
-
-
-//=============================================================================
 // SPR Neighborhood Proposer
 
 SprNbrProposer::SprNbrProposer(SpeciesTree *stree, int *gene2species,
@@ -443,7 +372,7 @@ SprNbrProposer::SprNbrProposer(SpeciesTree *stree, int *gene2species,
     basetree(NULL)
 {
 }
-    
+
     
 void SprNbrProposer::propose(Tree *tree)
 {
@@ -559,8 +488,41 @@ void SprNbrProposer::pickNewSubtree()
 }
 
 
-void SprNbrProposer::reset() { iter = 0; }
 
+
+//=============================================================================
+
+
+void ReconRootProposer::propose(Tree *tree)
+{
+    const float rerootProb = 1.0;
+    
+    // propose new tree
+    proposer->propose(tree);
+    
+    // reroot tree if stree is given
+    if (frand() < rerootProb) {
+        oldroot1 = tree->root->children[0];
+        oldroot2 = tree->root->children[1];
+        
+        if (stree != NULL) {
+            reconRoot(tree, stree, gene2species);
+        }
+    } else {
+        oldroot1 = NULL;
+        oldroot2 = NULL;
+    }
+}
+
+
+void ReconRootProposer::revert(Tree *tree)
+{
+    // undo topology change
+    if (oldroot1)
+        tree->reroot(oldroot1, oldroot2);
+    
+    proposer->revert(tree);
+}
 
 
 //=============================================================================
@@ -1217,9 +1179,13 @@ Tree *searchClimb(int niter, int quickiter,
 		     bgfreq, kappa, maxiter);
 
     // proposers
-    const float sprRatio = .3;
-    SprNniProposer proposer2(&stree, gene2species, niter, sprRatio);
-    DupLossProposer proposer(&proposer2, &stree, gene2species, 
+    NniProposer nni(&stree, gene2species, niter);
+    SprProposer spr(&stree, gene2species, niter);
+    MixProposer mix(niter);
+    mix.addProposer(&nni, .5);
+    mix.addProposer(&spr, .5);
+    UniqueProposer unique(&mix, niter);
+    DupLossProposer proposer(&mix, &stree, gene2species, 
 			     birth, death,
                              quickiter, niter);
     
