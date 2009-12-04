@@ -78,7 +78,7 @@ protected:
 class NniProposer: public TopologyProposer
 {
 public:
-    NniProposer(SpeciesTree *stree=NULL, int *gene2species=NULL, int niter=500);
+    NniProposer(int niter=500);
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
@@ -92,18 +92,13 @@ protected:
 
     Node *nodea;
     Node *nodeb;
-    Node *oldroot1;
-    Node *oldroot2;
-    SpeciesTree *stree;
-    int *gene2species;
 };
 
 
 class SprProposer: public NniProposer
 {
 public:
-    SprProposer(SpeciesTree *stree=NULL, int *gene2species=NULL, 
-                int niter=500);
+    SprProposer(int niter=500);
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
@@ -121,12 +116,15 @@ protected:
 class SprNbrProposer: public NniProposer
 {
 public:
-    SprNbrProposer(SpeciesTree *stree=NULL, int *gene2species=NULL, 
-                   int niter=500, int radius=4);
+    SprNbrProposer(int niter=500, int radius=4);
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
-    void SprNbrProposer::reset() { iter = 0; }
+    void SprNbrProposer::reset() { 
+        iter = 0; 
+        reverted = false;
+        basetree = NULL;
+    }
 
     void pickNewSubtree();
 
@@ -136,6 +134,7 @@ protected:
     Node *subtree;
     list<Node*> queue;
     vector<int> pathdists;
+    bool reverted;
 };
 
 
@@ -147,7 +146,13 @@ public:
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);    
     virtual bool more() { return iter < niter; }
-    virtual void reset() { iter = 0; }
+    virtual void reset() { 
+        iter = 0; 
+
+        // propagate reset
+        for (unsigned int i=0; i<methods.size(); i++)
+            methods[i].first->reset();
+    }
 
     void addProposer(TopologyProposer *proposer, float weight);
 
@@ -205,8 +210,9 @@ public:
     virtual void revert(Tree *tree);
     virtual bool more() { return iter < niter; }
     virtual void reset() {
+        iter = 0;
         uniques.clear();
-        iter = 0; 
+        proposer->reset();
     }
     
 protected:
@@ -247,7 +253,7 @@ public:
     }
     virtual void reset() { 
         seenTrees.clear();
-        return proposer->reset(); 
+        proposer->reset(); 
     }
     
     TopologyProposer *proposer;
@@ -328,7 +334,8 @@ class HkyFitter : public BranchLengthFitter
 {
 public:
     HkyFitter(int nseqs, int seqlen, char **seqs, 
-              float *bgfreq, float tsvratio, int maxiter, bool useLogl=true);
+              float *bgfreq, float tsvratio, int maxiter, 
+              float lkweight=1.0);
     virtual double findLengths(Tree *tree);
 
     int nseqs;
@@ -337,7 +344,7 @@ public:
     float *bgfreq;
     float tsvratio;
     int maxiter;
-    bool useLogl;
+    float lkweight;
 };
 
 
@@ -374,7 +381,7 @@ public:
 		SpidirParams *params, 
 		int *gene2species,
 		float predupprob, float dupprob, float lossprob,
-		int nsample, bool approx, bool estGenerate);
+		int nsample, bool approx, bool useBranchPrior);
 
     virtual ~SpidirPrior();
 
@@ -396,7 +403,7 @@ protected:
     float lossprob;
     int nsamples;
     bool approx;
-    bool estGenerate;
+    bool useBranchPrior;
     double *doomtable;
 };
 

@@ -132,18 +132,36 @@ class TestBirthDeathSim (unittest.TestCase):
         tops = []
         lookup = {}
 
+
+        def rename_tree(tree, gene2species):
+            if len(tree.nodes) == 0:
+                return
+            spcounts = util.hist_dict(map(gene2species, tree.leaf_names()))
+            names = {}
+            for sp, c in spcounts.items():
+                names[sp] = range(1, c+1)
+                random.shuffle(names[sp])
+
+            for node in tree.leaves():
+                sp = gene2species(node.name)
+                tree.rename(node.name, sp + "." + str(names[sp].pop()))
+            
+
         util.tic("simulating %d trees" % ntrees)
         for i in xrange(ntrees):
             tree, recon, events = birthdeath.sample_birth_death_gene_tree(
-                stree, duprate, lossrate, removeloss=True)
-            phylo.addImpliedSpecNodes(tree, stree, recon, events)
+                stree, duprate, lossrate, 
+                removeloss=True)
+            rename_tree(tree, gene2species)
+            phylo.add_implied_spec_nodes(tree, stree, recon, events)
             
             if len(tree.nodes) == 0:
                 tops.append("()")
                 lookup["()"] = (None, None, None)
             else:
                 rename_leaves(tree, stree, gene2species)
-                tops.append(phylo.hashTree(tree))
+                tops.append(phylo.hash_tree(tree))
+                #tops.append(phylo.hash_tree(tree, gene2species))
                 lookup[tops[-1]] = (tree, recon, events)
         util.toc()
         
@@ -162,15 +180,15 @@ class TestBirthDeathSim (unittest.TestCase):
                 p2 = calcBirthDeathPrior(tree, stree, recon,
                                          duprate, lossrate,
                                          maxdoom, events=events)
-                try:
-                    fequal(p, p2)
-                except:
-                
-                    recon2 = phylo.reconcile(tree, stree, gene2species)
-                    if recon != recon2:
-                        print "recon is not parsimonious"
-                    tree.writeNewick(oneline=True)
-                    raise
+                #try:
+                #    fequal(p, p2)
+                #except:
+                # 
+                #    recon2 = phylo.reconcile(tree, stree, gene2species)
+                #    if recon != recon2:
+                #        print "recon is not parsimonious"
+                #    tree.write_newick(oneline=True)
+                #    raise
                 probs.append(exp(p2))
 
         return hist, probs
@@ -178,20 +196,21 @@ class TestBirthDeathSim (unittest.TestCase):
 
 
 
-    def _test_birth_death_sim(self):
+    def test_birth_death_single_sim(self):
         """test the single branch prior"""
         
         duprate = 2
         lossrate = .5
-        ntrees = 100000
+        ntrees = 1000
         tabsize = 100
+        maxdoom = 20
         T = 1.0
 
         tops = []
         survivors = []
         lookup = {}
 
-        stree = treelib.parseNewick("(A:1);")
+        stree = treelib.parse_newick("(A:1);")
         def gene2species(gene):
             return gene[:1].upper()
 
@@ -199,7 +218,7 @@ class TestBirthDeathSim (unittest.TestCase):
         for i in xrange(ntrees):
             tree = birthdeath.sample_birth_death_tree(T, duprate, lossrate)
             rename_leaves(tree, stree, lambda x: "A")
-            tops.append(phylo.hashTree(tree, gene2species))
+            tops.append(phylo.hash_tree(tree, gene2species))
             survivors.append(len(tree.leaves()))
             lookup[tops[-1]] = tree
         util.toc()
@@ -226,9 +245,16 @@ class TestBirthDeathSim (unittest.TestCase):
             s = len(tree.leaves())
             thist = factorial(s) * factorial(s-1) / 2**(s-1)
             
-            probs_tops.append(nhist / float(thist) *
-                              birthDeathCount(s, T, duprate, lossrate) /
-                              no_extinct)
+            #probs_tops.append(nhist / float(thist) *
+            #                  birthDeathCount(s, T, duprate, lossrate) /
+            #                  no_extinct)
+
+            s = stree.leaves()[0]
+            recon = dict((n, s) for n in tree)
+            p = calcBirthDeathPrior(tree, stree, recon,
+                                    duprate, lossrate,
+                                    maxdoom)
+            probs_tops.append(exp(p))
 
         self.calc_fit(outdir + "/sim_prior_ngenes", hist, probs)
         self.calc_fit(outdir + "/sim_prior_top", hist_tops, probs_tops)
@@ -236,57 +262,179 @@ class TestBirthDeathSim (unittest.TestCase):
 
 
 
-    def test_birth_death_gene_sim(self):
+    def test_birth_death_single2_sim(self):
+        """test the single branch prior"""
+
+        duprate = 2.0
+        lossrate = .5
+        T = 1.0
+        maxdoom = 20
+
+        
+        stree = treelib.parse_newick("(A:1,B:1);")
+        def gene2species(gene):
+            return gene[:1].upper()
+        s = stree.leaves()[0]
+
+        b = birthDeathCount(1, T, duprate, lossrate)
+
+        # 1
+        tree = treelib.parseNewick("(a,b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(1, T, duprate, lossrate) * b
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))
+        p2 *= numRedunantTopology(tree.root, gene2species)
+        print p, p2
+        fequal(p, p2)
+        
+        # 2
+        tree = treelib.parseNewick("((a,a),b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(2, T, duprate, lossrate) * b
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))
+        p2 *= numRedunantTopology(tree.root, gene2species)
+        print p, p2
+        fequal(p, p2)
+
+        # 3
+        tree = treelib.parseNewick("(((a,a),a),b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(3, T, duprate, lossrate) * b
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))
+        p2 *= numRedunantTopology(tree.root, gene2species)
+        print p, p2
+        fequal(p, p2)
+
+        # 4
+        tree = treelib.parseNewick("(((a,a),(a,a)),b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(4, T, duprate, lossrate) * b / 3.0
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))
+        p2 *= numRedunantTopology(tree.root, gene2species)
+        print p, p2
+        fequal(p, p2)
+
+
+    def test_birth_death_single3_sim(self):
+        """test the single branch prior"""
+
+        duprate = 2.0
+        lossrate = .5
+        T = 1.0
+        maxdoom = 20
+
+        
+        stree = treelib.parse_newick("(A:1,B:1);")
+        def gene2species(gene):
+            return gene[:1].upper()
+        s = stree.leaves()[0]
+
+        b = birthDeathCount(1, T, duprate, lossrate)
+
+        # 1
+        tree = treelib.parseNewick("(a,b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(1, T, duprate, lossrate) * b
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))
+        print p, p2
+        fequal(p, p2)
+        
+        # 2
+        tree = treelib.parseNewick("((a1,a2),b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(2, T, duprate, lossrate) * b
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))        
+        print p, p2
+        fequal(p, p2)
+
+        # 3
+        tree = treelib.parseNewick("(((a1,a2),a3),b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(3, T, duprate, lossrate) * b / 3.0
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))
+        print p, p2
+        fequal(p, p2)
+
+        # 4
+        tree = treelib.parseNewick("(((a1,a2),(a3,a4)),b);")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        p = birthDeathCount(4, T, duprate, lossrate) * b / 3.0 / 3.0
+        p2 = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+                                     maxdoom))
+        print p, p2
+        fequal(p, p2)
+
+
+    def test_birth_death_sim(self):
         """test birth death prior against simulation"""
 
         def gene2species(gene):
             return gene[:1].upper()
 
-        if 1:
-            stree = treelib.parseNewick("((A:1,B:1):1,C:2);")
-            hist, probs = self.do_test_birth_death_gene_sim(
-                stree, gene2species,
-                duprate=.2, lossrate=.1)
-            outdir = "test/output/birthdeath_sim"
-            prep_dir(outdir)
-            self.calc_fit(outdir + "/sim_prior", hist, probs)
+        stree = treelib.parse_newick("((A:1,B:1):1,C:2);")
+        hist, probs = self.do_test_birth_death_gene_sim(
+            stree, gene2species,
+            duprate=.2, lossrate=.1, ntrees=10000)
+        outdir = "test/output/birthdeath_sim"
+        prep_dir(outdir)
+        self.calc_fit(outdir + "/sim_prior", hist, probs)
+        
+    def test_birth_death_sim2(self):
+        """test birth death prior against simulation"""
+
+        def gene2species(gene):
+            return gene[:1].upper()
+        
+        stree = treelib.parse_newick("((A:1,B:1):1,(C:1.5,D:1.5):0.5);")
+        hist, probs = self.do_test_birth_death_gene_sim(
+            stree, gene2species,
+            duprate=.5, lossrate=.4,
+            ntrees=10000)
+        outdir = "test/output/birthdeath_sim2"
+        prep_dir(outdir)
+        self.calc_fit(outdir + "/sim_prior", hist, probs)
         
 
-        if 1:
-            stree = treelib.parseNewick("((A:1,B:1):1,(C:1.5,D:1.5):0.5);")
-            hist, probs = self.do_test_birth_death_gene_sim(
-                stree, gene2species,
-                duprate=.5, lossrate=.4,
-                ntrees=10000)
-            outdir = "test/output/birthdeath_sim2"
-            prep_dir(outdir)
-            self.calc_fit(outdir + "/sim_prior", hist, probs)
-        
-        
-        if 1:
-            stree = treelib.parseNewick("((A:1,B:1):1,C:2);")
-            hist, probs = self.do_test_birth_death_gene_sim(
-                stree, gene2species,
-                duprate=2, lossrate=1.5,
-                ntrees=1000)
-            outdir = "test/output/birthdeath_sim3"
-            prep_dir(outdir)
-            self.calc_fit(outdir + "/sim_prior", hist, probs)
+    def test_birth_death_sim3(self):
+        """test birth death prior against simulation"""
 
+        def gene2species(gene):
+            return gene[:1].upper()
 
-        if 1:
-            stree = treelib.parseNewick(
-                "(((A:1,B:1):1,(C:1.5,D:1.5):0.5):.5,((E:.2,F:.2):6):1.9);")
-            hist, probs = self.do_test_birth_death_gene_sim(
-                stree, gene2species,
-                duprate=.2, lossrate=.1,
-                ntrees=10000)
-            outdir = "test/output/birthdeath_sim4"
-            prep_dir(outdir)
-            self.calc_fit(outdir + "/sim_prior", hist, probs)
+        stree = treelib.parse_newick("((A:1,B:1):1,C:2);")
+        hist, probs = self.do_test_birth_death_gene_sim(
+            stree, gene2species,
+            duprate=2, lossrate=1.5,
+            ntrees=1000)
+        outdir = "test/output/birthdeath_sim3"
+        prep_dir(outdir)
+        self.calc_fit(outdir + "/sim_prior", hist, probs)
+
+    def test_birth_death_sim4(self):
+        """test birth death prior against simulation"""
+
+        def gene2species(gene):
+            return gene[:1].upper()
+
+        stree = treelib.parse_newick(
+            "(((A:1,B:1):1,(C:1.5,D:1.5):0.5):.5,((E:.2,F:.2):6):1.9);")
+        hist, probs = self.do_test_birth_death_gene_sim(
+            stree, gene2species,
+            duprate=.2, lossrate=.1,
+            ntrees=10000)
+        outdir = "test/output/birthdeath_sim4"
+        prep_dir(outdir)
+        self.calc_fit(outdir + "/sim_prior", hist, probs)
         
 
-    def _test_doom_table(self):
+    def test_doom_table(self):
 
         def gene2species(gene):
             return gene[:1].upper()

@@ -20,6 +20,7 @@
 #include "phylogeny.h"
 #include "parsimony.h"
 #include "search.h"
+#include "seq_likelihood.h"
 #include "Matrix.h"
 #include "ConfigParam.h"
 #include "Sequences.h"
@@ -69,8 +70,8 @@ public:
 	config.add(new ConfigParamComment("Sequence evolution model"));
 	config.add(new ConfigParam<float>
 		   ("-k", "--kappa", "<transition/transversion ratio>", 
-		    &kappa, 1.0,
-		    "used for HKY model (default=1.0)"));
+		    &kappa, -1.0,
+		    "used for HKY model (default=estimate)"));
 	config.add(new ConfigParam<string>
 		   ("-f", "--bgfreq", "<A freq>,<C ferq>,<G freq>,<T freq>", 
 		    &bgfreqstr, "",
@@ -134,7 +135,12 @@ public:
                     &quickSamples, 10,
                     "number of samples in quick search"));
 	config.add(new ConfigSwitch
-		   ("", "--no_spr_nbr", &noSprNbr, "do not use SPR NBR"));
+		   ("", "--no_branch_prior", &noBranchPrior, 
+                    "do not use branch prior"));
+	config.add(new ConfigParam<float>
+		   ("", "--lk_weight", "<weight of likelihood term>",
+                    &lkweight, 1.0,
+                    "weight for likelihood"));
 
 
 	config.add(new ConfigParamComment("Information"));
@@ -203,7 +209,9 @@ public:
     int quickiter;
     int quickSamples;
     int lkiter;
-    bool noSprNbr;
+
+    bool noBranchPrior;
+    float lkweight;
 };
 
 
@@ -236,7 +244,7 @@ bool bootstrap(Sequences *aln, string *genes, TreeSearch *search,
 	for (int i=0; i<aln->nseqs; i++)
 	    aln2.names[i] = aln->names[i];
 
-	for (int i=1; i<bootiter; i++) {
+	for (int i=1; i<=bootiter; i++) {
 	    printLog(LOG_LOW, "bootstrap %d of %d\n", i, bootiter);
 	    resampleAlign(aln, &aln2);
             
@@ -381,6 +389,9 @@ int main(int argc, char **argv)
     ExtendArray<int> gene2species(nnodes);
     mapping.getMap(genes, aln->nseqs, species, stree.nnodes, gene2species);
     
+    Tree *tree = getInitialTree(genes, aln->nseqs, aln->seqlen, aln->seqs,
+                                &stree, gene2species);
+
     
     //=====================================================
     // init prior function
@@ -397,7 +408,7 @@ int main(int argc, char **argv)
 				c.lossrate,
 				c.priorSamples,
 				!c.priorExact,
-				c.estGenerate);
+				true);
     else {
         printError("unknown prior '%s'", c.prioropt.c_str());
         return 1;
@@ -406,31 +417,59 @@ int main(int argc, char **argv)
 
     //========================================================
     // branch lengths
+
+    if (c.kappa < 0) {
+        const float minkappa = .4;
+        const float maxkappa = 5.0;
+        const float stepkappa = .1;
+
+        printLog(LOG_LOW, "finding optimum kappa...\n");
+        // get initial branch lengths
+        parsimony(tree, aln->nseqs, aln->seqs); 
+        c.kappa =  findMLKappaHky(tree, aln->nseqs, aln->seqs, 
+                                  bgfreq, 
+                                  minkappa, maxkappa, stepkappa);
+        printLog(LOG_LOW, "optimum kappa = %f\n", c.kappa);
+    }
     
     // determine branch length algorithm
     BranchLengthFitter *fitter = NULL;
     fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs,  
-			   bgfreq, c.kappa, c.lkiter);
+			   bgfreq, c.kappa, c.lkiter, 
+                           c.lkweight);
     
     
     //========================================================
     // initialize search
     
     // init topology proposer
-    NniProposer nni(&stree, gene2species, c.niter);
-    SprProposer spr(&stree, gene2species, c.niter);
+    const int radius = 3;
+
+    NniProposer nni(c.niter);
+    SprProposer spr(c.niter);
+    SprNbrProposer sprnbr(c.niter, radius);
+    
     MixProposer mix(c.niter);
-    mix.addProposer(&nni, .5);
-    mix.addProposer(&spr, .5);
-    UniqueProposer unique(&mix, c.niter);
-    DupLossProposer proposer(&unique, &stree, gene2species, 
-                             c.duprate, c.lossrate,
-                             c.quickiter, c.niter);
+    mix.addProposer(&nni, .25);
+    mix.addProposer(&sprnbr, .5);
+    mix.addProposer(&spr, .25);
+
+    ReconRootProposer rooted(&mix, &stree, gene2species);
+    UniqueProposer unique(&rooted, c.niter);
+    DupLossProposer dl(&unique, &stree, gene2species, 
+                       c.duprate, c.lossrate,
+                       c.quickiter, c.niter);
+
+    MixProposer mix2(c.niter);
+    mix2.addProposer(&unique, .2);
+    mix2.addProposer(&dl, .8);
+
+    TopologyProposer *proposer = &mix2;
 
     // init search
     TreeSearch *search = NULL;
     if (c.search == "climb") {
-	search = new TreeSearchClimb(prior, &proposer, fitter);
+	search = new TreeSearchClimb(prior, proposer, fitter);
     } else {
         printError("unknown search '%s'", c.search.c_str());
         return 1;
@@ -445,7 +484,7 @@ int main(int argc, char **argv)
         }
         // TODO: aborts if leaves mismatch, should catch error
         correctTree.reorderLeaves(genes);
-        proposer.setCorrect(&correctTree);
+        proposer->setCorrect(&correctTree);
     }
        
     
@@ -460,9 +499,6 @@ int main(int argc, char **argv)
     // search
     Tree *toptree;
     
-    Tree *tree = getInitialTree(genes, aln->nseqs, aln->seqlen, aln->seqs,
-                                &stree, gene2species);
-
     if (c.bootiter <= 1) {
 	toptree = search->search(tree, genes, 
 				 aln->nseqs, aln->seqlen, aln->seqs);
@@ -485,7 +521,7 @@ int main(int argc, char **argv)
     
     // log tree correctness
     if (c.correctFile != "") {
-        if (proposer.seenCorrect()) {
+        if (proposer->seenCorrect()) {
             printLog(LOG_LOW, "SEARCH: correct visited\n");
         } else {
             printLog(LOG_LOW, "SEARCH: correct NEVER visited\n");

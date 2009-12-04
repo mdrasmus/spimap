@@ -48,10 +48,11 @@ int dnatype[] = {
 // compute background frequencies
 void computeBgfreq(int nseqs, char **seqs, float *bgfreq)
 {
+    // initialize with pseudo counts
     for (int i=0; i<4; i++)
-        bgfreq[i] = 0.0;
+        bgfreq[i] = 1.0;    
 
-    int count = 0;
+    int count = 4;
 
     for (int i=0; i<nseqs; i++) {
         for (char *c=seqs[i]; *c; c++) {

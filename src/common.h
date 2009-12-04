@@ -152,9 +152,29 @@ double variance(T *vals, int size)
 }
 
 template <class T>
+double variance(T *vals, int size, T mean)
+{
+    double tot = 0.0;
+    for (int i=0; i<size; i++) {
+        T d = vals[i] - mean;
+        tot += d * d;
+    }
+    
+    return tot / (size - 1);
+}
+
+
+template <class T>
 double stdev(T* vals, int size)
 {
     return sqrt(variance(vals, size));
+}
+
+
+template <class T>
+double stdev(T* vals, int size, T mean)
+{
+    return sqrt(variance(vals, size, mean));
 }
 
 

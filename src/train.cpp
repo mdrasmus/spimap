@@ -203,6 +203,10 @@ public:
 
         double sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
+            // skip nulls
+            if (em->lengths[j][i] < 0)
+                continue;
+
             for (int k=0; k<em->nrates; k++) {
                 double lngamma = gammalog(em->lengths[j][i], sp_alpha_i, 
                                 sp_beta_i / (em->gtab[j][k] *
@@ -229,6 +233,11 @@ public:
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             double l = em->lengths[j][i];
+            // skip nulls
+            if (l < 0)
+                continue;
+
+
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
                 double bgt = sp_beta_i / (g * em->times[i]);
@@ -267,6 +276,10 @@ public:
         double beta_sum = 0.0;
         for (int j=0; j<em->ntrees; j++) {
             double l = em->lengths[j][i];
+            // skip nulls
+            if (l < 0)
+                continue;
+
             for (int k=0; k<em->nrates; k++) {
                 double g = em->gtab[j][k];
                 double bgt = sp_beta_i / (g * em->times[i]);
@@ -300,9 +313,14 @@ public:
             double sum = 0.0;
             for (int k=0; k<nrates; k++) {
                 double prod = 0.0;
-                for (int i=0; i<nspecies; i++)
-                    prod += gammalog(lengths[j][i], sp_alpha[i], 
+                for (int i=0; i<nspecies; i++) {
+                    double l = lengths[j][i];
+                    // skip nulls
+                    if (l < 0)
+                        continue;
+                    prod += gammalog(l, sp_alpha[i], 
 				     sp_beta[i] / (times[i] * gtab[j][k]));
+                }
                 sum += pgtab[j][k] * exp(prod);
             }
             logl += log(sum);
@@ -316,43 +334,42 @@ public:
     void init_params()
     {
         ExtendArray<float> vec(ntrees);
-        ExtendArray<float> vec2(ntrees);
         ExtendArray<float> treelens(ntrees);
 
+        // compute tree lengths and their mean
         float meantreelens = 0.0;
         for (int j=0; j<ntrees; j++) {
             treelens[j] = 0.0;
             for (int i=0; i<nspecies; i++)
-                treelens[j] += lengths[j][i];
+                if (lengths[j][i] > 0)
+                    treelens[j] += lengths[j][i];
             meantreelens += treelens[j];
         }
         meantreelens /= ntrees;
         
-        //printf("meantreelens=%f\n", meantreelens);
-        //printFloatArray(treelens, 5);
+        // compute variance of tree lengths
+        float vartreelens = variance(treelens.get(), ntrees, meantreelens);
 
-        
+        // initialize gene rate parameter
+        gene_nu = (1.0 / vartreelens) + 1.0;
+
+        // initialize species rate parameters
         for (int i=0; i<nspecies; i++) {
             float sum = 0.0;
             for (int j=0; j<ntrees; j++) {
-                vec2[j] = lengths[j][i];
-                vec[j] = lengths[j][i] / 
-                    (treelens[j] / meantreelens) / times[i];
-                sum += vec[j];
+                if (lengths[j][i] > 0) {
+                    vec[j] = lengths[j][i] / 
+                        (treelens[j] / meantreelens) / times[i];
+                    sum += vec[j];
+                }
             }
-
-            //printf("sp=%d t=%f ", i, times[i]);
-            //printFloatArray(vec.get(), 5);
-            //printFloatArray(vec2.get(), 5);
-
+            
             float mu = sum / ntrees;
             float sigma = stdev(vec.get(), ntrees);
             
             sp_alpha[i] = mu*mu / sigma / sigma;
             sp_beta[i] = mu / sigma / sigma;
         }
-
-        gene_nu = 1.0; 
     }
 
     inline double gene_post(double g, double A, double B)
@@ -425,17 +442,23 @@ public:
         double y[nrates+1];
 
         // determine commonly used coefficients
-        double A = gene_alpha;
+        double A2 = gene_alpha;
         for (int i=0; i<nspecies; i++)
-            A += sp_alpha[i];
+            A2 += sp_alpha[i];
 
 
         for (int j=0; j<ntrees; j++) {
 
             // determine commonly used coefficients
             double B = gene_beta;
-            for (int i=0; i<nspecies; i++)
-                B += sp_beta[i] * lengths[j][i] / times[i];
+            double A = A2;
+            for (int i=0; i<nspecies; i++) {
+                const double l = lengths[j][i];
+                if (l > 0)                     
+                    B += sp_beta[i] * l / times[i];
+                else
+                    A -= sp_alpha[i];
+            }
 
             // find main range of gene rates
             double mid = B / (A+1);

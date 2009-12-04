@@ -14,6 +14,46 @@
 
 namespace spidir {
 
+//=============================================================================
+
+
+TreeSet::~TreeSet()
+{
+    clear();
+}
+
+void TreeSet::clear()
+{
+    for (Set::iterator it=trees.begin();
+         it != trees.end(); it++)
+    {
+        delete [] *it;
+    }
+
+    trees.clear();
+}
+
+bool TreeSet::insert(Tree *tree)
+{
+    int *key = new int [tree->nnodes+1];
+    tree->hashkey(key);
+    key[tree->nnodes] = -2; // cap key
+
+    Set::iterator it = trees.find(key);
+    if (it == trees.end()) {
+        trees.insert(key);
+        return true;
+    } else
+        return false;
+}
+
+bool TreeSet::has(Tree *tree)
+{
+    key.ensureSize(tree->nnodes+1);
+    tree->hashkey(key);
+    key[tree->nnodes] = -2; // cap key
+    return trees.find(key) != trees.end();
+}
 
 
 //=============================================================================
@@ -203,9 +243,9 @@ void proposeRandomSpr(Tree *tree, Node **subtree, Node **newpos)
     *subtree = a;
     
     // find sibling (b) of a
-    Node *c = a->parent;
+    const Node *c = a->parent;
     const int bi = (c->children[0] == a) ? 1 : 0;
-    Node *b = c->children[bi];
+    const Node *b = c->children[bi];
     
     // choose newpos (e)
     Node *e = NULL;
@@ -235,27 +275,50 @@ void proposeRandomSpr(Tree *tree, Node **subtree, Node **newpos)
 }
 
 
+bool validSpr(Tree *tree, const Node *subtree, const Node *newpos)
+{
+    const Node *a = subtree;
+    const Node *e = newpos;
+    
+    // find sibling (b) of a
+    const Node *c = a->parent;
+    const int bi = (c->children[0] == a) ? 1 : 0;
+    const Node *b = c->children[bi];
+
+    // test if a is a valid choice
+    if (a->parent == NULL || a->parent->parent == NULL)
+        return false;
+
+    // test if e is a valid choice
+    if (e->parent == NULL || e == a || e == c || e == b) {
+        //printf("ERROR: a=%d, e=%d, b=%d, c=%d\n", a->name, e->name, 
+        //       b->name, c->name);
+        return false;
+    }
+        
+    // also test if e is a descendent of a
+    for (Node *ptr = e->parent; ptr != NULL; ptr = ptr->parent)
+        if (ptr == a)
+            return false;
+        
+    return true;
+}
+
+
 
 //=============================================================================
 // NNI Proposer
 
-NniProposer::NniProposer(SpeciesTree *stree, int *gene2species,
-                         int niter) :
+NniProposer::NniProposer(int niter) :
     niter(niter),
     iter(0),
     nodea(NULL),
-    nodeb(NULL),
-    oldroot1(NULL),
-    oldroot2(NULL),
-    stree(stree),
-    gene2species(gene2species)
+    nodeb(NULL)
 {}
 
 
 void NniProposer::propose(Tree *tree)
 {
-    const float rerootProb = 1.0;
-    
     // increase iteration
     iter++;
     
@@ -264,28 +327,12 @@ void NniProposer::propose(Tree *tree)
     // propose new tree
     proposeRandomNni(tree, &nodea, &nodeb);
     performNni(tree, nodea, nodeb);
-    
-    // reroot tree if stree is given
-    if (frand() < rerootProb) {
-        oldroot1 = tree->root->children[0];
-        oldroot2 = tree->root->children[1];
-        
-        if (stree != NULL) {
-            reconRoot(tree, stree, gene2species);
-        }
-    } else {
-        oldroot1 = NULL;
-        oldroot2 = NULL;
-    }
 }
 
 
 void NniProposer::revert(Tree *tree)
 {
-    // reject, undo topology change
-    if (oldroot1)
-        tree->reroot(oldroot1, oldroot2);
-    
+    // undo topology change
     performNni(tree, nodea, nodeb);
 }
 
@@ -296,9 +343,8 @@ void NniProposer::revert(Tree *tree)
 //=============================================================================
 // SPR Proposer
 
-SprProposer::SprProposer(SpeciesTree *stree, int *gene2species,
-                         int niter) :
-    NniProposer(stree, gene2species, niter)
+SprProposer::SprProposer(int niter) :
+    NniProposer(niter)
 {
 }
     
@@ -343,8 +389,8 @@ void MixProposer::propose(Tree *tree)
     // randomly choose method
     float choice = frand() * totalWeight;
     float sum = methods[0].second;
-    int i = 0;
-    while ((unsigned int) i < methods.size()-1 && sum < choice) {
+    unsigned int i = 0;
+    while (i < methods.size()-1 && sum < choice) {
         i++;
         sum += methods[i].second;
     }
@@ -365,11 +411,11 @@ void MixProposer::revert(Tree *tree)
 //=============================================================================
 // SPR Neighborhood Proposer
 
-SprNbrProposer::SprNbrProposer(SpeciesTree *stree, int *gene2species,
-                               int niter, int radius) :
-    NniProposer(stree, gene2species, niter),
+SprNbrProposer::SprNbrProposer(int niter, int radius) :
+    NniProposer(niter),
     radius(radius),
-    basetree(NULL)
+    basetree(NULL),
+    reverted(false)
 {
 }
 
@@ -384,23 +430,31 @@ void SprNbrProposer::propose(Tree *tree)
 
 
     // start a new subtree
-    if (iter == 0 || queue.size() == 0) {
+    if (iter == 0 || queue.size() == 0 || !reverted) {
         iter = 0;
         pickNewSubtree();
     }
 
     iter++; // increase iteration
     
-    // get new branch point
-    nodea = queue.front();
-    queue.pop_front();
+    // go through skip
+    while (queue.size() > 0) {
+        // get new branch point
+        nodea = queue.front();
+        queue.pop_front();
     
-    // remember sibling of subtree (nodeb)
-    const Node *p = subtree->parent;
-    nodeb = (p->children[0] == subtree) ? p->children[1] : p->children[0];
+        // remember sibling of subtree (nodeb)
+        const Node *p = subtree->parent;
+        nodeb = (p->children[0] == subtree) ? p->children[1] : p->children[0];
     
-    // perform SPR move
-    performSpr(tree, subtree, nodea);
+        // perform only valid SPR moves
+        // NOTE: the tree may have changed, thus we need to double check
+        // whether the Spr is valid.
+        if (validSpr(tree, subtree, nodea)) {
+            performSpr(tree, subtree, nodea);
+            break;
+        }
+    }
 
     assert(tree->assertTree());
 }
@@ -438,10 +492,10 @@ void SprNbrProposer::pickNewSubtree()
         pathdists.push_back(-1);
     
     // setup path distances and queue
-    queue.clear();
     pathdists[a->name] = 0;
     pathdists[c->name] = 0;
     pathdists[b->name] = 0;
+    queue.clear();
     list<Node*> tmpqueue;
     tmpqueue.push_back(c);
     tmpqueue.push_back(b);
@@ -571,12 +625,6 @@ void DupLossProposer::propose(Tree *tree)
     // save old topology
     oldtop = tree->copy();
     
-    // do simple proposal
-    if (frand() < .2) {
-        proposer->propose(tree);
-        return;
-    }
-
     
     // recon tree to species tree
     recon.ensureSize(tree->nnodes);
@@ -675,45 +723,6 @@ void DupLossProposer::revert(Tree *tree)
 }
 
 
-//=============================================================================
-
-
-TreeSet::~TreeSet()
-{
-    clear();
-}
-
-void TreeSet::clear()
-{
-    for (Set::iterator it=trees.begin();
-         it != trees.end(); it++)
-    {
-        trees.erase(it);
-        delete [] *it;
-    }
-}
-
-bool TreeSet::insert(Tree *tree)
-{
-    int *key = new int [tree->nnodes+1];
-    tree->hashkey(key);
-    key[tree->nnodes] = -2; // cap key
-
-    Set::iterator it = trees.find(key);
-    if (it == trees.end()) {
-        trees.insert(key);
-        return true;
-    } else
-        return false;
-}
-
-bool TreeSet::has(Tree *tree)
-{
-    key.ensureSize(tree->nnodes+1);
-    tree->hashkey(key);
-    key[tree->nnodes] = -2; // cap key
-    return trees.find(key) != trees.end();
-}
 
 //=============================================================================
 
@@ -756,14 +765,14 @@ void UniqueProposer::propose(Tree *tree)
 
 HkyFitter::HkyFitter(int nseqs, int seqlen, char **seqs, 
                      float *bgfreq, float tsvratio, int maxiter,
-                     bool useLogl) :
+                     float lkweight) :
     nseqs(nseqs),
     seqlen(seqlen),
     seqs(seqs),
     bgfreq(bgfreq),
     tsvratio(tsvratio),
     maxiter(maxiter),
-    useLogl(useLogl)
+    lkweight(lkweight)
 {}
 
 
@@ -774,10 +783,7 @@ double HkyFitter::findLengths(Tree *tree)
                                          tsvratio, maxiter);
     runtime += timer.time();
 
-    if (useLogl)
-        return logl;
-    else
-        return 0.0;
+    return lkweight * logl;
 }
 
 
@@ -789,7 +795,7 @@ SpidirPrior::SpidirPrior(
     SpidirParams *params, 
     int *gene2species,
     float predupprob, float dupprob, float lossprob, 
-    int nsamples, bool approx, bool estGenerate) :
+    int nsamples, bool approx, bool useBranchPrior) :
     
     nnodes(nnodes),
     stree(stree),
@@ -802,7 +808,7 @@ SpidirPrior::SpidirPrior(
     lossprob(lossprob),
     nsamples(nsamples),
     approx(approx),
-    estGenerate(estGenerate)
+    useBranchPrior(useBranchPrior)
 {
     const int maxdoom = 20;
 
@@ -820,15 +826,13 @@ double SpidirPrior::branchPrior(Tree *tree)
 {
     Timer timer;
 
+    if (!useBranchPrior)
+        return 0.0;
+
     // reconcile tree to species tree
     reconcile(tree, stree, gene2species, recon);
     labelEvents(tree, recon, events);
-    float generate;
-    
-    if (estGenerate)
-        generate = -1;
-    else
-        generate = -99;
+    float generate = -99;
         
     double logp = spidir::branchPrior(tree, stree,
                                      recon, events, params,
@@ -1179,12 +1183,13 @@ Tree *searchClimb(int niter, int quickiter,
 		     bgfreq, kappa, maxiter);
 
     // proposers
-    NniProposer nni(&stree, gene2species, niter);
-    SprProposer spr(&stree, gene2species, niter);
+    NniProposer nni(niter);
+    SprProposer spr(niter);
     MixProposer mix(niter);
     mix.addProposer(&nni, .5);
     mix.addProposer(&spr, .5);
-    UniqueProposer unique(&mix, niter);
+    ReconRootProposer rooted(&mix, &stree, gene2species);
+    UniqueProposer unique(&rooted, niter);
     DupLossProposer proposer(&mix, &stree, gene2species, 
 			     birth, death,
                              quickiter, niter);

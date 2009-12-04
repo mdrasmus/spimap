@@ -661,7 +661,7 @@ public:
 
 
 
-    float fitBranches(Tree *tree, int nseqs, int seqlen, char **seqs, 
+    floatlk fitBranches(Tree *tree, int nseqs, int seqlen, char **seqs, 
 		      const float *bgfreq, 
 		      ExtendArray<Node*> &rootingOrder)
     {
@@ -742,6 +742,49 @@ public:
 	return logl;
     }
 
+
+    floatlk fitBranchesConverge(Tree *tree, int nseqs, char **seqs, 
+                                const float *bgfreq,
+                                ExtendArray<Node*> &rootingOrder,
+                                int maxiter=10)
+    {
+        floatlk lastLogl = -INFINITY, logl = -INFINITY;
+        const floatlk converge = logf(1.02);
+    
+        // initialize the condition likelihood table
+        int seqlen = strlen(seqs[0]);
+        calcLkTable(table.lktable, tree, nseqs, seqlen, seqs, *model);
+
+
+        // remember original rooting for restoring later
+        Node *origroot1 = tree->root->children[0];
+        Node *origroot2 = tree->root->children[1];
+    
+        // iterate over branches improving each likelihood
+        for (int j=0; j<maxiter; j++) {
+            printLog(LOG_HIGH, "hky: iter %d\n", j);  
+
+            logl = fitBranches(tree, nseqs, seqlen, seqs, bgfreq, 
+                               rootingOrder);
+        
+            // determine whether logl has converged
+            floatlk diff = fabs(logl - lastLogl);
+            if (diff < converge) {
+                printLog(LOG_HIGH, "hky: diff = %f < %f\n", diff, converge);
+                break;
+            } else {
+                printLog(LOG_HIGH, "hky: diff = %f > %f\n", diff, converge);
+            }
+            lastLogl = logl;
+        }
+    
+        // restore original rooting
+        tree->reroot(origroot1, origroot2);
+
+        return logl;
+    }
+
+
     const static double minx = 0.0000001;
     const static double maxx = 10.0;
 
@@ -762,53 +805,28 @@ public:
 
 // NOTE: assumes binary Tree
 template <class Model>
-float findMLBranchLengths(Tree *tree, int nseqs, char **seqs, 
-                          const float *bgfreq, Model &model,
-                          int maxiter=10)
+floatlk findMLBranchLengths(Tree *tree, int nseqs, char **seqs, 
+                            const float *bgfreq, Model &model,
+                            int maxiter=10)
 {
     // timing
     Timer timer;
     
 
     int seqlen = strlen(seqs[0]);
+    Timer timer2;
     MLBranchAlgorithm<Model> mlalg(tree, seqlen, &model);
-
-    float lastLogl = -INFINITY, logl = -INFINITY;    
-    const float converge = logf(1.02);
-    
-    // initialize the condition likelihood table
-    calcLkTable(mlalg.table.lktable, tree, nseqs, seqlen, seqs, model);
+    printLog(LOG_MEDIUM, "mlalloc time: %f\n", timer2.time());
     
     
     // determine rooting order
     ExtendArray<Node*> rootingOrder(0, 2*tree->nnodes);
     getRootOrder(tree, &rootingOrder);
     
-    // remember original rooting for restoring later
-    Node *origroot1 = tree->root->children[0];
-    Node *origroot2 = tree->root->children[1];
+    // perform fitting
+    floatlk logl = mlalg.fitBranchesConverge(tree, nseqs, seqs, bgfreq,
+                                             rootingOrder, maxiter);
     
-    // iterate over branches improving each likelihood
-    for (int j=0; j<maxiter; j++) {
-        printLog(LOG_HIGH, "hky: iter %d\n", j);  
-
-	logl = mlalg.fitBranches(tree, nseqs, seqlen, seqs, bgfreq, 
-				 rootingOrder);
-        
-        // determine whether logl has converged
-        floatlk diff = fabs(logl - lastLogl);
-        if (diff < converge) {
-            printLog(LOG_HIGH, "hky: diff = %f < %f\n", diff, converge);
-            break;
-        } else {
-            printLog(LOG_HIGH, "hky: diff = %f > %f\n", diff, converge);
-        }
-        lastLogl = logl;
-    }
-    
-    // restore original rooting
-    tree->reroot(origroot1, origroot2);
-
     
     printLog(LOG_MEDIUM, "mldist time: %f\n",  timer.time());
     
@@ -817,10 +835,32 @@ float findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
 
 
 double findMLBranchLengthsHky(Tree *tree, int nseqs, char **seqs, 
-                              const float *bgfreq, float ratio, int maxiter)
+                              const float *bgfreq, float kappa, int maxiter)
 {
-    HkyModel hky(bgfreq, ratio);
+    HkyModel hky(bgfreq, kappa);
     return findMLBranchLengths(tree, nseqs, seqs, bgfreq, hky, maxiter);
+}
+
+
+
+double findMLKappaHky(Tree *tree, int nseqs, char **seqs, 
+                      const float *bgfreq, float minkappa, float maxkappa,
+                      float kappastep)
+{
+    const int maxiter = 1;
+    floatlk maxlk = -INFINITY;
+    float maxk = minkappa;
+
+    for (float k=minkappa; k<=maxkappa; k+=kappastep) {
+        float l = findMLBranchLengthsHky(tree, nseqs, seqs, bgfreq, k, 
+                                         maxiter);
+        if (l > maxlk) {
+            maxlk = l;
+            maxk = k;
+        }
+    }
+
+    return maxk;
 }
 
 

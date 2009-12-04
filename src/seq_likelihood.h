@@ -44,6 +44,10 @@ floatlk findMLBranchLengthsHky(int nnodes, int *ptree, int nseqs, char **seqs,
                                float *dists, const float *bgfreq, float kappa, 
                                int maxiter, bool parsinit=false);
 
+double findMLKappaHky(Tree *tree, int nseqs, char **seqs, 
+                      const float *bgfreq, float minkappa, float maxkappa,
+                      float kappastep);
+
 } // extern "C"
 
 } // namespace spidir

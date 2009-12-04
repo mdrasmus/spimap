@@ -102,7 +102,7 @@ def numRedunantTopology(node, gene2species, leaves=None):
 
     def walk(node):
         if node in leaves:
-            colors[node] = phylo.hashTree(node, gene2species)
+            colors[node] = phylo.hash_tree(node, gene2species)
         else:
             # recurse
             for child in node.children:
@@ -113,7 +113,7 @@ def numRedunantTopology(node, gene2species, leaves=None):
                 nmirrors[0] += 1
             
             childHashes.sort()
-            colors[node] = phylo.hashTreeCompose(childHashes)
+            colors[node] = phylo.hash_tree_compose(childHashes)
     walk(node)
 
     colorsizes = util.hist_dict(util.mget(colors, leaves)).values()
@@ -133,10 +133,84 @@ def numRedunantTopology2(node, gene2species, leaves=None):
     colors = []
 
     for node in leaves:
-        colors.append(phylo.hashTree(node, gene2species))
+        colors.append(phylo.hash_tree(node, gene2species))
         
     colorsizes = util.hist_dict(colors).values()
     return stats.multinomial(colorsizes)
+
+
+def numColorMirrors(node, gene2species, leaves=None):
+
+    if leaves is None:
+        leaves = node.leaves()
+    leaves = set(leaves)
+    colors = {}
+    nmirrors = [0]
+
+    def walk(node):
+        if node in leaves:
+            colors[node] = phylo.hash_tree(node, gene2species)
+        else:
+            # recurse
+            for child in node.children:
+                walk(child)
+            
+            childHashes = mget(colors, node.children)
+            print childHashes, len(childHashes)
+            if len(childHashes) > 1 and util.equal(* childHashes):
+                nmirrors[0] += 1
+            
+            childHashes.sort()
+            colors[node] = phylo.hash_tree_compose(childHashes)
+    walk(node)
+    return nmirrors[0]
+
+
+def numRedunantTopology3(node, gene2species, leaves=None):
+
+    if leaves is None:
+        leaves = node.leaves()
+    leaves = set(leaves)
+    colors = {}
+    nmirrors = [0]
+
+    def walk(node):
+        if node in leaves:
+            colors[node] = phylo.hash_tree(node, gene2species)
+        else:
+            # recurse
+            for child in node.children:
+                walk(child)
+            
+            childHashes = mget(colors, node.children)
+            if len(childHashes) > 1 and util.equal(* childHashes):
+                nmirrors[0] += 1
+            
+            childHashes.sort()
+            colors[node] = phylo.hash_tree_compose(childHashes)
+    walk(node)
+    
+    colorsizes = util.hist_dict(util.mget(colors, leaves)).values()
+
+    #print colorsizes, nmirrors, stats.multinomial(colorsizes) / float(2**nmirrors[0])
+
+    return stats.multinomial(colorsizes) / float(2**nmirrors[0])
+
+
+def numRedunantTopology4(node, gene2species, leaves=None):
+
+    if leaves is None:
+        leaves = node.leaves()
+    
+    ninternals = [0]
+    def walk(node):
+        if node not in leaves:
+            ninternals[0] += 1
+            for child in node:
+                walk(child)
+    walk(node)
+    
+    return factorial(len(leaves)) / float(2**ninternals[0])
 
 
 def getSubTree(node, snode, recon, events):
@@ -155,10 +229,16 @@ def getSubTree(node, snode, recon, events):
     return leaves
     
 
-def calcBirthDeathPrior_old(tree, stree, recon, birth, death, maxdoom):
+def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom,
+                            events=None):
 
-    events = phylo.labelEvents(tree, recon)
-    phylo.addImpliedSpecNodes(tree, stree, recon, events)
+    def gene2species(gene):
+        return recon[tree.nodes[gene]].name
+
+    if events is None:
+        events = phylo.label_events(tree, recon)
+    leaves = set(tree.leaves())
+    phylo.add_implied_spec_nodes(tree, stree, recon, events)
     
     pstree, snodes, snodelookup = spidir.make_ptree(stree)
 
@@ -176,6 +256,14 @@ def calcBirthDeathPrior_old(tree, stree, recon, birth, death, maxdoom):
                     nhist = numTopologyHistories(node2, subleaves)
                     s = len(subleaves)
                     thist = factorial(s) * factorial(s-1) / 2**(s-1)
+                    
+                    if len(set(subleaves) & leaves) == 0:
+                        prod += log(numRedunantTopology2(node2, gene2species,
+                                                         subleaves))
+                    else:
+                        prod += log(numRedunantTopology(node2, gene2species,
+                                                         subleaves))
+                    
                 else:
                     nhist = 1.0
                     thist = 1.0
@@ -187,20 +275,24 @@ def calcBirthDeathPrior_old(tree, stree, recon, birth, death, maxdoom):
                 
                 prod += log(nhist) - log(thist) + log(t)
 
-
+    # correct for renumbering
+    nt = numRedunantTopology(tree.root, gene2species)
+    #print "py x", nt, prod
+    prod -= log(nt)
+    
     #phylo.removeImpliedSpecNodes(tree, recon, events)
-    treelib.removeSingleChildren(tree)
+    treelib.remove_single_children(tree)
 
     return prod
 
 
 
-def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom,
+def calcBirthDeathPrior_old(tree, stree, recon, birth, death, maxdoom,
                         events=None):
 
     if events is None:
-        events = phylo.labelEvents(tree, recon)
-    phylo.addImpliedSpecNodes(tree, stree, recon, events)
+        events = phylo.label_events(tree, recon)
+    phylo.add_implied_spec_nodes(tree, stree, recon, events)
     
     
     pstree, snodes, snodelookup = spidir.make_ptree(stree)
@@ -245,7 +337,7 @@ def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom,
     prod -= log(nt)
 
     
-    treelib.removeSingleChildren(tree)
+    treelib.remove_single_children(tree)
 
     return prod
 

@@ -28,6 +28,9 @@ o.add_option("-p", "--params", dest="params",
 o.add_option("-f", "--filter", dest="filter",
              metavar="<treelen percentile>",
              type="float", default=1.00)
+o.add_option("-m", "--mincount", dest="mincount",
+             metavar="<minimum subst. count on a branch>",
+             type="int", default=0)
 
 
     
@@ -71,7 +74,16 @@ def main(conf, args):
     gene_sizes = util.mget(gene_sizes, ind)
     files = util.mget(files, ind)
 
-    util.logger("using %d trees" % len(lens))
+    removed = 0
+    for row, size in zip(lens, gene_sizes):
+        for j in xrange(len(row)):
+            c = row[j] * size
+            if c < conf.mincount:
+                row[j] = -1
+                removed += 1
+
+    util.logger("using %d trees (%.2f%% removed branches)" %
+                (len(lens), 100 * float(removed) / (len(util.flatten(lens))) ))
     
     
     for i, sp in enumerate(species):
