@@ -73,7 +73,11 @@ class TestBirthDeathSim (unittest.TestCase):
         hist.add_col("fold", data=folds)
 
         # display tables
-        hist[:tabsize].write_pretty()
+        hist2 = hist.get()
+        if isinstance(hist2[0]["item"], str):
+            for row in hist2:
+                row["item"] = row["item"][:60] # truncate colsize
+        hist2[:tabsize].write_pretty()
         hist.write(prefix + "_compare.tab")
 
         # plot prior versus frequency
@@ -189,7 +193,7 @@ class TestBirthDeathSim (unittest.TestCase):
                 #        print "recon is not parsimonious"
                 #    tree.write_newick(oneline=True)
                 #    raise
-                probs.append(exp(p2))
+                probs.append(exp(p))
 
         return hist, probs
 
@@ -372,6 +376,27 @@ class TestBirthDeathSim (unittest.TestCase):
         fequal(p, p2)
 
 
+    def test_internal_branch(self):
+
+        maxdoom = 20
+        duprate = .4
+        lossrate = .01
+        stree = treelib.parse_newick("((A:.05,B:.01):1,C:.01);")
+        def gene2species(gene):
+            return gene[:1].upper()
+        tree = treelib.parseNewick("((((A1,B3),(A2,B2)),(A3,B1)),C1)")
+        recon = phylo.reconcile(tree, stree, gene2species)
+        #p = exp(calcBirthDeathPrior(tree, stree, recon, duprate, lossrate,
+        #                            maxdoom))
+        p = exp(c_calcBirthDeathPrior(tree, stree, recon,
+                                      duprate, lossrate,
+                                      maxdoom))
+
+        print p, 0.0012 * 3
+        #fequal(p, p2)
+
+
+
     def test_birth_death_sim(self):
         """test birth death prior against simulation"""
 
@@ -411,13 +436,30 @@ class TestBirthDeathSim (unittest.TestCase):
         stree = treelib.parse_newick("((A:1,B:1):1,C:2);")
         hist, probs = self.do_test_birth_death_gene_sim(
             stree, gene2species,
-            duprate=2, lossrate=1.5,
-            ntrees=1000)
+            duprate=1, lossrate=1.5,
+            ntrees=10000)
         outdir = "test/output/birthdeath_sim3"
         prep_dir(outdir)
         self.calc_fit(outdir + "/sim_prior", hist, probs)
 
+
     def test_birth_death_sim4(self):
+        """test birth death prior against simulation"""
+
+        def gene2species(gene):
+            return gene[:1].upper()
+
+        stree = treelib.parse_newick("((A:.05,B:.01):1,C:.01);")
+        hist, probs = self.do_test_birth_death_gene_sim(
+            stree, gene2species,
+            duprate=.4, lossrate=.01,
+            ntrees=50000)
+        outdir = "test/output/birthdeath_sim4"
+        prep_dir(outdir)
+        self.calc_fit(outdir + "/sim_prior", hist, probs)
+
+
+    def test_birth_death_sim5(self):
         """test birth death prior against simulation"""
 
         def gene2species(gene):

@@ -27,7 +27,7 @@ void TreeSet::clear()
     for (Set::iterator it=trees.begin();
          it != trees.end(); it++)
     {
-        delete [] *it;
+        delete [] (int*) *it;
     }
 
     trees.clear();
@@ -35,16 +35,18 @@ void TreeSet::clear()
 
 bool TreeSet::insert(Tree *tree)
 {
-    int *key = new int [tree->nnodes+1];
-    tree->hashkey(key);
-    key[tree->nnodes] = -2; // cap key
+    int *key2 = new int [tree->nnodes+1];
+    tree->hashkey(key2);
+    key2[tree->nnodes] = -2; // cap key
 
-    Set::iterator it = trees.find(key);
+    Set::iterator it = trees.find(key2);
     if (it == trees.end()) {
-        trees.insert(key);
+        trees.insert(key2);
         return true;
-    } else
+    } else {
+        delete [] key2;
         return false;
+    }
 }
 
 bool TreeSet::has(Tree *tree)
@@ -1109,8 +1111,8 @@ Tree *TreeSearchClimb::search(Tree *initTree,
                                   &recon[0], &events[0]);
             
             nreject++;
-            proposer->accept(false);            
-            proposer->revert(tree);
+            proposer->accept(false);             
+           proposer->revert(tree);
         }
     }
     
@@ -1130,6 +1132,10 @@ Tree *TreeSearchClimb::search(Tree *initTree,
     printLog(LOG_LOW, "search: branch = %f\n", branchp);          
     printLog(LOG_LOW, "search: top    = %f\n", topp);
     
+    // clean up
+    if (initTree == NULL)
+        delete tree;
+
     return toptree;
 }
 

@@ -308,6 +308,7 @@ public:
         // cleanup
         for (int i=0; i<nnodes; i++)
             delete [] lktable[i];
+        delete [] lktable;
     }
 
     floatlk **lktable;
@@ -562,6 +563,7 @@ public:
     {
         gsl_root_fdfsolver_free(opt);
         delete dmodel;
+        delete d2model;
     }
 
 

@@ -141,7 +141,7 @@ protected:
 class MixProposer: public TopologyProposer
 {
 public:
-    MixProposer(int niter=500) : niter(niter), iter(0) {}
+    MixProposer(int niter=500) : totalWeight(0), niter(niter), iter(0) {}
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);    

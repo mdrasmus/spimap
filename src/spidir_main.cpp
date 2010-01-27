@@ -506,6 +506,14 @@ int main(int argc, char **argv)
 	toptree = search->search(tree, genes, 
 				 aln->nseqs, aln->seqlen, aln->seqs);
 	if (!bootstrap(aln, genes, search, c.bootiter, c.outprefix)) {
+            delete aln;
+            delete toptree;
+            delete tree;
+            delete params;
+            delete fitter;
+            delete prior;
+            delete search;
+
 	    return 1;
 	}
     }
@@ -547,7 +555,9 @@ int main(int argc, char **argv)
     closeLogFile();
     
     // clean up
+    delete aln;
     delete toptree;
+    delete tree;
     delete params;
     delete fitter;
     delete prior;

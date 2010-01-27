@@ -355,11 +355,11 @@ void addSpecNode(Node *node, Node *snode, Tree *tree,
     Node *parent = node->parent;
     
     // find index of node in parent's children
-    int nodei=-1;
+    int nodei=0;
     for (; nodei<parent->nchildren; nodei++)
         if (parent->children[nodei] == node)
             break;
-    assert(nodei != -1);
+    assert(nodei != parent->nchildren);
     
     // insert new node into tree
     parent->children[nodei] = newnode;
@@ -460,11 +460,11 @@ void removeImpliedSpecNodes(Tree *tree, int addedNodes)
         }
         
         // find index of oldnode in parent's children
-        int nodei = -1;
+        int nodei = 0;
         for (; nodei<parent->nchildren; nodei++)
             if (parent->children[nodei] == oldnode)
                 break;
-        assert(nodei != -1);
+        assert(nodei != parent->nchildren);
     
         // remove old node from tree
         parent->children[nodei] = child;

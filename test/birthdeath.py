@@ -92,7 +92,7 @@ def numTopologyHistories(node, leaves=None):
     return prod[0]
 
 
-def numRedunantTopology(node, gene2species, leaves=None):
+def numRedunantTopology(node, gene2species, leaves=None, all_leaves=False):
 
     if leaves is None:
         leaves = node.leaves()
@@ -117,11 +117,14 @@ def numRedunantTopology(node, gene2species, leaves=None):
     walk(node)
 
     colorsizes = util.hist_dict(util.mget(colors, leaves)).values()
-    
-    val = 1
-    for s in colorsizes:
-        if s > 1:
-            val *= stats.factorial(s)
+
+    if all_leaves:
+        val = stats.factorial(len(leaves))
+    else:
+        val = 1
+        for s in colorsizes:
+            if s > 1:
+                val *= stats.factorial(s)
     #print "py val=", val, "nmirrors=", nmirrors[0]
     return val / (2**nmirrors[0])
 
@@ -258,11 +261,15 @@ def calcBirthDeathPrior(tree, stree, recon, birth, death, maxdoom,
                     thist = factorial(s) * factorial(s-1) / 2**(s-1)
                     
                     if len(set(subleaves) & leaves) == 0:
-                        prod += log(numRedunantTopology2(node2, gene2species,
-                                                         subleaves))
-                    else:
+                        # internal
+                        #prod += log(numRedunantTopology2(node2, gene2species,
+                        #                                 subleaves))
                         prod += log(numRedunantTopology(node2, gene2species,
-                                                         subleaves))
+                                                         subleaves, True))
+                    else:
+                        # leaves
+                        prod += log(numRedunantTopology(node2, gene2species,
+                                                         subleaves, False))
                     
                 else:
                     nhist = 1.0

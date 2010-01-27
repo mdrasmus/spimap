@@ -174,7 +174,8 @@ int intCmp(const void *_a, const void *_b)
 }
 
 
-int numRedunantTopologies_helper(Node *node, 
+/*
+int numRedundantTopologies_helper(Node *node, 
 				 bool *leafset, 
 				 int *hashids)
 {
@@ -182,14 +183,14 @@ int numRedunantTopologies_helper(Node *node,
 	return 0;
     else {
 	if (node->nchildren == 1)
-	    return numRedunantTopologies_helper(node->children[0],
+	    return numRedundantTopologies_helper(node->children[0],
 						leafset, hashids);
 	else if (node->nchildren == 2) {
 	    int n = int(hashids[node->children[0]->name] == 
 			hashids[node->children[1]->name]);
-	    return n + numRedunantTopologies_helper(node->children[0],
+	    return n + numRedundantTopologies_helper(node->children[0],
 						    leafset, hashids)
-		     + numRedunantTopologies_helper(node->children[1],
+		     + numRedundantTopologies_helper(node->children[1],
 						    leafset, hashids);
 	} else {
 	    // NOTE: cannot handle multifurcating nodes
@@ -197,10 +198,13 @@ int numRedunantTopologies_helper(Node *node,
 	}
     }
 }
+*/
 
-double numRedunantTopologies(Tree *tree, Node *root, 
-			     ExtendArray<Node*> &leaves, 
-			     int *hashids)
+// N_n(T, allLeaves=false) = 2^{-M(T)} prod_u c_u!
+// N_n(T, allLeaves=true) = 2^{-M(T)} L(T)!
+double numRedundantTopologies(Tree *tree, Node *root, 
+                              ExtendArray<Node*> &leaves, 
+                              int *hashids, bool allLeaves)
 {
 
     // get nodes in post order
@@ -248,39 +252,46 @@ double numRedunantTopologies(Tree *tree, Node *root,
 
     //printf("queue.size = %d\n", queue.size());
 
-
-    // get hashes
-    ExtendArray<int> leafhashes(0, leaves.size());
-    for (int i=0; i<leaves.size(); i++)
-	leafhashes.append(hashids[leaves[i]->name]);
-    
-    qsort((void*) leafhashes.get(), leafhashes.size(), sizeof(int), intCmp);
-
     double val = 0.0;
-    double colorsize = 1;
-    for (int i=1; i<leaves.size(); i++) {
-	if (leafhashes[i] != leafhashes[i-1]) {
-	    // val *= factorial(colorsize)
-	    for (double j=2; j<=colorsize; j+=1.0)
-		val += logf(j);
-	    colorsize = 1.0;
-	} else {
-	    colorsize += 1.0;
-	}
-    }
-    for (double j=2; j<=colorsize; j+=1.0)
-	val += logf(j);
 
-    //printf("c val=%f, nmirrors = %d\n", val, nmirrors);
+    if (allLeaves) {
+        // val = log(factorial(leaves.size()))
+        for (double i=2.0; i<=leaves.size(); i+=1.0)
+            val += logf(i);
+    } else {
+        // get hashes
+        ExtendArray<int> leafhashes(0, leaves.size());
+        for (int i=0; i<leaves.size(); i++)
+            leafhashes.append(hashids[leaves[i]->name]);
+    
+        qsort((void*) leafhashes.get(), leafhashes.size(), sizeof(int), intCmp);
+
+        double colorsize = 1;
+        for (int i=1; i<leaves.size(); i++) {
+            if (leafhashes[i] != leafhashes[i-1]) {
+                // val *= factorial(colorsize)
+                for (double j=2; j<=colorsize; j+=1.0)
+                    val += logf(j);
+                colorsize = 1.0;
+            } else {
+                colorsize += 1.0;
+            }
+        }
+        for (double j=2; j<=colorsize; j+=1.0)
+            val += logf(j);
+    }
+
+    // divide by 2^M
     for (int i=0; i<nmirrors; i++)
         val -=  logf(2.0);
-    //printf("val=%f\n", val);
+
     return val;
 }
 
 
-
-double numRedunantTopologies2(Tree *tree, Node *root, 
+/*
+// N_c = multinomial{|L(T)|!}{c_1 ... c_k}
+double numRedundantTopologies2(Tree *tree, Node *root, 
 			     ExtendArray<Node*> &leaves, 
 			     int *hashids)
 {
@@ -292,6 +303,7 @@ double numRedunantTopologies2(Tree *tree, Node *root,
     
     qsort((void*) leafhashes.get(), leafhashes.size(), sizeof(int), intCmp);
 
+    // prod_u c_u!
     double val = 1.0;
     double colorsize = 1;
     for (int i=1; i<leaves.size(); i++) {
@@ -307,13 +319,14 @@ double numRedunantTopologies2(Tree *tree, Node *root,
     for (double j=2; j<=colorsize; j+=1.0)
 	val *= j;
 
+    // L(T)!
     double num = 1.0;
     for (double j=2; j<=leaves.size(); j+=1.0)
 	num *= j;
 
     return num / val;
 }
-
+*/
 
 
 double birthDeathTopology(Node *node, float birthRate, float deathRate,
@@ -587,16 +600,28 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
 		    nhist = 1.0;
 		    thist = 1.0;
 		} else {
-		    nhist = numSubtopologyHistories(tree, node, subleaves) *
-			numRedunantTopologies2(tree, node, subleaves, hashids);
+		    nhist = numSubtopologyHistories(tree, node, subleaves);
 		    thist = numHistories(subleaves.size());		    
 
-		    // correct subtrees that have leaves
 		    if (subleaves[0]->isLeaf()) {
-			nhist *= exp(numRedunantTopologies(tree, node, 
-                                                           subleaves, 
-                                                           hashids));
-		    }
+                        // correct subtrees that have leaves
+			nhist *= exp(numRedundantTopologies(tree, node, 
+                                                            subleaves, 
+                                                            hashids,
+                                                            false));
+		    } else {
+                        // correct subtrees that have leaves
+			double a = exp(numRedundantTopologies(tree, node, 
+                                                              subleaves, 
+                                                              hashids,
+                                                              true));
+                        //printf("> %f\n", a);
+                        nhist *= a;
+
+                        // correct subtrees that are internal
+                        //nhist *= numRedundantTopologies2(tree, node, 
+                        //                                 subleaves, hashids);
+                    }
 		}
 		
                 // sum over ndoom
@@ -621,7 +646,8 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
 	if (tree->nodes[i]->isLeaf())
 	    leaves.append(tree->nodes[i]);
     }
-    double x = numRedunantTopologies(tree, tree->root, leaves, hashids);
+    double x = numRedundantTopologies(tree, tree->root, leaves, 
+                                      hashids, false);
     prob -= x;
     //printf("c x = %f\n", x);
     

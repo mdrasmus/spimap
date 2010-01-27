@@ -58,7 +58,8 @@ class TestProg (unittest.TestCase):
             tree_correct = "test/data/flies-duploss/%s/%s.tree" % (treeid, treeid)
 
             self.run_spidir(alignfile, tree_correct, outdir+"/"+treeid,
-                            boot=10, iter=2)
+                            boot=1, iter=1,
+                            valgrind="valgrind --leak-check=full ")
 
 
 
@@ -79,16 +80,17 @@ class TestProg (unittest.TestCase):
 
 
     def run_spidir(self, alignfile, tree_correct, outprefix, boot=1,
-                   iter=50):
+                   iter=50, valgrind=""):
         """Test the main program"""        
         
-        cmd = (#"valgrind "
+        cmd = (valgrind +
                    "bin/spidir "
                    "-a %s "
                    "-S test/data/flies.smap "
                    "-s test/data/flies.stree "
                    "-p test/data/flies.param "
                    "-o %s "
+                   "--kappa 1.0 "
                    "--duprate .4 "
                    "--lossrate .39 "
                    "--quicksamples 1 "
