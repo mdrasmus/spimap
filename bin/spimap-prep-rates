@@ -1,0 +1,183 @@
+#!/usr/bin/env python
+#
+# SPIMAP
+# Matt Rasmussen 2010
+#
+# Prepare a branch length matrix from a list of trees
+#
+
+import sys, optparse
+from itertools import izip
+
+from rasmus.bio import phylo, fasta
+from rasmus import util, treelib
+
+
+o = optparse.OptionParser()
+o.set_defaults()
+
+o.add_option("-T", "--tree", dest="treeext",
+             default=".tree",
+             metavar="<tree file extension>")
+o.add_option("-A", "--align", dest="alignext",
+             default=".mfa",
+             metavar="<alignment file extension>")
+o.add_option("-s", "--stree", dest="stree",
+             metavar="<species tree newick file>")
+o.add_option("-S", "--smap", dest="smap",
+             metavar="<gene to species file>")
+o.add_option("-l", "--lenmatrix", dest="lenmatrix",
+             metavar="<branch length matrix output file>")
+o.add_option("-r", "--reroot", dest="reroot",
+             action="store_true")
+
+
+class TreeException (Exception):
+    pass
+
+
+def error(message, exit=1):
+    print >>sys.stderr, message
+    sys.exit(exit)
+
+
+def get_filenames(conf, filename):
+
+    if filename.endswith(conf.treeext):
+        treefile = filename
+        alignfile = util.replace_ext(filename, conf.treeext, conf.alignext)
+    elif filename.endswith(conf.alignext):
+        treefile = util.replace_ext(filename, conf.alignext, conf.treeext)
+        alignfile = filename
+    else:
+        raise Exception("unknown file type '%s'" % filename)
+    return treefile, alignfile
+
+
+def get_align_length(alignfile):
+    """Get the alignment length from a Fasta alignment file"""
+
+    try:
+        key, seq = fasta.iter_fasta(alignfile).next()
+        return len(seq)
+    except:
+        raise Exception("unable to read alignment '%s'" % alignfile)
+    
+
+def assert_one2one(tree, stree, recon):
+    """Ensure tree is one2one with species tree"""
+
+    snodes = set(tree.nodes.values())
+    nodes = recon.values()
+    nodes_set = set(snodes)
+
+    if len(nodes) != len(nodes_set):
+        raise TreeException("tree has multiple nodes from the same species")
+    elif nodes_set != snodes:
+        raise TreeException("tree does not have same species as the species tree")
+
+
+def reverse_recon(recon):
+    """Reverses a reconcile to map species nodes to gene nodes"""
+    rev = {}
+    for key, value in recon.iteritems():
+        rev[value] = key
+    return rev
+
+
+def iter_branch_lengths(trees, stree, snodes, gene2species):
+    """Iterate through the branch vectors for a stream of trees"""
+    
+    for tree in trees:
+        recon = phylo.reconcile(tree, stree, gene2species)
+        assert_one2one(tree, stree, recon)
+        revrecon = reverse_recon(recon)
+
+        yield [revrecon[snode].dist for snode in snodes]
+
+
+def reroot(tree, stree, gene2species):
+    """Moves the root of a tree to match the times of the species tree"""
+    
+    recon  = phylo.reconcile(tree, stree, gene2species)
+    
+    assert len(stree.root.children) == 2, "wrong number of children of root"
+
+    # get species distances
+    a = stree.root.children[0].dist
+    b = stree.root.children[1].dist
+    t = a + b
+    a /= t
+    b /= t
+
+    # get tree distances
+    x = tree.root.children[0].dist
+    y = tree.root.children[1].dist
+    t2 = x + y
+
+    # reroot
+    if recon[tree.root.children[0]] == stree.root.children[0]:
+        tree.root.children[0].dist = a * t2
+        tree.root.children[1].dist = b * t2
+    elif recon[tree.root.children[0]] == stree.root.children[1]:
+        tree.root.children[0].dist = b * t2
+        tree.root.children[1].dist = a * t2
+    else:
+        raise TreeException("Could not reroot tree")
+
+    return tree
+    
+
+
+def main(conf, args):
+    
+    if conf.stree is None or conf.smap is None:
+        error("error: must specify species tree and mapping")
+
+    # read in species data
+    stree = treelib.read_tree(conf.stree)
+    gene2species = phylo.read_gene2species(conf.smap)    
+
+    # assert stree has branch lengths for rerooting
+    if conf.reroot and min(x.dist for x in stree.root.children) <= 0.0:
+        print >>sys.stderr, "error: species tree must have non-zero branch lengths"
+        sys.exit(1)
+
+
+    # species node order for matrix (exclude root)
+    snodes = [x for x in stree.postorder() if x.parent]
+
+    # open output
+    if conf.lenmatrix:
+        out = open(conf.lenmatrix, "w")
+    else:
+        out = sys.stdout
+    
+
+    # print header
+    header = ["filename", "alignlen"] + [str(snode.name) for snode in snodes]
+    out.write("\t".join(header) + "\n")
+    
+    ntrees = 1
+    try:
+        for filename in sys.stdin:        
+            treefile, alignfile = get_filenames(conf, filename.rstrip("\n"))
+            alignlen = alignlens = get_align_length(alignfile)
+            tree = treelib.read_tree(treefile)
+
+            if conf.reroot:            
+                reroot(tree, stree, gene2species)
+                
+            for row in iter_branch_lengths([tree],
+                                           stree, snodes, gene2species):
+                ntrees += 1
+                out.write("\t".join([treefile, str(alignlen)] +
+                                    map(str, row)) + "\n")
+    except TreeException, e:
+        error("error with tree %d: " % (ntrees) + str(e))
+    except Exception, e:
+        error("error with tree %d: " % (ntrees) + str(type(e)) + ": " + str(e))
+
+
+conf, args = o.parse_args()
+main(conf, args)
