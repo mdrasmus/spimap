@@ -767,14 +767,15 @@ void UniqueProposer::propose(Tree *tree)
 
 HkyFitter::HkyFitter(int nseqs, int seqlen, char **seqs, 
                      float *bgfreq, float tsvratio, int maxiter,
-                     float lkweight) :
+                     double minlen, double maxlen) :
     nseqs(nseqs),
     seqlen(seqlen),
     seqs(seqs),
     bgfreq(bgfreq),
     tsvratio(tsvratio),
     maxiter(maxiter),
-    lkweight(lkweight)
+    minlen(minlen),
+    maxlen(maxlen)
 {}
 
 
@@ -782,10 +783,10 @@ double HkyFitter::findLengths(Tree *tree)
 { 
     Timer timer;
     double logl = findMLBranchLengthsHky(tree, nseqs, seqs, bgfreq, 
-                                         tsvratio, maxiter);
+                                         tsvratio, maxiter, minlen, maxlen);
     runtime += timer.time();
 
-    return lkweight * logl;
+    return logl;
 }
 
 

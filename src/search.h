@@ -335,7 +335,7 @@ class HkyFitter : public BranchLengthFitter
 public:
     HkyFitter(int nseqs, int seqlen, char **seqs, 
               float *bgfreq, float tsvratio, int maxiter, 
-              float lkweight=1.0);
+              double minlen=0.0001, double maxlen=10.0);
     virtual double findLengths(Tree *tree);
 
     int nseqs;
@@ -344,7 +344,8 @@ public:
     float *bgfreq;
     float tsvratio;
     int maxiter;
-    float lkweight;
+    double minlen;
+    double maxlen;
 };
 
 

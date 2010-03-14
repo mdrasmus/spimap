@@ -39,7 +39,6 @@ void calcLkTableRow(int seqlen, Model &model,
 		    float adist, float bdist);
 
 
-
 //=============================================================================
 
 
@@ -550,6 +549,9 @@ public:
 	lk_deriv2(seqlen, model, dmodel, d2model)
     {
 
+        minx = 0.00001;
+        maxx = 10;
+
         // setup branch length optimizer
         opt = gsl_root_fdfsolver_alloc(gsl_root_fdfsolver_newton);
 
@@ -570,10 +572,11 @@ public:
     static double branch_f(double x, void *params)
     {       
         double y;
-        if (x < minx || x > maxx)
-            y = ((MLBranchAlgorithm*) params)->lk_deriv(minx);
+        MLBranchAlgorithm *p = (MLBranchAlgorithm*) params;
+        if (x < p->minx || x > p->maxx)
+            y = p->lk_deriv(p->minx);
         else
-            y = ((MLBranchAlgorithm*) params)->lk_deriv(x);
+            y = p->lk_deriv(x);
         //printf("x %f y %f\n", x, y);
         return y;
     }
@@ -581,10 +584,11 @@ public:
     static double branch_df(double x, void *params)
     {
         double dy;
-        if (x < minx || x > maxx)
-            dy = ((MLBranchAlgorithm*) params)->lk_deriv(minx) / (x - minx);
+        MLBranchAlgorithm *p = (MLBranchAlgorithm*) params;
+        if (x < p->minx || x > p->maxx)
+            dy = p->lk_deriv(p->minx) / (x - p->minx);
         else
-            dy = ((MLBranchAlgorithm*) params)->lk_deriv2(x);
+            dy = p->lk_deriv2(x);
         
         //printf("x %f dy %f\n", x, dy);
         return dy;
@@ -608,8 +612,8 @@ public:
                             table.lktable[node2->name], 
                             bgfreq);
 
-        return bisectRoot(lk_deriv, max(initdist*0.0, 0.0), 
-                          max(initdist*10.0, 0.00001), .0001);
+        return bisectRoot(lk_deriv, 0.0,
+                          max(initdist*10.0, 0.01), .0001);
 
     }
 
@@ -618,8 +622,8 @@ public:
         double r = initdist, r0 = initdist;
         const double esp = 1e-3;
 
-        if (initdist < 0)
-            initdist = .0001;
+        if (initdist < minx)
+            initdist = minx;
 
         Node *node1 = tree->root->children[0];
         Node *node2 = tree->root->children[1];
@@ -787,8 +791,15 @@ public:
     }
 
 
-    const static double minx = 0.0000001;
-    const static double maxx = 10.0;
+    void setBranchRange(double _minx, double _maxx)
+    {
+        minx = _minx;
+        maxx = _maxx;
+    }
+
+
+    double minx;
+    double maxx;
 
     gsl_root_fdfsolver *opt;
     gsl_function_fdf opt_func;
@@ -809,7 +820,8 @@ public:
 template <class Model>
 floatlk findMLBranchLengths(Tree *tree, int nseqs, char **seqs, 
                             const float *bgfreq, Model &model,
-                            int maxiter=10)
+                            int maxiter=10, 
+                            double minlen=0.0, double maxlen=10.0)
 {
     // timing
     Timer timer;
@@ -818,6 +830,7 @@ floatlk findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
     int seqlen = strlen(seqs[0]);
     Timer timer2;
     MLBranchAlgorithm<Model> mlalg(tree, seqlen, &model);
+    mlalg.setBranchRange(minlen, maxlen);
     printLog(LOG_MEDIUM, "mlalloc time: %f\n", timer2.time());
     
     
@@ -837,10 +850,12 @@ floatlk findMLBranchLengths(Tree *tree, int nseqs, char **seqs,
 
 
 double findMLBranchLengthsHky(Tree *tree, int nseqs, char **seqs, 
-                              const float *bgfreq, float kappa, int maxiter)
+                              const float *bgfreq, float kappa, int maxiter,
+                              double minlen, double maxlen)
 {
     HkyModel hky(bgfreq, kappa);
-    return findMLBranchLengths(tree, nseqs, seqs, bgfreq, hky, maxiter);
+    return findMLBranchLengths(tree, nseqs, seqs, bgfreq, hky, maxiter,
+                               minlen, maxlen);
 }
 
 

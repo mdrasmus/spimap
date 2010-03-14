@@ -137,10 +137,10 @@ public:
 	config.add(new ConfigSwitch
 		   ("", "--no_branch_prior", &noBranchPrior, 
                     "do not use branch prior"));
-	config.add(new ConfigParam<float>
-		   ("", "--lk_weight", "<weight of likelihood term>",
-                    &lkweight, 1.0,
-                    "weight for likelihood"));
+        config.add(new ConfigParam<float>
+                   ("", "--minlen", "<length>",
+                    &minlen, 0.0,
+                    "minimum branch length allowed"));
 
 
 	config.add(new ConfigParamComment("Information"));
@@ -209,9 +209,10 @@ public:
     int quickiter;
     int quickSamples;
     int lkiter;
+    float minlen;
+    float maxlen;
 
     bool noBranchPrior;
-    float lkweight;
 };
 
 
@@ -436,7 +437,7 @@ int main(int argc, char **argv)
     BranchLengthFitter *fitter = NULL;
     fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs,  
 			   bgfreq, c.kappa, c.lkiter, 
-                           c.lkweight);
+                           c.minlen, c.maxlen);
     
     
     //========================================================

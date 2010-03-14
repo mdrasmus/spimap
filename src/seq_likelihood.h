@@ -10,7 +10,8 @@ typedef double floatlk;
 
 double findMLBranchLengthsHky(Tree *tree, int nseqs, char **seqs, 
                               const float *bgfreq, float kappa, 
-                              int maxiter=100);
+                              int maxiter=100, 
+                              double minlen=.0001, double maxlen=10);
 
 template <class Model>
 floatlk getTotalLikelihood(ExtendArray<floatlk*> &lktable, Tree *tree, 
