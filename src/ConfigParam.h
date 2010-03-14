@@ -1,3 +1,9 @@
+/*=============================================================================
+
+  Configuration option parsing code
+
+=============================================================================*/
+
 #ifndef SPIDIR_CONFIG_PARAM_H
 #define SPIDIR_CONFIG_PARAM_H
 
@@ -22,12 +28,13 @@ class ConfigParamBase
 {
 public:
     ConfigParamBase(string shortarg, string longarg, string argstr,
-                    string help="") :
+                    string help="", int debug=0) :
         kind(OPTION_ARG),
         shortarg(shortarg),
         longarg(longarg),
         argstr(argstr),
-        help(help)
+        help(help),
+        debug(debug)
     {
     }
     
@@ -44,14 +51,15 @@ public:
     string longarg;
     string argstr;
     string help;
+    int debug;
 };
 
 
 class ConfigParamComment : public ConfigParamBase
 {
 public:
-    ConfigParamComment(string msg) :
-        ConfigParamBase("", "", "", ""),
+    ConfigParamComment(string msg, int debug=0) :
+        ConfigParamBase("", "", "", "", debug),
         msg(msg)
     {
         kind = OPTION_COMMENT;
@@ -74,16 +82,16 @@ class ConfigParam : public ConfigParamBase
 {
 public:
     ConfigParam(string shortarg, string longarg, string argstr,
-                T *value, string help) :
-        ConfigParamBase(shortarg, longarg, argstr, help),
+                T *value, string help, int debug=0) :
+        ConfigParamBase(shortarg, longarg, argstr, help, debug),
         value(value),
         hasDefault(false)
     {
     }
     
     ConfigParam(string shortarg, string longarg, string argstr,
-                T *value, T defaultValue, string help) :
-        ConfigParamBase(shortarg, longarg, argstr, help),
+                T *value, T defaultValue, string help, int debug=0) :
+        ConfigParamBase(shortarg, longarg, argstr, help, debug),
         value(value),
         defaultValue(defaultValue),
         hasDefault(true)
@@ -112,8 +120,8 @@ class ConfigSwitch : public ConfigParamBase
 {
 public:
     ConfigSwitch(string shortarg, string longarg, 
-                bool *value, string help) :
-        ConfigParamBase(shortarg, longarg, "", help),
+                bool *value, string help, int debug=0) :
+        ConfigParamBase(shortarg, longarg, "", help, debug),
         value(value)
     {
         *value = false;
@@ -169,9 +177,7 @@ public:
     
     ~ConfigParser()
     {
-        for (unsigned int i=0; i<rules.size(); i++) {
-            delete rules[i];
-        }
+        deleteRules();
     }
     
     
@@ -230,11 +236,16 @@ public:
         return true;
     }
     
-    void printHelp(FILE *stream=stderr)
+    void printHelp(FILE *stream=stderr, int debug=0)
     {
         fprintf(stream, "Usage: %s [OPTION]\n\n", prog.c_str());
     
         for (unsigned int i=0; i<rules.size(); i++) {
+
+            // skip rules that are for debug only if debug mode is not enabled
+            if (rules[i]->debug > debug)
+                continue;
+
             if (rules[i]->kind == OPTION_ARG) {
                 fprintf(stream, "  ");
                 if (rules[i]->shortarg != "")
@@ -250,11 +261,27 @@ public:
         }
     }
     
+
+    // add rule
     void add(ConfigParamBase *rule)
     {
         rules.push_back(rule);
     }
     
+
+    // remove all rules
+    void clear()
+    {
+        deleteRules();
+        rules.clear();
+    }
+
+    void deleteRules()
+    {
+        for (unsigned int i=0; i<rules.size(); i++) {
+            delete rules[i];
+        }
+    }
     
     string prog;
     vector<ConfigParamBase*> rules;

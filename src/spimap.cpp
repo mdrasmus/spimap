@@ -1,6 +1,9 @@
 /*=============================================================================
 
-    Test SPIDIR functions
+    SPIMAP - Speices Informed Max A Posteriori Phylogenetic Reconstruction
+
+    Matt Rasmussen
+    Copyright 2010
 
 =============================================================================*/
 
@@ -28,27 +31,37 @@
 
 
 #define VERSION_INFO  "\
-   ___    SPIDIR v2.0 2009 \n\
-  /0 0\\   SPecies Informed DIstanced-base Reconstruction \n\
-  \\___/   Matt Rasmussen \n\
- /// \\\\\\  CSAIL, MIT \n\
+SPIMAP 2010 \n\
+SPecies Informed Max A Posteriori gene tree reconstruction \n\
+Matt Rasmussen \n\
+CSAIL, MIT \n\
 "
 
 
+//=============================================================================
+
 using namespace std;
 using namespace spidir;
+
+// debug options level
+const int DEBUG_OPT = 1;
+
+
 
 class SpidirConfig
 {
 public:
 
     SpidirConfig() 
-    {}
-
-    int parseArgs(int argc, char **argv)
     {
-	// parse arguments
-	ConfigParser config;
+        makeParser();
+    }
+
+    void makeParser()
+    {
+        config.clear();
+
+        // input/output
 	config.add(new ConfigParam<string>
 		   ("-a", "--align", "<alignment fasta>", &alignfile, 
 		    "sequence alignment in fasta format"));
@@ -59,14 +72,14 @@ public:
 		   ("-s", "--stree", "<species tree>", &streefile, 
 		    "species tree file in newick format"));
 	config.add(new ConfigParam<string>
-		   ("-p", "--param", "<spidir params file>", &paramsfile, 
-		    "SPIDIR branch length parameters file"));
+		   ("-p", "--param", "<params file>", &paramsfile, 
+		    "substitution rate parameters file"));
 	config.add(new ConfigParam<string>
 		   ("-o", "--output", "<output filename prefix>", 
-		    &outprefix, "spidir",
+		    &outprefix, "spimap",
 		    "prefix for all output filenames"));
     
-    
+        // sequence model
 	config.add(new ConfigParamComment("Sequence evolution model"));
 	config.add(new ConfigParam<float>
 		   ("-k", "--kappa", "<transition/transversion ratio>", 
@@ -77,11 +90,8 @@ public:
 		    &bgfreqstr, "",
 		    "background frequencies (default: estimate)"));
 
+        // dup/loss model
 	config.add(new ConfigParamComment("Dup/loss evolution model"));
-	config.add(new ConfigParam<string>
-		   ("", "--prior", "hky|spidir|duploss|birthdeath|none", 
-		    &prioropt, "spidir",
-		    "function for prior (default=spidir)"));
 	config.add(new ConfigParam<float>
 		   ("-D", "--duprate", "<duplication rate>", 
 		    &duprate, 0.1,
@@ -95,12 +105,8 @@ public:
 		    &pretime, 1.00,
 		    "lambda param of pre-speciation distribution (default=1.0)"));
 
-    
-	config.add(new ConfigParamComment("Miscellaneous"));
-	config.add(new ConfigParam<string>
-		   ("", "--search", "climb|mcmc", 
-		    &search, "climb", 
-		    "search algorithm (default=climb)"));
+        // search options
+	config.add(new ConfigParamComment("Search"));
 	config.add(new ConfigParam<int>
 		   ("-i", "--niter", "<# iterations>", 
 		    &niter, 100, 
@@ -113,36 +119,44 @@ public:
 		   ("-b", "--boot", "<# bootstraps>", 
 		    &bootiter, 1,
 		    "number of bootstraps to perform (default: 1)"));
+        
+    
+        // misc
+	config.add(new ConfigParamComment("Miscellaneous", DEBUG_OPT));
+	config.add(new ConfigParam<string>
+		   ("", "--search", "climb|mcmc", 
+		    &search, "climb", 
+		    "search algorithm (default=climb)", DEBUG_OPT));
+	config.add(new ConfigParam<string>
+		   ("", "--prior", "spimap|none", 
+		    &prioropt, "spimap",
+		    "function for prior (default=spimap)", DEBUG_OPT));
 	config.add(new ConfigParam<string>
 		   ("-c", "--correct", "<correct tree file>", &correctFile, ""
-		    "check if correct tree is visited in search"));
+		    "check if correct tree is visited in search",
+                    DEBUG_OPT));
 	config.add(new ConfigParam<int>
 		   ("", "--prior_samples", "<number of samples>",
 		    &priorSamples, 100,
-		    "number of samples to use in branch prior integration (default: 100)"));
+		    "number of samples to use in branch prior integration (default: 100)", DEBUG_OPT));
 	config.add(new ConfigSwitch
 		   ("", "--prior_exact", 
 		    &priorExact,
-		    "Use an exact calculation of branch prior"));
+		    "Use an exact calculation of branch prior", DEBUG_OPT));
 	config.add(new ConfigParam<int>
 		   ("", "--lkiter", "<max number of likelihood iterations>",
 		    &lkiter, 10,
-		    "max number of iterations in maximum likelihood fitting (default: 10)"));
-	config.add(new ConfigSwitch
-		   ("-g", "--gene_rate", &estGenerate, "estimate generate"));
-        config.add(new ConfigParam<int>
-                   ("", "--quicksamples", "<number of quick samples>",
-                    &quickSamples, 10,
-                    "number of samples in quick search"));
-	config.add(new ConfigSwitch
-		   ("", "--no_branch_prior", &noBranchPrior, 
-                    "do not use branch prior"));
+		    "max number of iterations in maximum likelihood fitting (default: 10)", DEBUG_OPT));
         config.add(new ConfigParam<float>
                    ("", "--minlen", "<length>",
                     &minlen, 0.0,
-                    "minimum branch length allowed"));
+                    "minimum branch length allowed", DEBUG_OPT));
+        config.add(new ConfigParam<float>
+                   ("", "--maxlen", "<length>",
+                    &maxlen, 10.0,
+                    "maximum branch length allowed", DEBUG_OPT));
 
-
+        // help information
 	config.add(new ConfigParamComment("Information"));
 	config.add(new ConfigParam<int>
 		   ("-V", "--verbose", "<verbosity level>", 
@@ -156,12 +170,24 @@ public:
 	config.add(new ConfigSwitch
 		   ("-h", "--help", &help, 
 		    "display help information"));
+	config.add(new ConfigSwitch
+		   ("", "--help-debug", &help_debug, 
+		    "display help information about debug options"));
+        
+    }
 
-    
-    
+    int parseArgs(int argc, char **argv)
+    {
+	// parse arguments
 	if (!config.parse(argc, (const char**) argv)) {
 	    if (argc < 2)
 		config.printHelp();
+	    return 1;
+	}
+
+	// display help
+	if (help_debug) {
+	    config.printHelp(stderr, DEBUG_OPT);
 	    return 1;
 	}
     
@@ -184,35 +210,46 @@ public:
 	return 0;
     }
 
-    string alignfile;    
+    ConfigParser config;
+
+    // input/output
+    string alignfile;
     string smapfile;
     string streefile;
     string paramsfile;
     string outprefix;
+
+    // sequence model
+    float kappa;
+    string bgfreqstr;
+
+    // dup/loss model
+    float duprate;
+    float lossrate;
+    float pretime;
+
+    // search
+    int niter;
+    int quickiter;
+    int bootiter;
+
+    // misc
     string search;
     string correctFile;
     string prioropt;
-    int niter;
-    float kappa;
-    string bgfreqstr;
-    float pretime;
-    float duprate;
-    float lossrate;
     int priorSamples;
     bool priorExact;
-    string logfile;
-    int verbose;
-    bool help;
-    bool version;
-    bool estGenerate;
-    int bootiter;
-    int quickiter;
-    int quickSamples;
     int lkiter;
     float minlen;
     float maxlen;
 
-    bool noBranchPrior;
+    // help/information
+    int verbose;
+    bool version;
+    bool help;
+    bool help_debug;
+    string logfile;
+
 };
 
 
@@ -401,7 +438,7 @@ int main(int argc, char **argv)
     if (c.prioropt == "none")
         prior = new Prior();
     
-    else if (c.prioropt == "spidir")
+    else if (c.prioropt == "spimap")
         prior = new SpidirPrior(nnodes, &stree, params, 
 				gene2species,
 				c.pretime, 
@@ -565,32 +602,3 @@ int main(int argc, char **argv)
     delete search;
 }
 
-
-//=============================================================================
-// OLD CODE
-
-    /*
-    if (c.search == "mcmc") {
-        string mcmcfilename = c.outprefix + ".mcmc";
-        FILE *mcmcfile = NULL;
-        
-        if (!(mcmcfile = fopen(mcmcfilename.c_str(), "w"))) {
-            printError("cannot open mcmc file '%s'", mcmcfilename.c_str());
-            return 1;
-        }
-        SampleFunc samples(mcmcfile);
-        
-        if (c.bootiter != 1) {
-            printError("Cannot use bootstrap with MCMC");
-            return 1;
-        }
-    
-        toptree = searchMCMC(tree, 
-                             genes, aln->nseqs, aln->seqlen, aln->seqs,
-                             &samples,
-                             lkfunc,
-                             &proposer,
-                             fitter);
-
-    } else 
-    */

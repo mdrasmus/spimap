@@ -1,20 +1,23 @@
-SPIDIR - Species Informed Distance-based Reconstruction
-http://compbio.mit.edu/spidir/
+SPIMAP (Spieces informed max a poseriori)
+http://compbio.mit.edu/spimap/
 Matthew Rasmussen
 
 =============================================================================
 ABOUT
 
-SPIDIR is phylogenetic program that uses species information to aide in
-reconstructing gene trees.
+SPIMAP is phylogenetic program that uses species information to aide in
+reconstructing gene trees.  It uses code from the SPIDIR phylogenetic library.
 
-For more information see: 
+SPIMAP citation: Rasmussen, Kellis.  A Bayesian Approach for Fast and
+Accurate Gene-tree Reconstruction. In prep 2010.
+
+SPIDIR citation:
 Rasmussen, Kellis. Accurate gene-tree reconstruction by learning
 gene- and species-specific substitution rates across multiple complete genomes.
 Genome Research. 2007
 
-This package includes the C++ source of the SPIDIR program as well as several
-library interfaces: C, python, and matlab.
+This package includes the C++ source of the SPIMAP program and SPIDIR library
+as well as several library interfaces for C and python.
 
 
 =============================================================================
@@ -23,9 +26,9 @@ INSTALL
 NOTE: Makefile is installation will work best on UNIX or CYGWIN.
 
 
-To compile the SPIDIR stand-alone program use the Makefile.
+To compile the SPIMAP stand-alone program use the Makefile.
 
-    make spidir
+    make
 
 To compile the SPIDIR C-library use:
     
@@ -35,17 +38,8 @@ To compile the SPIDIR python interface use:
 
     make pyspidir.so
 
-To compile the SPIDIR Matlab interface use one of the following:
-    
-    make matlab
 
-Or you can execute the following function within MATLAB:
-
-    spidir_matlab_compile
-
-
-
-Once compiled, to install the SPIDIR program (installs by default in /usr) use:
+Once compiled, to install the SPIMAP program (installs by default in /usr) use:
 
     make install
 
@@ -57,10 +51,10 @@ To specify your own installation path use:
 =============================================================================
 USAGE
 
-Running spidir with no arguments will print out its command-line usage:
+Running spimap with no arguments will print out its command-line usage:
 
 
-Usage: spidir [OPTION]
+Usage: spimap [OPTION]
 
   -a,--align  <alignment fasta>
     sequence alignment in fasta format
