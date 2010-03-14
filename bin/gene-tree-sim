@@ -45,6 +45,10 @@ o.add_option("-m", "--minsize", dest="minsize",
              metavar="<min # of genes per tree>",
              type="int",
              default=4)
+o.add_option("-M", "--maxsize", dest="maxsize",
+             metavar="<max # of genes per tree>",
+             type="int",
+             default=util.INF)
 o.add_option("-D", "--duprate", dest="duprate", metavar="<duplication rate>",
              default=0.0000002,
              type="float")
@@ -105,27 +109,29 @@ def gene2species(gene):
 
 def sim_tree(stree, params, duprate, lossrate, generate, use_spec,
              minsize=4,
+             maxsize=util.INF,
              infofile=sys.stdout,
              generatefunc="invgamma"):
     """simulate one tree"""
-    
-    # create gene tree using birth death model
-    tree, recon, events = birthdeath.sample_birth_death_gene_tree(
-        stree, duprate, lossrate, removeloss=False)
-    
-    pretree = tree.copy()
-    prerecon = copy.copy(recon)
-    preevents = copy.copy(events)
-    remove_losses(tree, recon, events)
 
-    # try again if there is total extinction
-    if len(tree.leaves()) < minsize:
-        infofile.write("tree too small. size: %d\n" % len(tree.nodes))
-        if len(tree.nodes) == 0:
-            infofile.write("extinction\n")
-        return sim_tree(stree, params, duprate, lossrate, generate, use_spec,
-                        infofile=infofile, generatefunc=generatefunc)
+    while True:
     
+        # create gene tree using birth death model
+        tree, recon, events = birthdeath.sample_birth_death_gene_tree(
+            stree, duprate, lossrate, removeloss=False)
+
+        pretree = tree.copy()
+        prerecon = copy.copy(recon)
+        preevents = copy.copy(events)
+        remove_losses(tree, recon, events)
+
+        # try again if there is total extinction
+        if not (minsize <= len(tree.leaves()) <= maxsize):
+            infofile.write("tree wrong size. size: %d\n" % len(tree.nodes))
+            if len(tree.nodes) == 0:
+                infofile.write("extinction\n")
+        else:
+            break
 
     # determine gene rate
     if generate is None:
@@ -222,10 +228,10 @@ def remove_losses(tree, recon, events):
     keep = [x for x in tree.leaves() if isinstance(x.name, str)]
     
     nnodes = len(tree.nodes)
-    treelib.removeExposedInternalNodes(tree, keep)
+    treelib.remove_exposed_internal_nodes(tree, keep)
     doomed = nnodes - len(tree.nodes)
     
-    treelib.removeSingleChildren(tree)
+    treelib.remove_single_children(tree)
     
     delnodes = set()
     for node in recon:
@@ -305,6 +311,7 @@ def main(conf):
                                  not conf.nospecrates,
                                  infofile=infofile,
                                  minsize=conf.minsize,
+                                 maxsize=conf.maxsize,
                                  generatefunc=conf.generatefunc)
         pretree.write(os.path.join(dirname, str(i) + ".times" +
                                    conf.outtreeext))

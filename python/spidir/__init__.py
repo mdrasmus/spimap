@@ -216,6 +216,11 @@ export(spidir, "sampleDupTimes", c_int,
         c_float, "birth", c_float, "death"])
 export(spidir, "sampleBirthWaitTime", c_double,
        [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
+export(spidir, "birthWaitTime", c_double,
+       [c_float, "t", c_int, "n", c_float, "T",
+        c_float, "birth", c_float, "death"])
+export(spidir, "probNoBirth", c_double,
+       [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
 export(spidir, "sampleBirthWaitTime1", c_double,
        [c_float, "T", c_float, "birth", c_float, "death"])
 

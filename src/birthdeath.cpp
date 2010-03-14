@@ -615,12 +615,7 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                                                               subleaves, 
                                                               hashids,
                                                               true));
-                        //printf("> %f\n", a);
                         nhist *= a;
-
-                        // correct subtrees that are internal
-                        //nhist *= numRedundantTopologies2(tree, node, 
-                        //                                 subleaves, hashids);
                     }
 		}
 		
@@ -634,12 +629,9 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                 }
 
                 prob += log(nhist) - log(thist) + log(sum);
-                //printf("c prod2 = %f, %d\n", sum, subleaves.size());
             }
         }
     }
-
-    //printf("c prob = %f\n", prob);
 
     ExtendArray<Node*> leaves(0, tree->nnodes);
     for (int i=0; i<tree->nnodes; i++) {
@@ -649,7 +641,6 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
     double x = numRedundantTopologies(tree, tree->root, leaves, 
                                       hashids, false);
     prob -= x;
-    //printf("c x = %f\n", x);
     
     return prob;
 }
@@ -737,6 +728,7 @@ double birthDeathCounts2(int start, int end, float time,
     if (isnan(p) || isinf(p) || p > 1.0) {
         printf("p=%e genes=(%d, %d) b=%f d=%f t=%f\n", p, start, end,
                birth, death, time);
+        fflush(stdout);
         assert(0);
     }
     return p;
@@ -976,18 +968,29 @@ public:
         double birth = gsl_vector_get(x, 0);
         double death = gsl_vector_get(x, 1);
 
-        if (birth < 0 || death < 0) {
-            birth = 0.00001;
-            death = 0.00002;
+        double bpenalty = 0.0;
+        double dpenalty = 0.0;
+
+        if (birth < 0) {
+            bpenalty = -birth;
+            birth = 0.0000001;
         }
-        
+
+        if (death < 0) {
+            dpenalty = -death;
+            death = 0.0000002;
+        }
+
         BirthDeathCountsML *p = (BirthDeathCountsML*) params;
 
         double prob = -birthDeathForestCounts(p->tree, p->nspecies, p->nfams,
                                               p->counts, p->mult,
                                               birth, death, p->maxgene,
                                               p->rootgene, p->tab);
-        
+
+        // constraint penalties
+        prob += exp(bpenalty) - 1.0 + exp(dpenalty) - 1.0;
+
         return prob;
     }
 
@@ -1003,7 +1006,7 @@ public:
         if (status)
             return status;
 
-        double epsabs = min(birth * .001, death * .001);
+        double epsabs = min(fabs(birth * .001), fabs(death * .001));
         //double epsabs = .01;
         double size = gsl_multimin_fminimizer_size(opt);
         
@@ -1134,10 +1137,8 @@ void setNodeTimes(Tree *tree, float *times)
 //  'birth' and 'death' rates for a reconstructed process.
 double birthWaitTime(float t, int n, float T, float birth, float death)
 {    
-    const double l = birth;
-    const double u = death;
-    const double r = l - u;
-    const double a = u / l;
+    const double r = birth - death;
+    const double a = death / birth;
 
     return n * r * exp(-n*r*t) * \
            pow(1.0 - a * exp(-r * (T - t)), n-1) / \
@@ -1150,12 +1151,10 @@ double birthWaitTime(float t, int n, float T, float birth, float death)
 double birthWaitTime_part(float t, int n, float T, float birth, float death,
                           double denom)
 {    
-    const double l = birth;
-    const double u = death;
-    const double r = l - u;
-    const double a = u / l;
+    const double r = birth - death;
+    const double a = death / birth;
 
-    return n * r * exp(-n*r*t) * \
+    return n * r * exp(-n*r*t) * 
            pow(1.0 - a * exp(-r * (T - t)), n-1) / denom;
 }
 
@@ -1164,10 +1163,8 @@ double birthWaitTime_part(float t, int n, float T, float birth, float death,
 //  'birth' and 'death' rates for a reconstructed process.
 double birthWaitTimeDenom(int n, float T, float birth, float death)
 {    
-    const double l = birth;
-    const double u = death;
-    const double r = l - u;
-    const double a = u / l;
+    const double r = birth - death;
+    const double a = death / birth;
 
     return pow(1.0 - a * exp(-r * T), n);
 }
@@ -1178,13 +1175,15 @@ double birthWaitTimeDenom(int n, float T, float birth, float death)
 // for a reconstructed process.
 double probNoBirth(int n, float T, float birth, float death) 
 {
-    const double l = birth;
-    const double u = death;
-    const double r = l - u;
+    if (birth == 0.0)
+        return 1.0;
 
-    return (1.0 - (l*(1.0 - exp(-r * T)))) / \
-	   pow(l - u * exp(-r * T), n);
+    const double r = birth - death;
+    const double exprt = exp(-r * T);
+
+    return pow(1.0 - (birth*(1.0 - exprt)) / (birth - death * exprt), n);
 }
+
 
 
 // Sample the next birth event from a reconstructed birthdeath process.
@@ -1194,8 +1193,7 @@ double probNoBirth(int n, float T, float birth, float death)
 double sampleBirthWaitTime(int n, float T, float birth, float death)
 {
     
-    // TODO: could make this much more efficient (use straight line instead of
-    // flat line).
+    // TODO: could make this much more efficient
     
     // uses rejection sampling
     double denom = birthWaitTimeDenom(n, T, birth, death);
@@ -1220,10 +1218,8 @@ double sampleBirthWaitTime(int n, float T, float birth, float death)
 //  'birth' and 'death' rates for a reconstructed process.
 double birthWaitTime1(float t, float T, float birth, float death,
 		    float denom)
-{    
-    const double l = birth;
-    const double u = death;
-    const double r = l - u;
+{
+    const double r = birth - death;
 
     return r * exp(-r*t) / denom;
 }
@@ -1232,11 +1228,9 @@ double birthWaitTime1(float t, float T, float birth, float death,
 //  'n'=1 lineages starting at time 0, evolving until time 'T' with a
 //  'birth' and 'death' rates for a reconstructed process.
 double birthWaitTimeDenom1(float T, float birth, float death)
-{    
-    const double l = birth;
-    const double u = death;
-    const double r = l - u;
-    const double a = u / l;
+{
+    const double r = birth - death;
+    const double a = death / birth;
 
     return 1.0 - a * exp(-r * T);
 }

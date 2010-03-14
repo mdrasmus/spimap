@@ -658,5 +658,28 @@ class TestBirthDeath (unittest.TestCase):
         print p
         self.assert_(p != -INF)
 
+
+    def test_birthDeathSamples(self):
+
+        n = 1
+        T = .8
+        b = .2
+        d = .1
+        pts = [spidir.sampleBirthWaitTime(n, T, b, d)
+               for x in range(100000)]
+
+
+        no = spidir.probNoBirth(n, T, b, d)
+        print no
+        no = birthdeath.prob_no_birth(n, T, b, d)
+        print no
+        x, y = util.distrib(pts, 20)
+        y = [i * (1.0 - no) for i in y]
+        rp.plot(x, y, t="l", main="", xlab="", ylab="")
+        rp.lines(x, [spidir.birthWaitTime(i, n, T, b, d)
+                     for i in x], col="red", xlab="", ylab="")
+        raw_input()
+        
+
 if __name__ == "__main__":
     unittest.main(testRunner=TestRunner())
