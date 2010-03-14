@@ -1145,10 +1145,8 @@ double birthWaitTime(float t, int n, float T, float birth, float death)
 	   pow(1.0 - a * exp(-r * T), n);
 }
 
-//  Probability density for for next birth at time 't' given
-//  'n' lineages starting at time 0, evolving until time 'T' with a
-//  'birth' and 'death' rates for a reconstructed process.
-double birthWaitTime_part(float t, int n, float T, float birth, float death,
+// numerator for birthWaitTime
+double birthWaitTimeNumerator(float t, int n, float T, float birth, float death,
                           double denom)
 {    
     const double r = birth - death;
@@ -1158,9 +1156,7 @@ double birthWaitTime_part(float t, int n, float T, float birth, float death,
            pow(1.0 - a * exp(-r * (T - t)), n-1) / denom;
 }
 
-//  Probability density for for next birth at time 't' given
-//  'n' lineages starting at time 0, evolving until time 'T' with a
-//  'birth' and 'death' rates for a reconstructed process.
+// denominator for birthWaitTime
 double birthWaitTimeDenom(int n, float T, float birth, float death)
 {    
     const double r = birth - death;
@@ -1193,17 +1189,17 @@ double probNoBirth(int n, float T, float birth, float death)
 double sampleBirthWaitTime(int n, float T, float birth, float death)
 {
     
-    // TODO: could make this much more efficient
+    // TODO: could make this more efficient
     
     // uses rejection sampling
     double denom = birthWaitTimeDenom(n, T, birth, death);
-    double start_y = birthWaitTime_part(0, n, T, birth, death, denom);
-    double end_y = birthWaitTime_part(T, n, T, birth, death, denom);
+    double start_y = birthWaitTimeNumerator(0, n, T, birth, death, denom);
+    double end_y = birthWaitTimeNumerator(T, n, T, birth, death, denom);
     double M = max(start_y, end_y);
     
     while (true) {
         double t = frand(T);
-        double f = birthWaitTime_part(t, n, T, birth, death, denom);
+        double f = birthWaitTimeNumerator(t, n, T, birth, death, denom);
 
         if (frand() <= f / M)
             return t;
