@@ -17,7 +17,8 @@ from test import *
 
 from rasmus.common import *
 from rasmus import stats
-from rasmus.bio import phylo, birthdeath
+
+from compbio import phylo, birthdeath
 
 
 if os.system("which xpdf 2> /dev/null") != 0:
@@ -670,9 +671,6 @@ class TestBirthDeath (unittest.TestCase):
 
 
         no = spidir.probNoBirth(n, T, b, d)
-        print no
-        no = birthdeath.prob_no_birth(n, T, b, d)
-        print no
         x, y = util.distrib(pts, 20)
         y = [i * (1.0 - no) for i in y]
         rp.plot(x, y, t="l", main="", xlab="", ylab="")

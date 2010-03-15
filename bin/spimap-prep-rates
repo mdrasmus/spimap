@@ -9,8 +9,8 @@
 import sys, optparse
 from itertools import izip
 
-from rasmus.bio import phylo, fasta
 from rasmus import util, treelib
+from compbio import phylo, fasta
 
 
 o = optparse.OptionParser()

@@ -40,6 +40,13 @@ endif
 # program files
 SPIMAP_PROG = bin/spimap
 SPIMAP_DEBUG = bin/spimap-debug
+BINARIES = $(SPIMAP_PROG) \
+           bin/spimap-prep-rates \
+           bin/spimap-train-rates \
+           bin/spimap-prep-duploss \
+           bin/spimap-train-duploss \
+           bin/make-branch-matrix \
+           bin/gene-tree-sim
 
 SPIDIR_SRC = \
     src/spidir.cpp \
@@ -66,7 +73,9 @@ PROG_LIBS = -lgsl -lgslcblas -lm
 #=======================
 # SPIDIR C-library files
 LIBSPIDIR = lib/libspidir.a
-LIBSPIDIR_SHARED = lib/libspidir.so
+LIBSPIDIR_SHARED_NAME = libspidir.so
+LIBSPIDIR_SHARED = lib/$(LIBSPIDIR_SHARED_NAME)
+LIBSPIDIR_SHARED_INSTALL = $(prefix)/lib/$(LIBSPIDIR_SHARED_NAME)
 LIBSPIDIR_OBJS = $(SPIDIR_OBJS)
 
 
@@ -105,23 +114,28 @@ $(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS)
 
 
 
+#-----------------------------
+# install
+
+install: $(BINARIES) $(LIBSPIDIR_SHARED_INSTALL)
+	mkdir -p $(prefix)/bin
+	cp $(BINARIES) $(prefix)/bin
+	echo $(LIBSPIDIR_SHARED_INSTALL)
+	python setup.py install --prefix=$(prefix)
+
+pylib: $(LIBSPIDIR_SHARED_INSTALL)
+	python setup.py install --prefix=$(prefix)
+
+
+$(LIBSPIDIR_SHARED_INSTALL): $(LIBSPIDIR_SHARED)
+	mkdir -p $(prefix)/lib
+	cp $(LIBSPIDIR_SHARED) $(LIBSPIDIR_SHARED_INSTALL)
+
 #=============================================================================
 # basic rules
 
 $(SPIDIR_OBJS): %.o: %.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
-
-
-install: $(SPIMAP_PROG)
-	cp $(SPIMAP_PROG) $(prefix)/bin
-
-
-myinstall: $(SPIMAP_PROG) maxml
-	cp $(SPIMAP_PROG) maxml ../bin
-
-
-myinstall64: $(SPIMAP_PROG) maxml
-	cp $(SPIMAP_PROG) maxml ../bin64
 
 
 clean:

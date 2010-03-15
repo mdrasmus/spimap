@@ -32,12 +32,7 @@ To compile the SPIMAP stand-alone program use the Makefile.
 
 To compile the SPIDIR C-library use:
     
-    make libspidir    
-
-To compile the SPIDIR python interface use:
-
-    make pyspidir.so
-
+    make lib  
 
 Once compiled, to install the SPIMAP program (installs by default in /usr) use:
 
@@ -47,12 +42,14 @@ To specify your own installation path use:
     
     make install prefix=/usr/local
 
+To use the training scripts (bin/spimap-prep-duploss, etc), python must be
+installed.
+
 
 =============================================================================
 USAGE
 
 Running spimap with no arguments will print out its command-line usage:
-
 
 Usage: spimap [OPTION]
 
@@ -65,36 +62,44 @@ Usage: spimap [OPTION]
   -s,--stree  <species tree>
     species tree file in newick format
 
-  -p,--param  <spidir params file>
-    SPIDIR branch length parameters file
+  -p,--param  <params file>
+    substitution rate parameters file
 
   -o,--output  <output filename prefix>
     prefix for all output filenames
 
-Sequence model evolution
-  -l,--lengths  (hky|parsimony)
-    algorithm for determining branch lengths
-
-  -r,--tsvratio  <transition/transversion ratio>
-    used for HKY model (default=0.5)
+Sequence evolution model
+  -k,--kappa  <transition/transversion ratio>
+    used for HKY model (default=estimate)
 
   -f,--bgfreq  <A freq>,<C ferq>,<G freq>,<T freq>
-    background frequencies (default=0.25,0.25,0.25,0.25
+    background frequencies (default: estimate)
 
-Miscellaneous
+Dup/loss evolution model
+  -D,--duprate  <duplication rate>
+    rate of a gene duplication (default=0.1)
+
+  -L,--lossrate  <loss rate>
+    probability of loss (default=0.1)
+
+  -P,--pretime  <pre-speciation time parameter>
+    lambda param of pre-speciation distribution (default=1.0)
+
+Search
   -i,--niter  <# iterations>
     number of iterations
 
-  -D,--dupprob  <duplication probability>
-    probability of a node being a duplication (default=1.0)
+  --quickiter  <quick iterations>
+    number of subproposals (default=50)
 
-  -P,--predupprob  <pre-duplication probability>
-    probability of a node being a pre-duplication (default=0.01)
+  -b,--boot  <# bootstraps>
+    number of bootstraps to perform (default: 1)
 
+Information
   -V,--verbose  <verbosity level>
     verbosity level 0=quiet, 1=low, 2=medium, 3=high
 
-  ,--log  <log filename>
+  --log  <log filename>
     log filename.  Use '-' to display on stdout.
 
   -v,--version  
@@ -102,3 +107,7 @@ Miscellaneous
 
   -h,--help  
     display help information
+
+  --help-debug  
+    display help information about debug options
+

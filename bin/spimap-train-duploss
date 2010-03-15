@@ -1,13 +1,19 @@
 #!/usr/bin/env python
 # Make gene count matrix from a cluster/part file
 
+# python libs
 import sys, optparse
 from math import log, exp
 
-from rasmus.bio import phylo
+# rasmus libs
 from rasmus import util, treelib, plotting
 
+# compbio libs
+from compbio import phylo
+
+# spidir libs
 import spidir
+
 
 o = optparse.OptionParser()
 o.set_defaults()

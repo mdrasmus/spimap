@@ -12,10 +12,12 @@ import sys, time, os, random, math, copy, optparse
 from rasmus import treelib
 from rasmus import util
 from rasmus import stats
+
+# compbio libs
+from compbio import fasta, phylo, birthdeath
+
+# spidir lib
 import spidir
-
-from rasmus.bio import fasta, phylo, birthdeath
-
 
 
 o = optparse.OptionParser()

@@ -12,11 +12,16 @@ from math import *
 from ctypes import *
 
 
-#import spidir C lib
-libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
-spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
+# import spidir C lib
+try:
+    # use library from source path
+    libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
+    spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
+except:
+    # search for libspidir.so in library path
+    spidir = cdll.LoadLibrary("libspidir.so")
 
-    
+
 #=============================================================================
 # ctypes help functions
 

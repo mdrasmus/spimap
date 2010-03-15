@@ -3,8 +3,9 @@
 
 import sys, optparse
 
-from rasmus.bio import phylo
 from rasmus import util, treelib
+from compbio import phylo
+
 
 
 o = optparse.OptionParser()

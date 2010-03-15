@@ -84,7 +84,7 @@ class TestProg (unittest.TestCase):
         """Test the main program"""        
         
         cmd = (valgrind +
-                   "bin/spidir "
+                   "bin/spimap "
                    "-a %s "
                    "-S test/data/flies.smap "
                    "-s test/data/flies.stree "
@@ -93,7 +93,6 @@ class TestProg (unittest.TestCase):
                    "--kappa 1.0 "
                    "--duprate .4 "
                    "--lossrate .39 "
-                   "--quicksamples 1 "
                    "-b %d "
                    "-i %d "
                    "--quickiter 100 "
