@@ -36,7 +36,7 @@ struct HashCharStar {
         }
         
         return h;
-    }    
+    }
 };
 
 struct HashString {

@@ -5,11 +5,12 @@ Matthew Rasmussen
 =============================================================================
 ABOUT
 
-SPIMAP is phylogenetic program that uses species information to aide in
+SPIMAP is a phylogenetic program that uses a species tree to aide in
 reconstructing gene trees.  It uses code from the SPIDIR phylogenetic library.
 
-SPIMAP citation: Rasmussen, Kellis.  A Bayesian Approach for Fast and
-Accurate Gene-tree Reconstruction. In prep 2010.
+SPIMAP citation: 
+Rasmussen, Kellis.  A Bayesian Approach for Fast and Accurate Gene-tree 
+Reconstruction. In prep 2010.
 
 SPIDIR citation:
 Rasmussen, Kellis. Accurate gene-tree reconstruction by learning
@@ -18,6 +19,15 @@ Genome Research. 2007
 
 This package includes the C++ source of the SPIMAP program and SPIDIR library
 as well as several library interfaces for C and python.
+
+
+=============================================================================
+DEPENDENCIES
+
+SPIMAP has the following requirements:
+
+- GNU Scientific library (GSL) http://www.gnu.org/software/gsl/
+- Python http://python.org/
 
 
 =============================================================================

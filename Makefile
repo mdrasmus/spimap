@@ -37,16 +37,22 @@ endif
 #=============================================================================
 # SPIMAP program files
 
+# package
+PKG_VERSION=2.0
+PKG_NAME=spimap
+SPIMAP_PKG=dist/$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_DIR=dist/$(PKG_NAME)-$(PKG_VERSION)
+
 # program files
 SPIMAP_PROG = bin/spimap
 SPIMAP_DEBUG = bin/spimap-debug
-BINARIES = $(SPIMAP_PROG) \
-           bin/spimap-prep-rates \
+SCRIPTS =  bin/spimap-prep-rates \
            bin/spimap-train-rates \
            bin/spimap-prep-duploss \
            bin/spimap-train-duploss \
            bin/make-branch-matrix \
            bin/gene-tree-sim
+BINARIES = $(SPIMAP_PROG) $(SCRIPTS)
 
 SPIDIR_SRC = \
     src/spidir.cpp \
@@ -113,6 +119,13 @@ $(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS)
 	$(CXX) -o $(LIBSPIDIR_SHARED) -shared $(LIBSPIDIR_OBJS) $(PROG_LIBS)
 
 
+#-----------------------------
+# packaging
+
+pkg: $(SPIMAP_PKG)
+
+$(SPIMAP_PKG):
+	python make-pkg.py $(PKG_DIR)
 
 #-----------------------------
 # install
@@ -150,10 +163,11 @@ clean-obj:
 
 dep:
 	touch Makefile.dep
-	makedepend -f Makefile.dep src/*.cpp src/*.h
+	makedepend -f Makefile.dep -Y src/*.cpp src/*.h
 
 Makefile.dep:
 	touch Makefile.dep
-	makedepend -f Makefile.dep src/*.cpp src/*.h
+	makedepend -f Makefile.dep -Y src/*.cpp src/*.h
 
 include Makefile.dep
+# DO NOT DELETE
