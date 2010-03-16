@@ -6,6 +6,11 @@
 #include <gsl/gsl_roots.h>
 #include <gsl/gsl_multimin.h>
 
+// use old simplex method as backup if it new one does not exist
+#ifndef gsl_multimin_fminimizer_nmsimplex2
+#define gsl_multimin_fminimizer_nmsimplex2 gsl_multimin_fminimizer_nmsimplex
+#endif
+
 
 // spidir includes
 #include "Matrix.h"

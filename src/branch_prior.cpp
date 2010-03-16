@@ -280,10 +280,10 @@ void getReconTimes(Tree *tree, SpeciesTree *stree,
 			 time);
 	    break;
 
-	case FRAC_PARENT:
+	case FRAC_PARENT: {
 	    float kp = k[node->parent->name];
 	    times.append((1.0 - kp) * time);
-	    break;
+            } break;
 
 	case FRAC_NODE:
 	    times.append(k[name] * time);

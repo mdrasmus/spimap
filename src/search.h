@@ -1,3 +1,4 @@
+
 #ifndef SPIDIR_SEARCH_H
 #define SPIDIR_SEARCH_H
 
@@ -120,7 +121,7 @@ public:
 
     virtual void propose(Tree *tree);
     virtual void revert(Tree *tree);
-    void SprNbrProposer::reset() { 
+    void reset() { 
         iter = 0; 
         reverted = false;
         basetree = NULL;
