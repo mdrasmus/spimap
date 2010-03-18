@@ -12,7 +12,7 @@ files = ["bin",
          "setup.py",
          "README.txt"]
 
-exclude = [".*\.o$", "src/old/.*", "bin/spimap"]
+exclude = [".*\.o$", "src/old/.*", "^bin/spimap$"]
 
 include = ["lib"]
 
@@ -45,5 +45,8 @@ for f in all_files:
         if not os.path.exists(dest):
             os.makedirs(dest)
 
-call(["tar", "zcvf", pkgdir + ".tar.gz", pkgdir])
+# tar
+basename = os.path.basename(pkgdir)
+call(["tar", "-C", os.path.dirname(pkgdir), "-zcvf", 
+      pkgdir + ".tar.gz", basename])
 
