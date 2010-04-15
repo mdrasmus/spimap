@@ -10,7 +10,7 @@
 import os
 from math import *
 from ctypes import *
-
+from spidir.ctypes_export import *
 
 # import spidir C lib
 try:
@@ -22,85 +22,13 @@ except:
     spidir = cdll.LoadLibrary("libspidir.so")
 
 
-#=============================================================================
-# ctypes help functions
-
-def c_list(c_type, lst):
-    """Make a C array from a list"""
-    list_type = c_type * len(lst)
-    return list_type(* lst)
-
-def c_matrix(c_type, mat):
-    """Make a C matrix from a list of lists (mat)"""
-
-    row_type = c_type * len(mat[0])
-    mat_type = POINTER(c_type) * len(mat)
-    mat = mat_type(* [row_type(* row) for row in mat])
-    return cast(mat, POINTER(POINTER(c_type)))
-
-
-def export(lib, funcname, return_type, prototypes, scope=globals(),
-           newname=None):
-    """Exports a C function with documentation"""
-
-    converts = []
-
-    if newname is None:
-        newname = funcname
-
-    # get c arguments
-    arg_types = prototypes[0::2]
-    for i, arg in enumerate(arg_types):
-        if isinstance(arg, tuple):
-            arg_types[i] = arg[0]
-            converts.append(arg[1])
-        else:
-            converts.append(lambda x: x)
-
-    cfunc = lib.__getattr__(funcname)
-    cfunc.restype = return_type
-    cfunc.argtypes = arg_types
-
-    def func(*args):
-        # record array sizes
-        sizes = {}
-        for i, argtype in enumerate(prototypes[0::2]):
-            if argtype in (c_int_list, c_float_list, c_float_matrix):
-                sizes[i] = len(args[i])
-        
-        cargs = [f(a) for f, a in zip(converts, args)]
-        ret = cfunc(*cargs)        
-        
-        # pass back arguments
-        for i, size in sizes.iteritems():
-            args[i][:] = cargs[i][:sizes[i]]
-
-        return ret
-
-    scope[newname] = func
-
-    # set documentation
-    args_doc = prototypes[1::2]
-    scope[newname].__doc__ = "%s(%s)" % (funcname, ",".join(args_doc))
-
-
-# additional C types
-c_float_p = POINTER(c_float)
-c_float_p_p = POINTER(POINTER(c_float))
-c_double_p = POINTER(c_double)
-c_double_p_p = POINTER(POINTER(c_double))
-c_int_p = POINTER(c_int)
-c_int_p_p = POINTER(POINTER(c_int))
-c_char_p_p = POINTER(c_char_p)
-
-c_int_list = (c_int_p, lambda x: c_list(c_int, x))
-c_float_list = (c_float_p, lambda x: c_list(c_float, x))
-c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
-c_int_matrix = (c_int_p_p, lambda x: c_matrix(c_int, x))
-
 
 #=============================================================================
 # wrap functions from c library
+
+ex = Exporter(globals())
+export = ex.export
+
 
 # common functions
 export(spidir, "gamm", c_double, [c_double, "a"])
