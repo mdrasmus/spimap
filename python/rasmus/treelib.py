@@ -33,7 +33,7 @@ except ImportError:
 
 
 
-
+# TODO: I should generalize this
 # allow tree reading extra recursion levels
 sys.setrecursionlimit(4000)
 
@@ -1154,7 +1154,7 @@ def subtree_by_leaf_names(tree, leaf_names, newCopy=False):
     remove_set = set(tree.leaf_names()) - set(leaf_names)
     for sp in remove_set:
     	tree.remove(tree.nodes[sp])
-    remove_exposed_internal_nodes(tree)
+    remove_exposed_internal_nodes(tree, [tree.nodes[x] for x in leaf_names])
     remove_single_children(tree)
     
     return tree
