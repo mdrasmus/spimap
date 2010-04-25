@@ -13,6 +13,7 @@ RASMUS_SRC_FILES = __init__ \
                    treelib_parser \
                    treelib_lex \
                    treelib_tab \
+	           textdraw \
                    stats \
                    svg \
                    util 

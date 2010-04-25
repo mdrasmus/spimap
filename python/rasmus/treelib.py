@@ -634,7 +634,7 @@ class Tree:
     def read_big_newick(self, filename):
         """Reads a big newick file with a custom parser"""
     
-        infile = file(filename)    
+        infile = util.open_stream(filename) #file(filename)    
         closure = {"opens": 0}
         names = set()
 
