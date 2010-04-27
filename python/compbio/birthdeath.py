@@ -254,6 +254,11 @@ def sample_birth_death_gene_tree(stree, birth, death,
         for node in delnodes:
             del recon[node]
             del events[node]
+
+    if len(tree.nodes) <= 1:
+        tree.nodes = {tree.root.name : tree.root}
+        recon = {tree.root: stree.root}
+        events = {tree.root: "spec"}
     
     return tree, recon, events
 

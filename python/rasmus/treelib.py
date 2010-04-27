@@ -334,7 +334,8 @@ class Tree:
                 self.nodes[name2] = tree2.nodes[name]
                 self.nodes[name2].name = name2
             else:
-                if type(name) == int:
+                # make sure I do not issue a name that matches this one
+                if isinstance(name, int):
                     if name >= self.nextname:
                         self.nextname = name + 1
                 self.nodes[name] = tree2.nodes[name]
