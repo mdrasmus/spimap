@@ -23,6 +23,9 @@ from subprocess import call, Popen, PIPE
 
 pkgdir = sys.argv[1]
 
+if os.path.exists(pkgdir):
+    shutil.rmtree(pkgdir)
+
 exclude_expr = "|".join(exclude)
 
 p = Popen(["find"] + files, stdout=PIPE)
