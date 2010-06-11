@@ -1,16 +1,16 @@
 #
-# Python module for SPIDIR
+# Python module for SPIDIR library
 #
 
 
 #
-# requires rasmus library
+# Note, this model requires the rasmus and compbio python modules.
 #
 
 import os
 from math import *
 from ctypes import *
-
+from spidir.ctypes_export import *
 
 # import spidir C lib
 try:
@@ -22,85 +22,13 @@ except:
     spidir = cdll.LoadLibrary("libspidir.so")
 
 
-#=============================================================================
-# ctypes help functions
-
-def c_list(c_type, lst):
-    """Make a C array from a list"""
-    list_type = c_type * len(lst)
-    return list_type(* lst)
-
-def c_matrix(c_type, mat):
-    """Make a C matrix from a list of lists (mat)"""
-
-    row_type = c_type * len(mat[0])
-    mat_type = POINTER(c_type) * len(mat)
-    mat = mat_type(* [row_type(* row) for row in mat])
-    return cast(mat, POINTER(POINTER(c_type)))
-
-
-def export(lib, funcname, return_type, prototypes, scope=globals(),
-           newname=None):
-    """Exports a C function with documentation"""
-
-    converts = []
-
-    if newname is None:
-        newname = funcname
-
-    # get c arguments
-    arg_types = prototypes[0::2]
-    for i, arg in enumerate(arg_types):
-        if isinstance(arg, tuple):
-            arg_types[i] = arg[0]
-            converts.append(arg[1])
-        else:
-            converts.append(lambda x: x)
-
-    cfunc = lib.__getattr__(funcname)
-    cfunc.restype = return_type
-    cfunc.argtypes = arg_types
-
-    def func(*args):
-        # record array sizes
-        sizes = {}
-        for i, argtype in enumerate(prototypes[0::2]):
-            if argtype in (c_int_list, c_float_list, c_float_matrix):
-                sizes[i] = len(args[i])
-        
-        cargs = [f(a) for f, a in zip(converts, args)]
-        ret = cfunc(*cargs)        
-        
-        # pass back arguments
-        for i, size in sizes.iteritems():
-            args[i][:] = cargs[i][:sizes[i]]
-
-        return ret
-
-    scope[newname] = func
-
-    # set documentation
-    args_doc = prototypes[1::2]
-    scope[newname].__doc__ = "%s(%s)" % (funcname, ",".join(args_doc))
-
-
-# additional C types
-c_float_p = POINTER(c_float)
-c_float_p_p = POINTER(POINTER(c_float))
-c_double_p = POINTER(c_double)
-c_double_p_p = POINTER(POINTER(c_double))
-c_int_p = POINTER(c_int)
-c_int_p_p = POINTER(POINTER(c_int))
-c_char_p_p = POINTER(c_char_p)
-
-c_int_list = (c_int_p, lambda x: c_list(c_int, x))
-c_float_list = (c_float_p, lambda x: c_list(c_float, x))
-c_float_matrix = (c_float_p_p, lambda x: c_matrix(c_float, x))
-c_int_matrix = (c_int_p_p, lambda x: c_matrix(c_int, x))
-
 
 #=============================================================================
 # wrap functions from c library
+
+ex = Exporter(globals())
+export = ex.export
+
 
 # common functions
 export(spidir, "gamm", c_double, [c_double, "a"])
@@ -215,10 +143,6 @@ export(spidir, "birthDeathTreePriorFull", c_double,
         c_int_p, "recon", c_int_p, "events",
         c_float, "birth", c_float, "death",
         c_double_p, "doomtable", c_int, "maxdoom"])
-export(spidir, "sampleDupTimes", c_int,
-       [c_void_p, "tree", c_void_p, "stree",
-        c_int_p, "recon", c_int_p, "events",
-        c_float, "birth", c_float, "death"])
 export(spidir, "sampleBirthWaitTime", c_double,
        [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
 export(spidir, "birthWaitTime", c_double,
@@ -249,6 +173,7 @@ export(spidir, "parsimony", c_void_p,
         c_char_p_p, "seqs", c_float, "dists",
         c_int, "buildAncestral", c_char_p_p, "ancetralSeqs"])
 
+# typedefs
 c_floatlk = c_double
 c_floatlk_p = c_double_p
 
@@ -310,6 +235,9 @@ export(spidir, "RatesEM_MStep", c_void_p, [c_void_p, "em"])
 export(spidir, "RatesEM_likelihood", c_float, [c_void_p, "em"])
 export(spidir, "RatesEM_getParams", c_void_p,
        [c_void_p, "em", c_float_p, "params"])
+
+
+
 
 #=============================================================================
 # additional python interface
@@ -384,6 +312,7 @@ def make_ptree(tree):
 
 
 def ptree2tree(ptree, genes):
+    """Create a Tree object from a ptree array"""
 
     from rasmus.treelib import Tree, TreeNode
 
@@ -404,15 +333,13 @@ def ptree2tree(ptree, genes):
 
 def ptree2ctree(ptree):
     """Makes a c++ Tree from a parent array"""
-    
     pint = c_int * len(ptree)
     tree = makeTree(len(ptree), pint(* ptree))
     return tree
 
 
 def tree2ctree(tree):
-    """Make a c++ Tree from a treelib.Tree datastructure"""
-
+    """Make a c++ Tree from a treelib.Tree data structure"""
     ptree, nodes, nodelookup = make_ptree(tree)
     dists = [x.dist for x in nodes]
     ctree = ptree2ctree(ptree)
@@ -421,6 +348,7 @@ def tree2ctree(tree):
 
 
 def ctree2tree(ctree, genes):
+    """Makes a treelib.Tree from a c++ Tree"""
     nnodes = 2*len(genes) - 1
     ptree = [0] * nnodes
     ctree2ptree(ctree, ptree)
@@ -429,6 +357,7 @@ def ctree2tree(ctree, genes):
         
 
 def make_gene2species_array(genes, stree, snodelookup, gene2species):
+    """Make a gene2species array"""
     gene2speciesarray = []
 
     for g in genes:
@@ -440,6 +369,7 @@ def make_gene2species_array(genes, stree, snodelookup, gene2species):
 
 
 def make_recon_array(tree, recon, nodes, snodelookup):
+    """Make a reconciliation array from recon dict"""
     recon2 = []
     for node in nodes:
         recon2.append(snodelookup[recon[node]])
@@ -447,10 +377,10 @@ def make_recon_array(tree, recon, nodes, snodelookup):
 
 
 def make_events_array(nodes, events):
+    """Make events array from events dict"""
     mapping = {"gene": 0,
                "spec": 1,
                "dup": 2}
-    #return util.mget(mapping, util.mget(events, nodes))
     return [mapping[events[i]] for i in nodes]
 
 
@@ -460,6 +390,7 @@ def search_climb(genes, align, stree, gene2species,
                  maxdoom=20,
                  niter=50, quickiter=100,                 
                  nsamples=100, branch_approx=True):
+    """Search for a MAP gene tree"""
 
     nseqs = len(align)
     calign = c_list(c_char_p, align)
@@ -500,6 +431,8 @@ def calc_joint_prob(align, tree, stree, recon, events, params,
                     bgfreq, kappa,
                     maxdoom=20, nsamples=100, branch_approx=True,
                     terms=False):
+    """Calculate the joint probability of a gene tree"""
+    
     branchp = branch_prior(tree, stree, recon, events,
                                   params, birth, death, pretime,
                                   nsamples, approx=branch_approx)
@@ -517,15 +450,16 @@ def calc_joint_prob(align, tree, stree, recon, events, params,
 #=============================================================================
 # topology prior
 
-def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
+def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom=20,
                            events=None):
+    """Returns the topology prior of a gene tree"""
 
     from rasmus.bio import phylo
 
     assert birth != death, "birth and death must be different rates"
 
     if events is None:
-        events = phylo.labelEvents(tree, recon)
+        events = phylo.label_events(tree, recon)
 
     ptree, nodes, nodelookup = make_ptree(tree)
     pstree, snodes, snodelookup = make_ptree(stree)
@@ -636,6 +570,7 @@ def birth_death_counts_ml_iter(opt):
 def branch_prior(tree, stree, recon, events, params, birth, death,
                  pretime_lambda=1.0,
                  nsamples=1000, approx=True):
+    """Returns the branch prior of a gene tree"""
 
     ptree, nodes, nodelookup = make_ptree(tree)
     pstree, snodes, snodelookup = make_ptree(stree)
@@ -804,16 +739,6 @@ def read_length_matrix(filename, minlen=.0001, maxlen=1.0,
             if row[i] < minlen:
                 row[i] = minlen
 
-    '''
-    # remove high lengths
-    cols = zip(* lens)
-    means = map(mean, cols)
-
-    for row in lens:
-        for i in xrange(len(row)):
-            if row[i] > maxlen:
-                row[i] = means[i]
-    '''
     
     return species, lens, gene_sizes, files
 
@@ -882,71 +807,3 @@ def rates_em_get_params(em, species):
     return params
     
 
-#=============================================================================
-# pyspidir (older code)
-# TODO: convert to ctypes
-
-
-'''
-def parsimony(aln, tree):    
-    ptree, nodes, nodelookup = make_ptree(tree)
-    leaves = [x.name for x in nodes if isinstance(x.name, str)]
-    seqs = util.mget(aln, leaves)
-    
-    dists = pyspidir.parsimony(ptree, seqs)
-    
-    for i in xrange(len(dists)):
-        nodes[i].dist = dists[i]
-
-
-def sample_gene_rate(tree, stree, gene2species, params,
-                     aln,
-                     bgfreq, tsvratio,
-                     nsamples=100):
-
-    ptree, nodes, nodelookup = make_ptree(tree)
-    pstree, snodes, snodelookup = make_ptree(stree)
-    smap = make_gene2species_array(stree, nodes, snodelookup, gene2species)
-
-    mu = [float(params[snode.name][0]) for snode in snodes]
-    sigma = [float(params[snode.name][1]) for snode in snodes]
-    alpha, beta = params['baserate']
-
-    seqs = [aln[node.name] for node in nodes if isinstance(node.name, str)]
-
-    generates = []
-    def callback(generate):
-        generates.append(generate)
-    
-    pyspidir.sample_gene_rate(nsamples,
-                              ptree, 
-                              pstree,
-                              smap,
-                              mu,
-                              sigma,
-                              alpha, beta,
-                              bgfreq,
-                              tsvratio,
-                              seqs,
-                              callback)
-
-    return generates
-
-
-
-def est_gene_rate(tree, stree, gene2species, params,
-                  aln, bgfreq, tsvratio,
-                  nsamples=1000):
-
-    generates = sample_gene_rate(tree, stree, gene2species, params,
-                                 aln,
-                                 bgfreq, tsvratio,
-                                 nsamples)
-    generates.sort()
-    low = generates[int(.05 * len(generates))]
-    high = generates[int(.95 * len(generates))]
-    
-    return sum(generates) / float(nsamples), (low, high)
-
-
-'''

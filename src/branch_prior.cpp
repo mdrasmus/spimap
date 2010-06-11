@@ -91,21 +91,6 @@ double approxGammaSum(int nparams, double x, float *gs_alpha, float *gs_beta,
 	logp = log(gammaSumPdf(x, nparams, gs_alpha, gs_beta, tol));
     }
     
-    //float diff = fabs(logp - logp2);
-
-    /*
-    if (diff > log(1.3)) {
-	printf("\n"
-	       "n=%d; l=%f; g=%f\n", n, node->dist, generate);
-	printf("t: "); printFloatArray(times, times.size());
-	printf("a: "); printFloatArray(gs_alpha, nparams);
-	printf("b: "); printFloatArray(gs_beta, nparams);
-        
-	printf("logp = %f\n", logp);
-	printf("logp2 = %f\n", logp2);
-	printf("diff = %f\n", diff);
-	}*/
-
     if(isnan(logp))
 	logp = -INFINITY;
     return logp;

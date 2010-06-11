@@ -46,9 +46,6 @@ double birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
 double birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
                                 int *events, float birth, float death);
 
-void sampleDupTimes(Tree *tree, Tree *stree, int *recon, int *events,
-                    float birth, float death);
-
 
 double sampleBirthWaitTime1(float T, float birth, float death);
 

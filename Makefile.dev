@@ -5,7 +5,6 @@
 PY_SRC_PATH=$(HOME)/projects/rasmus/python
 
 RASMUS_SRC_FILES = __init__ \
-                   algorithms \
                    plotting \
                    tablelib \
                    timer \
@@ -13,6 +12,7 @@ RASMUS_SRC_FILES = __init__ \
                    treelib_parser \
                    treelib_lex \
                    treelib_tab \
+	           textdraw \
                    stats \
                    svg \
                    util 
