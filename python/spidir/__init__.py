@@ -450,7 +450,7 @@ def calc_joint_prob(align, tree, stree, recon, events, params,
 #=============================================================================
 # topology prior
 
-def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
+def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom=20,
                            events=None):
     """Returns the topology prior of a gene tree"""
 
@@ -459,7 +459,7 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom,
     assert birth != death, "birth and death must be different rates"
 
     if events is None:
-        events = phylo.labelEvents(tree, recon)
+        events = phylo.label_events(tree, recon)
 
     ptree, nodes, nodelookup = make_ptree(tree)
     pstree, snodes, snodelookup = make_ptree(stree)
