@@ -60,8 +60,8 @@ void parsimony_helper(Tree *tree, int nseqs, char **seqs,
             float minleftcost = MAX_COST, minrightcost = MAX_COST;
             float leftsub = 0;
             float rightsub = 0;
-            float leftmatch = 2;
-            float rightmatch = 2;
+            //float leftmatch = 2;
+            //float rightmatch = 2;
             
             for (int b=0; b<4; b++) {
                 float sub = subcost[a][b];
@@ -69,32 +69,33 @@ void parsimony_helper(Tree *tree, int nseqs, char **seqs,
                 float rightcost = table[matind(4, right, b)].cost + sub;
                 
                 // find min_b leftcost(b)
-                if (leftcost < minleftcost ||
-                    (leftcost == minleftcost &&
-                     frand() < (1.0/leftmatch)))
+                if (leftcost < minleftcost) // ||
+                    //                    (leftcost == minleftcost &&
+                    //                     frand() < (1.0/leftmatch)))
                 {
+                    //if (leftcost == minleftcost)
+                        //    leftmatch += 1;                    
+                    //else
+                        //    leftmatch = 2;
+
                     minleftcost = leftcost;
                     minleft = b;
                     leftsub = sub;
-                    if (leftcost == minleftcost)
-                        leftmatch += 1;                    
-                    else
-                        leftmatch = 2;
                 }
                 
                 // find min_b rightcost(b)
-                if (rightcost < minrightcost ||
-                    (rightcost == minrightcost && 
-                     frand() < (1.0/rightmatch)))
+                if (rightcost < minrightcost) // ||
+                    // (rightcost == minrightcost && 
+                    //  frand() < (1.0/rightmatch)))
                 {
+                    //if (rightcost == minrightcost)
+                    //    rightmatch += 1;
+                    //else
+                    //    rightmatch = 2;
+
                     minrightcost = rightcost;
                     minright = b;
-                    rightsub = sub;
-                    
-                    if (rightcost == minrightcost)
-                        rightmatch += 1;
-                    else
-                        rightmatch = 2;
+                    rightsub = sub;                    
                 }
             }
             

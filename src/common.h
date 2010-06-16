@@ -178,6 +178,61 @@ double stdev(T* vals, int size, T mean)
 }
 
 
+class RunningStat
+{
+public:
+    RunningStat() : n(0) {}
+
+    void clear()
+    {
+        n = 0;
+    }
+
+    void push(double x)
+    {
+        n++;
+        
+        // See Knuth TAOCP vol 2, 3rd edition, page 232
+        if (n == 1) {
+            oldM = newM = x;
+            oldS = 0.0;
+        } else {
+            newM = oldM + (x - oldM)/n;
+            newS = oldS + (x - oldM)*(x - newM);
+    
+            // set up for next iteration
+            oldM = newM; 
+            oldS = newS;
+        }
+    }
+
+    int numValues() const
+    {
+        return n;
+    }
+
+    double mean() const
+    {
+        return (n > 0) ? newM : 0.0;
+    }
+
+    double variance() const
+    {
+        return ((n > 1) ? newS/(n - 1) : 0.0 );
+    }
+
+    double sdev() const
+    {
+        return sqrt(variance());
+    }
+
+private:
+    int n;
+    double oldM, newM, oldS, newS;
+};
+ 
+
+
 
 // Find a root of a function func(x) using the secant method
 // x0 and x1 are initial estimates of the root
@@ -233,7 +288,11 @@ float bisectRoot(Func &f, float x0, float x1, const float err=.001)
 inline double logadd(double lna, double lnb)
 {
     double diff = lna - lnb;
-    if (diff < 40.0)
+    if (lna == 1.0)
+        return lnb;
+    if (lnb == 1.0)
+        return lna;
+    if (diff < 500.0)
         return log(exp(diff) + 1.0) + lnb;
     else
         return lna;

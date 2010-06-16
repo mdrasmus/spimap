@@ -105,7 +105,7 @@ void setRandomMidpoints(int root, Tree *tree, SpeciesTree *stree,
                         ReconParams *reconparams,
 			float birth, float death)
 {
-    const float esp = .0001;
+    const float esp = .001;
 
     // deal with pre-duplications
     if (root == tree->root->name) {
@@ -389,7 +389,7 @@ bool getSubtree(Node *node, int *events, ExtendArray<Node*> *subnodes)
 	    dupsPresent = true;
 	
         for (int i=0; i<node->nchildren; i++) 
-            getSubtree(node->children[i], events, subnodes);
+            dupsPresent |= getSubtree(node->children[i], events, subnodes);
     }
 
     return dupsPresent;
@@ -415,7 +415,9 @@ public:
 	reconparams(_tree->nnodes, _params),
 	rootnodes(0, _tree->nnodes),
 	nsamples(_nsamples),
-	approx(_approx)
+	approx(_approx),
+        subnodes(0, _tree->nnodes),
+        times(0, tree->nnodes)
     {
 	// determine speciation subtrees	
 	getSpecSubtrees(tree, events, &rootnodes);
@@ -426,6 +428,28 @@ public:
     {
     }
     
+
+
+    // Calculate branch probability
+    double branchprob(Tree *tree, SpeciesTree *stree, Node *node,
+                      float generate, ReconParams *reconparams,
+                      bool approx=true)
+    {
+        // get times
+        times.clear();
+        getReconTimes(tree, stree, node, reconparams, times);
+        int nparams = times.size();
+
+        // get gammaSum terms 
+        float gs_alpha[nparams];
+        float gs_beta[nparams];
+        getReconParams(tree, node, reconparams,
+                       generate, times, gs_alpha, gs_beta, nparams);
+   
+        // compute gamma sum
+        return approxGammaSum(nparams, node->dist, gs_alpha, gs_beta, approx);
+    }
+
 
 
     // subtree prior conditioned on divergence times
@@ -471,7 +495,7 @@ public:
     {
    
 	// set reconparams by traversing subtree
-	ExtendArray<Node*> subnodes(0, tree->nnodes); // MOVE to class
+	subnodes.clear();
 	bool dupsPresent = getSubtree(tree->nodes[root], events, &subnodes);
     
 	// reconcile each branch
@@ -483,8 +507,8 @@ public:
 	// root branch must be unfolded
 	bool unfold = (root == tree->root->name &&
 		       tree->root->nchildren == 2);
+        
 
-	
 	if (!dupsPresent) {
 
             setRandomMidpoints(root, tree, stree,
@@ -501,28 +525,31 @@ public:
 	    // to integrate over
 	    //nsamples = int(500*logf(subnodes.size())) + 200;
 	    //if (nsamples > 2000) nsamples = 2000;
-        	
+
+
 	    // perform integration by sampling
 	    double prob = 1.0;
+            //RunningStat stat;
+
 	    for (int i=0; i<nsamples; i++) {
-		double sampleLogl = 0.0;
-            
 		// propose a setting of midpoints
 		setRandomMidpoints(root, tree, stree,
 				   subnodes, subnodes.size(),
 				   recon, events, reconparams,
 				   birth, death);
-            
-
-		sampleLogl = subtreeprior_cond(tree, stree, recon, 
+                
+		double sampleLogl = subtreeprior_cond(tree, stree, recon, 
 					       generate, reconparams, 
 					       subnodes,
 					       unfold);
 	    
 		//prob += exp(sampleLogl) / nsamples;
                 prob = logadd(prob, sampleLogl);
+                //stat.push(exp(sampleLogl));
+                //printf("%d %f %f %f\n", i, sampleLogl, prob -log(i+1), 
+                //       log(stat.sdev()));
 	    }
-        
+
 	    return prob - log(nsamples);
 	}
     }
@@ -561,13 +588,12 @@ public:
         float gstart = mid * 0.01;
         float gend = mid * 3.0;
         float step = (gend - gstart) / 20.0;
-
-
+        
 	// integrate over gene rates
         for (float g=gstart; g<gend; g+=step) {
             float gi = g + step / 2.0;
             double p = calc_cond(gi);
-	    
+
             logp = logadd(logp, p);
             printLog(LOG_HIGH, "generate_int: %f %f\n", gi, p);
         }
@@ -588,10 +614,11 @@ protected:
     float death;    
     ReconParams reconparams;
     ExtendArray<Node*> rootnodes;
-
     int nsamples;
     bool approx;
-  
+
+    ExtendArray<Node*> subnodes;
+    ExtendArray<float> times;
 };
 
   

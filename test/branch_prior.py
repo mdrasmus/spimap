@@ -28,90 +28,84 @@ def exc_default(func, val, exc=Exception):
 
 class TestBranchPrior (unittest.TestCase):
 
-    def _test_branch_prior_tough(self):
+    def test_branch_prior_samples(self):
         """Test branch prior"""
 
         prep_dir("test/output/branch_prior")
-        #out = open("test/output/branch_prior/flies.nt.approx.txt", "w")
+        out = open("test/output/branch_prior/flies.approx.txt", "w")
         out = sys.stderr
 
-        #treeids = os.listdir("test/data/flies.nt")[:100]
-        treeids = ["16", "35", "36", "38", "49", "50", "56", "89", "98"]
+        treeids = os.listdir("test/data/flies")
+        treeids = ["3"]
 
         for treeid in treeids:
         
-            tree = readTree("test/data/flies.nt/%s/%s.tree" % (treeid, treeid))
+            tree = read_tree("test/data/flies-duploss/%s/%s.tree" % (treeid, treeid))
 
             print treeid
-            drawTree(tree)
+            draw_tree(tree)
             
-            stree = readTree("test/data/flies.norm.stree")
-            gene2species = genomeutil.readGene2species("test/data/flies.smap")
-            params = spidir.read_params("test/data/flies.nt.param")
-            birth = .4
-            death = .39
+            stree = read_tree("test/data/flies.stree")
+            gene2species = phylo.read_gene2species("test/data/flies.smap")
+            params = spidir.read_params("test/data/flies.param")
+            birth = .0012
+            death = .0013
             pretime = 1.0
             nsamples = 100
         
             recon = phylo.reconcile(tree, stree, gene2species)
-            events = phylo.labelEvents(tree, recon)
+            events = phylo.label_events(tree, recon)
+
             p = [spidir.branch_prior(tree, stree, recon, events,
-                                     params, birth, death, pretime,
-                                     nsamples, True)
-                 for i in xrange(30)]
-            p2 = [spidir.branch_prior(tree, stree, recon, events,
-                                      params, birth, death, pretime,
-                                      nsamples, False)
+                                     params, birth, death,
+                                     nsamples=nsamples, approx=True)
                  for i in xrange(30)]
 
-            row = [treeid,
-                   mean(p), exc_default(lambda: sdev(p), INF),
-                   mean(p2),exc_default(lambda: sdev(p2), INF)]
+            #row = [treeid,
+            #       mean(p), exc_default(lambda: sdev(p), INF)]
+            print treeid, p
 
-            print >>out, "\t".join(map(str, row))
-            self.assert_(INF not in row and -INF not in row)
+            #print >>out, "\t".join(map(str, row))
+            #self.assert_(INF not in row and -INF not in row)
 
-            
-
-        #out.close()
+        out.close()
 
 
-
-    def test_branch_prior_approx(self):
+    def _test_branch_prior_approx(self):
         """Test branch prior"""
 
         prep_dir("test/output/branch_prior")
-        out = open("test/output/branch_prior/flies.nt.approx.txt", "w")
+        out = open("test/output/branch_prior/flies.approx.txt", "w")
         out = sys.stderr
 
-        treeids = os.listdir("test/data/flies.nt")
-        treeids = ["0"]
+        treeids = os.listdir("test/data/flies")
 
         for treeid in treeids:
         
-            tree = readTree("test/data/flies.nt/%s/%s.tree" % (treeid, treeid))
+            tree = read_tree("test/data/flies-duploss/%s/%s.nt.tree" % (treeid, treeid))
 
             print treeid
-            drawTree(tree)
+            draw_tree(tree)
             
-            stree = readTree("test/data/flies.norm.stree")
-            gene2species = genomeutil.readGene2species("test/data/flies.smap")
-            params = spidir.read_params("test/data/flies.nt.param")
-            birth = .4
-            death = .39
+            stree = read_tree("test/data/flies.stree")
+            gene2species = phylo.read_gene2species("test/data/flies.smap")
+            params = spidir.read_params("test/data/flies.param")
+            birth = .0012
+            death = .0013
             pretime = 1.0
             nsamples = 100
         
             recon = phylo.reconcile(tree, stree, gene2species)
-            events = phylo.labelEvents(tree, recon)
+            events = phylo.label_events(tree, recon)
             p = [spidir.branch_prior(tree, stree, recon, events,
-                                     params, birth, death, pretime,
-                                     nsamples, True)
+                                     params, birth, death,
+                                     nsamples=nsamples, approx=False)
                  for i in xrange(30)]
             p2 = [spidir.branch_prior(tree, stree, recon, events,
-                                      params, birth, death, pretime,
-                                      nsamples, False)
+                                     params, birth, death,
+                                     nsamples=nsamples, approx=True)
                  for i in xrange(30)]
+
 
             row = [treeid,
                    mean(p), exc_default(lambda: sdev(p), INF),
@@ -131,19 +125,19 @@ class TestBranchPrior (unittest.TestCase):
         out = sys.stderr
         treeid = "predup"
 
-        tree = readTree("test/data/flies.predup.tree")
+        tree = read_tree("test/data/flies.predup.tree")
         drawTree(tree)
             
-        stree = readTree("test/data/flies.norm.stree")
-        gene2species = genomeutil.readGene2species("test/data/flies.smap")
-        params = spidir.read_params("test/data/flies.nt.param")
+        stree = read_tree("test/data/flies.stree")
+        gene2species = phylo.read_gene2species("test/data/flies.smap")
+        params = spidir.read_params("test/data/flies.param")
         birth = .4
         death = .39
         pretime = 1.0
         nsamples = 100
         
         recon = phylo.reconcile(tree, stree, gene2species)
-        events = phylo.labelEvents(tree, recon)
+        events = phylo.label_events(tree, recon)
         p = [spidir.branch_prior(tree, stree, recon, events,
                                  params, birth, death, pretime,
                                  nsamples, True)

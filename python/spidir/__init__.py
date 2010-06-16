@@ -23,6 +23,7 @@ except:
 
 
 
+
 #=============================================================================
 # wrap functions from c library
 
@@ -283,7 +284,7 @@ def make_ptree(tree):
     walk(tree.root)
     
     def leafsort(a, b):
-        if a.isLeaf():
+        if a.is_leaf():
             if b.isLeaf():
                 return 0
             else:
@@ -324,7 +325,7 @@ def ptree2tree(ptree, genes):
         if p == -1:
             tree.root = nodes[i]
         else:
-            tree.addChild(nodes[p], nodes[i])
+            tree.add_child(nodes[p], nodes[i])
     
     return tree
 
@@ -675,8 +676,10 @@ def mle_distance_hky(probs1, probs2, seqlen, bgfreq, kappa, t0, t1):
 
 def calc_seq_likelihood_hky(tree, align, bgfreq, kappa):
 
+    ptree, nodes, nodelookup = make_ptree(tree)
+    leaves = [x for x in nodes if x.is_leaf()]
+    calign = (c_char_p * len(align))(* [align[x.name] for x in leaves])    
     ctree = tree2ctree(tree)
-    calign = (c_char_p * len(align))(* align)
     
     l = calcSeqProbHky(ctree, len(align), calign, c_list(c_float, bgfreq),
                        kappa)
@@ -690,7 +693,8 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
                                parsinit=True):
 
     ptree, nodes, nodelookup = make_ptree(tree)
-    calign = (c_char_p * len(align))(* align)
+    leaves = [x for x in nodes if x.is_leaf()]
+    calign = (c_char_p * len(align))(* [align[x.name] for x in leaves])
     dists = c_list(c_float, [n.dist for n in nodes])
 
     l = findMLBranchLengthsHky(len(ptree), c_list(c_int, ptree),

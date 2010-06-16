@@ -41,8 +41,8 @@ class TestAllTerms (unittest.TestCase):
 
         for treeid in treeids:
         
-            tree = readTree("test/data/flies/%s/%s.nt.tree" % (treeid, treeid))
-            align = readFasta("test/data/flies/%s/%s.nt.align" % (treeid, treeid))
+            tree = read_tree("test/data/flies/%s/%s.nt.tree" % (treeid, treeid))
+            align = read_fasta("test/data/flies/%s/%s.nt.align" % (treeid, treeid))
 
             print >>out, treeid
             draw_tree(tree, out=out)
@@ -89,19 +89,19 @@ class TestAllTerms (unittest.TestCase):
 
         for treeid in treeids:
         
-            tree_correct = readTree("test/data/flies.nt/%s/%s.tree" %
+            tree_correct = read_tree("test/data/flies.nt/%s/%s.tree" %
                                     (treeid, treeid))
-            align = readFasta("test/data/flies.nt/%s/%s.align" %
+            align = read_fasta("test/data/flies.nt/%s/%s.align" %
                               (treeid, treeid))
 
-            phylo.hashOrderTree(tree_correct)
+            phylo.hash_order_tree(tree_correct)
 
             print >>out, treeid
             print >>out, "correct"
             drawTree(tree_correct, out=out)
             
-            stree = readTree("test/data/flies.norm.stree")
-            gene2species = genomeutil.readGene2species("test/data/flies.smap")
+            stree = read_tree("test/data/flies.norm.stree")
+            gene2species = phylo.read_gene2species("test/data/flies.smap")
             params = spidir.read_params("test/data/flies.nt.param")
             birth = .4
             death = .39
@@ -121,7 +121,7 @@ class TestAllTerms (unittest.TestCase):
                                        niter=50, quickiter=100,
                                        nsamples=100, branch_approx=True)
 
-            phylo.hashOrderTree(tree)
+            phylo.hash_order_tree(tree)
             
             
 
@@ -129,8 +129,8 @@ class TestAllTerms (unittest.TestCase):
             drawTree(tree, out=out)
             
 
-            print >>out, "is_correct:", (phylo.hashTree(tree) ==
-                                         phylo.hashTree(tree_correct))
+            print >>out, "is_correct:", (phylo.hash_tree(tree) ==
+                                         phylo.hash_tree(tree_correct))
             
 
         out.close()

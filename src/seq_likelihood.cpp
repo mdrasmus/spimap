@@ -639,7 +639,7 @@ public:
         gsl_root_fdfsolver_set(opt, &opt_func, initdist);
 
         int status = GSL_CONTINUE;
-        const int maxiter = 10;
+        const int maxiter = 30;
         int iter;
         for (iter=0; iter<maxiter && status==GSL_CONTINUE; iter++) {
             //printf("root %f\n", r);
@@ -755,7 +755,7 @@ public:
                                 int maxiter=10)
     {
         floatlk lastLogl = -INFINITY, logl = -INFINITY;
-        const floatlk converge = logf(1.02);
+        const floatlk converge = logf(1.002);
     
         // initialize the condition likelihood table
         int seqlen = strlen(seqs[0]);
@@ -776,6 +776,7 @@ public:
             // determine whether logl has converged
             floatlk diff = fabs(logl - lastLogl);
             if (diff < converge) {
+                //printf("conv %d %f %f\n", j, logl, lastLogl);
                 printLog(LOG_HIGH, "hky: diff = %f < %f\n", diff, converge);
                 break;
             } else {

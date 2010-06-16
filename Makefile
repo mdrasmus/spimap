@@ -73,8 +73,9 @@ SPIDIR_OBJS = $(SPIDIR_SRC:.cpp=.o)
 
 PROG_SRC = src/spimap.cpp 
 PROG_OBJS = src/spimap.o $(SPIDIR_OBJS)
-PROG_LIBS = -lgsl -lgslcblas -lm
-#`gsl-config --libs`
+PROG_LIBS = `gsl-config --libs`
+#-lgsl -lgslcblas -lm
+
 
 #=======================
 # SPIDIR C-library files
