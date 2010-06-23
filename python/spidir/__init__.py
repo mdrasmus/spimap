@@ -570,7 +570,8 @@ def birth_death_counts_ml_iter(opt):
 
 def branch_prior(tree, stree, recon, events, params, birth, death,
                  pretime_lambda=1.0,
-                 nsamples=1000, approx=True):
+                 nsamples=1000, approx=True,
+                 generate=None):
     """Returns the branch prior of a gene tree"""
 
     ptree, nodes, nodelookup = make_ptree(tree)
@@ -587,7 +588,8 @@ def branch_prior(tree, stree, recon, events, params, birth, death,
     sp_alpha = [params[x.name][0] for x in snodes]
     sp_beta = [params[x.name][1] for x in snodes]
 
-    generate = -1
+    if generate is None:
+        generate = -1
     
     p = branchPrior(nnodes, ptree, dists, nsnodes, pstree, sdists,
                     recon2, events2,

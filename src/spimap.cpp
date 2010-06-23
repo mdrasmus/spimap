@@ -124,9 +124,9 @@ public:
         // misc
 	config.add(new ConfigParamComment("Miscellaneous", DEBUG_OPT));
 	config.add(new ConfigParam<string>
-		   ("", "--search", "climb|mcmc", 
-		    &search, "climb", 
-		    "search algorithm (default=climb)", DEBUG_OPT));
+		   ("", "--search", "default|sprnbr|nosprnbr", 
+		    &search, "default", 
+		    "search algorithm", DEBUG_OPT));
 	config.add(new ConfigParam<string>
 		   ("", "--prior", "spimap|none", 
 		    &prioropt, "spimap",
@@ -482,7 +482,7 @@ int main(int argc, char **argv)
     
     // init topology proposer
     const int radius = 3;
-
+    
     NniProposer nni(c.niter);
     SprProposer spr(c.niter);
     SprNbrProposer sprnbr(c.niter, radius);
@@ -505,13 +505,7 @@ int main(int argc, char **argv)
     TopologyProposer *proposer = &mix2;
 
     // init search
-    TreeSearch *search = NULL;
-    if (c.search == "climb") {
-	search = new TreeSearchClimb(prior, proposer, fitter);
-    } else {
-        printError("unknown search '%s'", c.search.c_str());
-        return 1;
-    }
+    TreeSearch *search = new TreeSearchClimb(prior, proposer, fitter);
 
     // load correct tree
     Tree correctTree;    

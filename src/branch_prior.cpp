@@ -91,7 +91,7 @@ double approxGammaSum(int nparams, double x, float *gs_alpha, float *gs_beta,
 	logp = log(gammaSumPdf(x, nparams, gs_alpha, gs_beta, tol));
     }
     
-    if(isnan(logp))
+    if (isnan(logp))
 	logp = -INFINITY;
     return logp;
 }
@@ -447,7 +447,9 @@ public:
                        generate, times, gs_alpha, gs_beta, nparams);
    
         // compute gamma sum
-        return approxGammaSum(nparams, node->dist, gs_alpha, gs_beta, approx);
+        double p = approxGammaSum(nparams, node->dist, gs_alpha, gs_beta, approx);
+
+        return p;
     }
 
 
@@ -478,14 +480,15 @@ public:
 		} else if (node == tree->root->children[0]) {
 		    // unfold left branch
 		    logp += branchprobUnfold(tree, stree,
-                                             generate, reconparams);
+                                             generate, reconparams,
+                                             approx);
 		    continue;
 		}
 	    }
-	    logp += branchprob(tree, stree, node, generate, reconparams);
+	    logp += branchprob(tree, stree, node, generate, reconparams,
+                               approx);
 	}
-            
-
+        
 	return logp;
     }
 
@@ -507,7 +510,8 @@ public:
 	// root branch must be unfolded
 	bool unfold = (root == tree->root->name &&
 		       tree->root->nchildren == 2);
-        
+                
+        //printf("unfold %d\n", unfold);
 
 	if (!dupsPresent) {
 
@@ -520,13 +524,6 @@ public:
 				     generate, reconparams, subnodes,
 				     unfold);
 	} else {
-        
-	    // choose number of samples based on number of nodes 
-	    // to integrate over
-	    //nsamples = int(500*logf(subnodes.size())) + 200;
-	    //if (nsamples > 2000) nsamples = 2000;
-
-
 	    // perform integration by sampling
 	    double prob = 1.0;
             //RunningStat stat;
@@ -542,9 +539,8 @@ public:
 					       generate, reconparams, 
 					       subnodes,
 					       unfold);
-	    
-		//prob += exp(sampleLogl) / nsamples;
-                prob = logadd(prob, sampleLogl);
+                
+		prob += exp(sampleLogl) / nsamples;
                 //stat.push(exp(sampleLogl));
                 //printf("%d %f %f %f\n", i, sampleLogl, prob -log(i+1), 
                 //       log(stat.sdev()));
@@ -569,7 +565,7 @@ public:
         // gene rate probability
         if (params->gene_alpha > 0 && params->gene_beta > 0)
             logp += loginvgammaPdf(generate, params->gene_alpha, params->gene_beta);
-	
+        
         printLog(LOG_HIGH, "generate: %f %f\n", generate, exp(logp));
         return logp;
     }

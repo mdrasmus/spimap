@@ -264,60 +264,63 @@ public:
     int ntries;
 };
 
-/*=============================================================================
-NEW DUP/LOSS PROPOSER
 
-class DupLossProposer: public TopologyProposer
+class DefaultProposer 
 {
 public:
-    DupLossProposer(TopologyProposer *proposer, 
-                    SpeciesTree *stree,
-                    int *gene2species,
-                    float dupprob,
-                    float lossprob,
-                    int quickiter=100, int niter=500, int nsamples=10,
-                    bool extend=true);
-    virtual ~DupLossProposer();
+    DefaultProposer(int niter, int quickiter,
+                    SpeciesTree *stree, int *gene2species,
+                    float duprate, float lossrate,
+                    int radius=3) :
+        stree(stree),
+        gene2species(gene2species),
+        radius(radius),
 
+        nni(niter),
+        spr(niter),
+        sprnbr(niter, radius),
 
-    virtual void propose(Tree *tree);
-    virtual void revert(Tree *tree);
-    virtual bool more() { return iter < niter; }
-    virtual void reset();
-    virtual void accept(bool accepted);
+        mix(niter),
 
-    void queueTrees(Tree *tree);
-    void clearQueue();
+        rooted(&mix, stree, gene2species),
+        unique(&rooted, niter),
+        dl(&unique, stree, gene2species, 
+           duprate, lossrate, quickiter, niter),
 
-    typedef pair<Tree*,float> TreeProp;
+        mix2(niter)
+        
+    {
+        mix.addProposer(&nni, .25);
+        mix.addProposer(&sprnbr, .5);
+        mix.addProposer(&spr, .25);
 
-
-protected:
-    TopologyProposer *proposer;
-    int quickiter;
+        mix2.addProposer(&unique, .2);
+        mix2.addProposer(&dl, .8);
+    }
+        
     int niter;
-    int iter;
-    Tree *correctTree;
-    bool correctSeen;
+    int quickiter;
     SpeciesTree *stree;
     int *gene2species;
-    float dupprob;
-    float lossprob;
-    float *doomtable;
-    const static int maxdoom = 10;
-    vector<TreeProp> queue;
-    float sum;
-    ExtendArray<int> recon;
-    ExtendArray<int> events;
-    Tree *oldtop;
-    int nsamples;
-    int samplei;
-    int treesize;
-    bool extend;
+    float duprate;
+    float lossrate;
+    int radius;
+    
+    NniProposer nni;
+    SprProposer spr;
+    SprNbrProposer sprnbr;
+    
+    MixProposer mix;
+
+    ReconRootProposer rooted;
+    UniqueProposer unique;
+    DupLossProposer dl;
+
+    MixProposer mix2;
 };
 
 
-=============================================================================*/
+
 
 
 class BranchLengthFitter
