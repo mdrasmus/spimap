@@ -1,0 +1,24 @@
+
+- PHYML v2.4.4 -
+
+. Sequence file : [fams/134/134.pep.ml.output/infile]
+
+. Model of amino acids substitution : JTT
+
+. Initial tree : [BIONJ]
+
+. Number of taxa : 3
+
+
+. Likelihood : loglk = -853.21635
+
+. Discrete gamma model : Yes
+  - Number of categories : 4
+  - Gamma shape parameter : 1.277
+
+. Proportion of invariant : 0.000
+
+. Time used 0h0m0s
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

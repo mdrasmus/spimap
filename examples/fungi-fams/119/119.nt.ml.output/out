@@ -1,0 +1,149 @@
+
+
+
+
+Sequence filename : 				 fams/119/119.nt.ml.output/infile
+Data type :             			 dna
+Sequence format : 				 sequential
+Number of data sets : 				 1
+Nb of bootstrapped data sets : 			 0
+Model name : 					 HKY
+ts/tv ratio : 					 estimated
+Proportion of invariable sites :		 estimated
+Number of subst. rate categs : 			 4
+Gamma distribution parameter : 			 estimated
+Starting tree : 				 BIONJ
+Optimise tree topology : 			 yes
+Optimise branch lengths and rate parameters : 	 yes
+
+. Compressing sequences...
+
+. Computing pairwise distances...
+
+. Large distance encountered between ABL072C and LELG_05685 sequences
+
+. Building BIONJ tree...
+
+. Log(lk) :               * ->   -36203.455333 
+. Log(lk) :   -36203.455333 ->   -35900.070358   1 swap  done
+. Log(lk) :   -35900.070358 ->   -35856.715099   1 swap  done
+. Log(lk) :   -35856.715099 ->   -35847.839655   1 swap  done
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35562.864584 ->   -35556.890926   1 swap  done
+. Log(lk) :   -35556.890926 ->   -35555.777260   0 swap  done
+. Log(lk) :   -35555.777260 ->   -35555.502601   0 swap  done
+. Log(lk) :   -35555.502601 ->   -35555.387149   0 swap  done
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35551.349663 ->   -35551.275272   0 swap  done
+. Log(lk) :   -35551.275272 ->   -35551.238277   0 swap  done
+. Log(lk) :   -35551.238277 ->   -35551.215800   0 swap  done
+. Log(lk) :   -35551.215800 ->   -35551.201892   0 swap  done
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.987689 ->   -35550.976730   0 swap  done
+. Log(lk) :   -35550.976730 ->   -35550.970998   0 swap  done
+
+. Last optimization step...
+
+. Log(lk) :               * ->   -35550.963106 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.963106 ->   -35550.935463 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.935463 ->   -35550.930745 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.930745 ->   -35550.929811 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.929811 ->   -35550.929588 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.929588 ->   -35550.929531 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.929531 ->   -35550.929512 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.929512 ->   -35550.929506 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.929506 ->   -35550.929504 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -35550.929504 ->   -35550.929503 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+
+. Time used 0h1m8s
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

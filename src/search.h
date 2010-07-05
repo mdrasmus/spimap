@@ -265,13 +265,13 @@ public:
 };
 
 
-class DefaultProposer 
+class DefaultSearch
 {
 public:
-    DefaultProposer(int niter, int quickiter,
-                    SpeciesTree *stree, int *gene2species,
-                    float duprate, float lossrate,
-                    int radius=3) :
+    DefaultSearch(int niter, int quickiter,
+                  SpeciesTree *stree, int *gene2species,
+                  float duprate, float lossrate, float sprrate=.5,
+                  int radius=3) :
         stree(stree),
         gene2species(gene2species),
         radius(radius),
@@ -290,9 +290,9 @@ public:
         mix2(niter)
         
     {
-        mix.addProposer(&nni, .25);
-        mix.addProposer(&sprnbr, .5);
-        mix.addProposer(&spr, .25);
+        mix.addProposer(&nni, (1 - sprrate) / 2.0);
+        mix.addProposer(&sprnbr, sprrate);
+        mix.addProposer(&spr, (1 - sprrate) / 2.0);
 
         mix2.addProposer(&unique, .2);
         mix2.addProposer(&dl, .8);
@@ -318,7 +318,6 @@ public:
 
     MixProposer mix2;
 };
-
 
 
 

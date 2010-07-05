@@ -1,0 +1,287 @@
+
+
+
+
+Sequence filename : 				 fams/115/115.pep.ml.output/infile
+Data type :             			 aa
+Sequence format : 				 sequential
+Number of data sets : 				 1
+Nb of bootstrapped data sets : 			 0
+Model name : 					 JTT
+Proportion of invariable sites :		 estimated
+Number of subst. rate categs : 			 4
+Gamma distribution parameter : 			 estimated
+Starting tree : 				 BIONJ
+Optimise tree topology : 			 yes
+Optimise branch lengths and rate parameters : 	 yes
+
+. Compressing sequences...
+
+. Computing pairwise distances...
+
+. Large distance encountered between KLLA0E22374g and LELG_01925 sequences
+
+. Large distance encountered between AFR353W and LELG_01925 sequences
+
+. Large distance encountered between kwal_10191 and LELG_01925 sequences
+
+. Large distance encountered between kwal_10190 and LELG_01925 sequences
+
+. Large distance encountered between CAGL0I01474g and LELG_01925 sequences
+
+. Large distance encountered between scas_g560.7 and LELG_01925 sequences
+
+. Large distance encountered between KLLA0E22374g and CPAG_02799 sequences
+
+. Large distance encountered between AFR353W and CPAG_02799 sequences
+
+. Large distance encountered between kwal_10191 and CPAG_02799 sequences
+
+. Large distance encountered between kwal_10190 and CPAG_02799 sequences
+
+. Large distance encountered between CAGL0I01474g and CPAG_02799 sequences
+
+. Large distance encountered between scas_g560.7 and CPAG_02799 sequences
+
+. Large distance encountered between sbay_13141 and CPAG_02799 sequences
+
+. Large distance encountered between smik_12341 and CPAG_02799 sequences
+
+. Large distance encountered between YJR046W and CPAG_02799 sequences
+
+. Large distance encountered between spar_12480 and CPAG_02799 sequences
+
+. Large distance encountered between KLLA0E22374g and CGUG_04126 sequences
+
+. Large distance encountered between AFR353W and CGUG_04126 sequences
+
+. Large distance encountered between kwal_10191 and CGUG_04126 sequences
+
+. Large distance encountered between kwal_10190 and CGUG_04126 sequences
+
+. Large distance encountered between CAGL0I01474g and CGUG_04126 sequences
+
+. Large distance encountered between sbay_13141 and CGUG_04126 sequences
+
+. Large distance encountered between smik_12341 and CGUG_04126 sequences
+
+. Large distance encountered between YJR046W and CGUG_04126 sequences
+
+. Large distance encountered between spar_12480 and CGUG_04126 sequences
+
+. Large distance encountered between KLLA0E22374g and CLUG_02058 sequences
+
+. Large distance encountered between AFR353W and CLUG_02058 sequences
+
+. Large distance encountered between kwal_10191 and CLUG_02058 sequences
+
+. Large distance encountered between kwal_10190 and CLUG_02058 sequences
+
+. Large distance encountered between CAGL0I01474g and CLUG_02058 sequences
+
+. Large distance encountered between scas_g560.7 and CLUG_02058 sequences
+
+. Large distance encountered between sbay_13141 and CLUG_02058 sequences
+
+. Large distance encountered between KLLA0E22374g and DEHA0E10934g sequences
+
+. Large distance encountered between AFR353W and DEHA0E10934g sequences
+
+. Large distance encountered between kwal_10191 and DEHA0E10934g sequences
+
+. Large distance encountered between CAGL0I01474g and DEHA0E10934g sequences
+
+. Large distance encountered between KLLA0E22374g and CTRG_01912 sequences
+
+. Large distance encountered between AFR353W and CTRG_01912 sequences
+
+. Large distance encountered between kwal_10191 and CTRG_01912 sequences
+
+. Large distance encountered between CAGL0I01474g and CTRG_01912 sequences
+
+. Large distance encountered between scas_g560.7 and CTRG_01912 sequences
+
+. Large distance encountered between KLLA0E22374g and orf19.29 sequences
+
+. Large distance encountered between AFR353W and orf19.29 sequences
+
+. Large distance encountered between kwal_10191 and orf19.29 sequences
+
+. Large distance encountered between kwal_10190 and orf19.29 sequences
+
+. Large distance encountered between CAGL0I01474g and orf19.29 sequences
+
+. Large distance encountered between scas_g560.7 and orf19.29 sequences
+
+. Large distance encountered between kwal_10191 and KLLA0E22374g sequences
+
+. Large distance encountered between kwal_10191 and AFR353W sequences
+
+. Large distance encountered between kwal_10190 and kwal_10191 sequences
+
+. Large distance encountered between CAGL0I01474g and kwal_10191 sequences
+
+. Large distance encountered between scas_g560.7 and kwal_10191 sequences
+
+. Large distance encountered between sbay_13141 and kwal_10191 sequences
+
+. Large distance encountered between smik_12341 and kwal_10191 sequences
+
+. Large distance encountered between YJR046W and kwal_10191 sequences
+
+. Large distance encountered between spar_12480 and kwal_10191 sequences
+
+. Building BIONJ tree...
+
+. Log(lk) :               * ->   -12998.700520 
+. Log(lk) :   -12998.700520 ->   -12915.263980   2 swaps done 
+. Log(lk) :   -12915.263980 ->   -12894.390762   3 swaps done 
+. Log(lk) :   -12894.390762 ->   -12890.563609   1 swap  done
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12744.889746 ->   -12743.167868   1 swap  done
+. Log(lk) :   -12743.167868 ->   -12742.949912   1 swap  done
+. Log(lk) :   -12742.949912 ->   -12742.257142   1 swap  done
+. Log(lk) :   -12742.257142 ->   -12742.374643   1 swap  done
+
+. Moving backward (topology + branch lengths) 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12742.257142 ->   -12741.656071   1 swap  done
+. Log(lk) :   -12741.656071 ->   -12741.466181   0 swap  done
+. Log(lk) :   -12741.466181 ->   -12741.405705   0 swap  done
+. Log(lk) :   -12741.405705 ->   -12741.369320   0 swap  done
+. Log(lk) :   -12741.369320 ->   -12741.345377   0 swap  done
+. Log(lk) :   -12741.345377 ->   -12741.329005   0 swap  done
+. Log(lk) :   -12741.329005 ->   -12741.317589   0 swap  done
+. Log(lk) :   -12741.317589 ->   -12741.309541   0 swap  done
+. Log(lk) :   -12741.309541 ->   -12741.303834   0 swap  done
+. Log(lk) :   -12741.303834 ->   -12741.299774   0 swap  done
+
+. Last optimization step...
+
+. Log(lk) :               * ->   -12741.295403 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.295403 ->   -12741.291294 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.291294 ->   -12741.289355 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.289355 ->   -12741.288351 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.288351 ->   -12741.287750 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.287750 ->   -12741.287380 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.287380 ->   -12741.287149 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.287149 ->   -12741.287004 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.287004 ->   -12741.286913 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286913 ->   -12741.286856 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286856 ->   -12741.286820 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286820 ->   -12741.286797 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286797 ->   -12741.286783 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286783 ->   -12741.286774 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286774 ->   -12741.286768 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286768 ->   -12741.286765 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286765 ->   -12741.286762 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286762 ->   -12741.286761 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :   -12741.286761 ->   -12741.286760 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+
+. Time used 0h3m53s
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

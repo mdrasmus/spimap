@@ -1,0 +1,39 @@
+
+
+
+
+Sequence filename : 				 fams/121/121.pep.ml.output/infile
+Data type :             			 aa
+Sequence format : 				 sequential
+Number of data sets : 				 1
+Nb of bootstrapped data sets : 			 0
+Model name : 					 JTT
+Proportion of invariable sites :		 estimated
+Number of subst. rate categs : 			 4
+Gamma distribution parameter : 			 estimated
+Starting tree : 				 BIONJ
+Optimise tree topology : 			 yes
+Optimise branch lengths and rate parameters : 	 yes
+
+. Compressing sequences...
+
+. Computing pairwise distances...
+
+. Building BIONJ tree...
+
+. Log(lk) :               * ->     -623.192994 
+. Log(lk) :     -623.192994 ->     -620.209373   0 swap  done
+. Log(lk) :     -620.209373 ->     -620.099547   0 swap  done
+. Log(lk) :     -620.099547 ->     -620.096644   0 swap  done
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :     -600.142534 ->     -599.587691   0 swap  done
+. Log(lk) :     -599.587691 ->     -599.586719   0 swap  done
+
+. Time used 0h0m0s
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

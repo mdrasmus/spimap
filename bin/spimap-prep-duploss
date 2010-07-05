@@ -9,7 +9,7 @@ from itertools import izip
 from rasmus import util, treelib
 
 # compbio imports
-from compbio import phylo
+from compbio import phylo, fasta
 
 
 o = optparse.OptionParser()
@@ -52,14 +52,23 @@ def main(conf, args):
     header = species
     out.write("\t".join(header) + "\n")
 
+    if conf.partfile:
+        for line in open(conf.partfile):
+            row = line.rstrip().split("\t")
+            counts = dict.fromkeys(species, 0)
+            for gene in row:
+                counts[gene2species(gene)] += 1
 
-    for line in open(conf.partfile):
-        row = line.rstrip().split("\t")
-        counts = dict.fromkeys(species, 0)
-        for gene in row:
-            counts[gene2species(gene)] += 1
+            out.write("\t".join(str(counts[sp]) for sp in species) + "\n")
 
-        out.write("\t".join(str(counts[sp]) for sp in species) + "\n")
+    else:
+        for line in sys.stdin:
+            aln = fasta.read_fasta(line.rstrip())
+            counts = dict.fromkeys(species, 0)
+            for gene in aln.keys():
+                counts[gene2species(gene)] += 1
+
+            out.write("\t".join(str(counts[sp]) for sp in species) + "\n")
 
 
 conf, args = o.parse_args()

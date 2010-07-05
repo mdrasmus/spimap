@@ -1,0 +1,137 @@
+
+
+
+
+Sequence filename : 				 fams/114/114.pep.ml.output/infile
+Data type :             			 aa
+Sequence format : 				 sequential
+Number of data sets : 				 1
+Nb of bootstrapped data sets : 			 0
+Model name : 					 JTT
+Proportion of invariable sites :		 estimated
+Number of subst. rate categs : 			 4
+Gamma distribution parameter : 			 estimated
+Starting tree : 				 BIONJ
+Optimise tree topology : 			 yes
+Optimise branch lengths and rate parameters : 	 yes
+
+. Compressing sequences...
+
+. Computing pairwise distances...
+
+. Building BIONJ tree...
+
+. Log(lk) :               * ->    -7599.908765 
+. Log(lk) :    -7599.908765 ->    -7512.110876   1 swap  done
+. Log(lk) :    -7512.110876 ->    -7500.979133   1 swap  done
+. Log(lk) :    -7500.979133 ->    -7498.179102   1 swap  done
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7450.128926 ->    -7449.067533   0 swap  done
+. Log(lk) :    -7449.067533 ->    -7448.893903   0 swap  done
+. Log(lk) :    -7448.893903 ->    -7448.831826   0 swap  done
+. Log(lk) :    -7448.831826 ->    -7448.804930   0 swap  done
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7444.277795 ->    -7444.198587   0 swap  done
+. Log(lk) :    -7444.198587 ->    -7444.181773   0 swap  done
+. Log(lk) :    -7444.181773 ->    -7444.175579   0 swap  done
+. Log(lk) :    -7444.175579 ->    -7444.172658   0 swap  done
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7441.238735 ->    -7441.192541   0 swap  done
+
+. Last optimization step...
+
+. Log(lk) :               * ->    -7441.183582 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7441.183582 ->    -7440.314360 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.314360 ->    -7440.305769 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.305769 ->    -7440.304027 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.304027 ->    -7440.303312 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.303312 ->    -7440.303039 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.303039 ->    -7440.302921 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.302921 ->    -7440.302874 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.302874 ->    -7440.302854 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.302854 ->    -7440.302845 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.302845 ->    -7440.302842 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.302842 ->    -7440.302841 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -7440.302841 ->    -7440.302840 
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+
+. Time used 0h2m11s
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

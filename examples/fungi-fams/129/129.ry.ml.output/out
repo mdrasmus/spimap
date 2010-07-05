@@ -1,0 +1,163 @@
+
+
+
+
+Sequence filename : 				 fams/129/129.ry.ml.output/infile
+Data type :             			 dna
+Sequence format : 				 sequential
+Number of data sets : 				 1
+Nb of bootstrapped data sets : 			 0
+Model name : 					 HKY
+ts/tv ratio : 					 estimated
+Proportion of invariable sites :		 estimated
+Number of subst. rate categs : 			 4
+Gamma distribution parameter : 			 estimated
+Starting tree : 				 BIONJ
+Optimise tree topology : 			 yes
+Optimise branch lengths and rate parameters : 	 yes
+
+. Compressing sequences...
+
+. Computing pairwise distances...
+
+. Building BIONJ tree...
+
+. Log(lk) :               * ->    -3180.756416 
+. Log(lk) :    -3180.756416 ->    -3136.855877   0 swap  done
+. Log(lk) :    -3136.855877 ->    -3135.118960   1 swap  done
+. Log(lk) :    -3135.118960 ->    -3134.746578   1 swap  done
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3116.938747 ->    -3112.846447   1 swap  done
+. Log(lk) :    -3112.846447 ->    -3111.761224   0 swap  done
+. Log(lk) :    -3111.761224 ->    -3111.471905   0 swap  done
+. Log(lk) :    -3111.471905 ->    -3111.375822   0 swap  done
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3102.062351 ->    -3101.622896   0 swap  done
+. Log(lk) :    -3101.622896 ->    -3101.594903   0 swap  done
+. Log(lk) :    -3101.594903 ->    -3101.589844   0 swap  done
+. Log(lk) :    -3101.589844 ->    -3101.588414   0 swap  done
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3092.138232 ->    -3091.166625   0 swap  done
+. Log(lk) :    -3091.166625 ->    -3091.042047   0 swap  done
+
+. Last optimization step...
+
+. Log(lk) :               * ->    -3090.986215 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3090.986215 ->    -3089.438010 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.438010 ->    -3089.354700 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.354700 ->    -3089.332672 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.332672 ->    -3089.322985 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.322985 ->    -3089.320666 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.320666 ->    -3089.319928 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.319928 ->    -3089.319760 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.319760 ->    -3089.319709 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.319709 ->    -3089.319698 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.319698 ->    -3089.319694 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+. Log(lk) :    -3089.319694 ->    -3089.319694 
+
+. Optimisation of the ts/tv ratio...
+
+. Optimisation of the proportion of invariable sites...
+
+. Optimisation of the gamma shape parameter...
+
+
+. Time used 0h0m1s
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+

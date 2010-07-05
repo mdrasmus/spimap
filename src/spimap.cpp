@@ -481,28 +481,13 @@ int main(int argc, char **argv)
     // initialize search
     
     // init topology proposer
-    const int radius = 3;
     
-    NniProposer nni(c.niter);
-    SprProposer spr(c.niter);
-    SprNbrProposer sprnbr(c.niter, radius);
-    
-    MixProposer mix(c.niter);
-    mix.addProposer(&nni, .25);
-    mix.addProposer(&sprnbr, .5);
-    mix.addProposer(&spr, .25);
-
-    ReconRootProposer rooted(&mix, &stree, gene2species);
-    UniqueProposer unique(&rooted, c.niter);
-    DupLossProposer dl(&unique, &stree, gene2species, 
+    float sprrate = .5;
+    DefaultSearch prop(c.niter, c.quickiter,
+                       &stree, gene2species,
                        c.duprate, c.lossrate,
-                       c.quickiter, c.niter);
-
-    MixProposer mix2(c.niter);
-    mix2.addProposer(&unique, .2);
-    mix2.addProposer(&dl, .8);
-
-    TopologyProposer *proposer = &mix2;
+                       sprrate);
+    TopologyProposer *proposer = &prop.mix2;
 
     // init search
     TreeSearch *search = new TreeSearchClimb(prior, proposer, fitter);

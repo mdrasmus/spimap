@@ -1,0 +1,33 @@
+
+- PHYML v2.4.4 -
+
+. Sequence file : [fams/128/128.nt.ml.output/infile]
+
+. Model of nucleotides substitution : HKY
+
+. Initial tree : [BIONJ]
+
+. Number of taxa : 4
+
+
+. Likelihood : loglk = -1479.59978
+
+. Discrete gamma model : Yes
+  - Number of categories : 4
+  - Gamma shape parameter : 0.557
+
+. Proportion of invariant : 0.000
+
+. Transition/transversion ratio : 4.904
+
+. Nucleotides frequencies :
+
+  - f(A)= 0.21886
+  - f(C)= 0.24318
+  - f(G)= 0.14769
+  - f(T)= 0.39027
+
+. Time used 0h0m2s
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
