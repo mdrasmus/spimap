@@ -165,18 +165,18 @@ spimap -h
 #    verbosity level 0=quiet, 1=low, 2=medium, 3=high
 
 
-NAME=fungi-fams/0/0
+# run SPIMAP for family 100
 spimap \
-    -a $NAME.nt.align \
+    -a fungi-fams/100/100.nt.align \
     -s config/fungi.stree \
     -S config/fungi.smap \
     -p train/fungi.params \
-    -o $NAME \
+    -o fungi-fams/100/100 \
     -D 0.000564 \
     -L 0.003056 \
     -i 100 \
     --quickiter 1000 \
-    -V 1
+    -V 1 --log -
 
 
 
@@ -193,7 +193,7 @@ ls fungi-fams | (while read FAMID; do
     -L 0.003056 \
     -i 100 \
     --quickiter 1000 \
-    -V 1 --log -
+    -V 1
 done)
 
 
@@ -205,7 +205,5 @@ done)
 #
 
 rm -f train/fungi*
-find fungi-fams/ -name '*.
-    
-    
-    
+find fungi-fams/ | egrep '\.tree$|\.log$' | xargs rm
+

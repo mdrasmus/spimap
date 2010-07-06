@@ -540,7 +540,8 @@ public:
 					       subnodes,
 					       unfold);
                 
-		prob += exp(sampleLogl) / nsamples;
+                prob = logadd(prob, sampleLogl);
+		//prob += exp(sampleLogl) / nsamples;
                 //stat.push(exp(sampleLogl));
                 //printf("%d %f %f %f\n", i, sampleLogl, prob -log(i+1), 
                 //       log(stat.sdev()));

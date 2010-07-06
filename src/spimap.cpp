@@ -155,6 +155,10 @@ public:
                    ("", "--maxlen", "<length>",
                     &maxlen, 10.0,
                     "maximum branch length allowed", DEBUG_OPT));
+        config.add(new ConfigParam<int>
+		   ("-x", "--seed", "<random seed number>", 
+		    &seed, 0, 
+		    "use 0 to use time as seed", DEBUG_OPT));
 
         // help information
 	config.add(new ConfigParamComment("Information"));
@@ -234,6 +238,7 @@ public:
     int bootiter;
 
     // misc
+    int seed;
     string search;
     string correctFile;
     string prioropt;
@@ -249,6 +254,7 @@ public:
     bool help;
     bool help_debug;
     string logfile;
+    
 
 };
 
@@ -310,9 +316,6 @@ bool bootstrap(Sequences *aln, string *genes, TreeSearch *search,
 
 int main(int argc, char **argv)
 {
-    // seed random number generator
-    srand(time(NULL));
-
     SpidirConfig c;
     int ret = c.parseArgs(argc, argv);
     if (ret)
@@ -345,7 +348,14 @@ int main(int argc, char **argv)
         }
         printLog(LOG_LOW, "\n\n");
     }
+ 
     
+    // seed random number generator
+    if (c.seed != 0)
+        srand(c.seed);
+    else
+        srand(time(NULL));
+
     
     //============================================================
     // read species tree

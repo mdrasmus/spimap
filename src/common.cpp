@@ -601,7 +601,7 @@ bool openLogFile(const char *filename)
 {
     FILE *stream = fopen(filename, "w");
     
-    if (g_logstream != NULL) {
+    if (stream != NULL) {
         openLogFile(stream);
         return true;
     } else {
