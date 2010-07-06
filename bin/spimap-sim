@@ -7,6 +7,14 @@
 
 # python libs
 import sys, time, os, random, math, copy, optparse
+from os.path import realpath, dirname, join
+
+# spidir libs
+try:
+    import spidir
+except:
+    sys.path.append(join(realpath(dirname(dirname(__file__))), "python"))
+    import spidir
 
 # rasmus libs
 from rasmus import treelib
@@ -16,8 +24,6 @@ from rasmus import stats
 # compbio libs
 from compbio import fasta, phylo, birthdeath
 
-# spidir lib
-import spidir
 
 
 o = optparse.OptionParser()

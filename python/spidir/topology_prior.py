@@ -179,8 +179,8 @@ def sample_dup_times(tree, stree, recon, birth, death,
         events = phylo.label_events(tree, recon)
 
     # get species tree timestamps
-    stimes = birthdeath.get_tree_timestamps(stree)
-    birthdeath.check_timestamps(stree, stimes)
+    stimes = treelib.get_tree_timestamps(stree)
+    treelib.check_timestamps(stree, stimes)
 
     # init timestamps for gene tree
     times = {}

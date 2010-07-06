@@ -35,7 +35,7 @@ setup(
           ],
     
     package_dir = {'': 'python'},
-    packages=['spidir', 'rasmus', 'compbio'],
+    packages=['spidir', 'spidir.deps.rasmus', 'spidir.deps.compbio'],
     py_modules=[],
     scripts=[],
     #ext_modules=[

@@ -26,14 +26,14 @@ COMPBIO_SRC_FILES = __init__ \
 
 # copy subset of python modules for packaging with spidir
 includepy:
-	mkdir -p python/rasmus
+	mkdir -p python/spidir/deps/rasmus
 	for mod in $(RASMUS_SRC_FILES); do \
-		cp $(PY_SRC_PATH)/rasmus/$${mod}.py python/rasmus/; \
+		cp $(PY_SRC_PATH)/rasmus/$${mod}.py python/spidir/deps/rasmus/; \
 	done
 
-	mkdir -p python/compbio
+	mkdir -p python/spidir/deps/compbio
 	for mod in $(COMPBIO_SRC_FILES); do \
-		cp $(PY_SRC_PATH)/compbio/$${mod}.py python/compbio/; \
+		cp $(PY_SRC_PATH)/compbio/$${mod}.py python/spidir/deps/compbio/; \
 	done
 
 

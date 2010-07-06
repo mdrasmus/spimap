@@ -3,10 +3,16 @@
 # Sun Apr  5 17:47:47 EDT 2009
 
 import os, sys, optparse
+from os.path import realpath, dirname, join
+
+try:
+    import spidir
+except:
+    sys.path.append(join(realpath(dirname(dirname(__file__))), "python"))
+    import spidir
 
 from rasmus import treelib, util, stats
 
-import spidir
 
 
 o = optparse.OptionParser()

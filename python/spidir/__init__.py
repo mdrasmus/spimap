@@ -8,6 +8,7 @@
 #
 
 import os
+import sys
 from math import *
 from ctypes import *
 from spidir.ctypes_export import *
@@ -22,6 +23,14 @@ except:
     spidir = cdll.LoadLibrary("libspidir.so")
 
 
+# add pre-bundled dependencies to the python path,
+# if they are not available already
+try:
+    import rasmus, compbio
+except ImportError:
+    sys.path.append(os.path.realpath(os.path.join(
+        os.path.dirname(__file__), "deps")))
+    import rasmus, compbio
 
 
 #=============================================================================

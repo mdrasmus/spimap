@@ -50,7 +50,6 @@ SCRIPTS =  bin/spimap-prep-rates \
            bin/spimap-train-rates \
            bin/spimap-prep-duploss \
            bin/spimap-train-duploss \
-           bin/make-branch-matrix \
            bin/gene-tree-sim
 BINARIES = $(SPIMAP_PROG) $(SCRIPTS)
 

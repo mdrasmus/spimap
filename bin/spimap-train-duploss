@@ -4,15 +4,20 @@
 # python libs
 import sys, optparse
 from math import log, exp
+from os.path import realpath, dirname, join
+
+# spidir libs
+try:
+    import spidir
+except:
+    sys.path.append(join(realpath(dirname(dirname(__file__))), "python"))
+    import spidir
 
 # rasmus libs
 from rasmus import util, treelib, plotting
 
 # compbio libs
 from compbio import phylo
-
-# spidir libs
-import spidir
 
 
 o = optparse.OptionParser()

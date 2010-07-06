@@ -4,6 +4,14 @@
 # python imports
 import sys, optparse
 from itertools import izip
+from os.path import realpath, dirname, join
+
+# spidir libs
+try:
+    import spidir
+except:
+    sys.path.append(join(realpath(dirname(dirname(__file__))), "python"))
+    import spidir
 
 # rasmus imports
 from rasmus import util, treelib
