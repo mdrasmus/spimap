@@ -123,7 +123,8 @@ $(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS)
 #-----------------------------
 # packaging
 
-pkg: $(SPIMAP_PKG)
+pkg:
+	python make-pkg.py $(PKG_DIR)
 
 $(SPIMAP_PKG):
 	python make-pkg.py $(PKG_DIR)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # 
-# setup for SPIDIR library package
+# setup for SPIMAP library packages
 #
 # use the following to install:
 #   python setup.py install
@@ -11,7 +11,7 @@ from distutils.core import setup, Extension
 VERSION = '2.0'
 
 setup(
-    name='spidir',
+    name='spimap',
     version=VERSION,
     description='Species informed gene tree reconstruction',
     long_description = """

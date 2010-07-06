@@ -5,6 +5,24 @@
 # In this example, we reconstruct the families of 16 fungi species
 #
 
+# Make sure tools are compiled and installed before running the commands in 
+# this tutorial.  This can be done with this command:
+cd ..
+make install
+cd examples
+
+# or you can install spimap into the prefix of your choice
+cd ..
+make install prefix=YOUR_INSTALL_PREFIX
+cd examples
+
+# or you can run from the source directory by setting these environment 
+# variables:
+cd ..
+make
+export PYTHONPATH=$PYTHONOATH:../python
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../lib
+cd examples
 
 
 #=============================================================================

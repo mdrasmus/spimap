@@ -121,3 +121,10 @@ Information
   --help-debug  
     display help information about debug options
 
+
+#=============================================================================
+# Examples
+
+See examples/analyze-fungi.sh for an example of how to use each program
+in the SPIMAP package.
+
