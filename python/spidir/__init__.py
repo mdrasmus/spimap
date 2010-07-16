@@ -725,6 +725,10 @@ def find_ml_branch_lengths_hky(tree, align, bgfreq, kappa, maxiter=20,
 def mean(vals):
     return sum(vals) / float(len(vals))
     
+def variance(vals):
+    """Variance"""
+    u = mean(vals)
+    return sum((x - u)**2 for x in vals) / float(len(vals)-1)
 
 
 def read_length_matrix(filename, minlen=.0001, maxlen=1.0,
@@ -809,8 +813,8 @@ def free_rates_em(em):
     freeRatesEM(em)
 
 
-def rates_em_get_params(em, species):
-    c_params = c_list(c_float, [0.0] * (2*len(species) + 2))
+def rates_em_get_params(em, species, stree=None, lens=None, times=None):
+    c_params = c_list(c_float, [0.0] * (2*len(species) + 2))    
     RatesEM_getParams(em, c_params)
 
     params = {"baserate": [c_params[0], c_params[1]]}
@@ -818,6 +822,16 @@ def rates_em_get_params(em, species):
         if isinstance(sp, basestring) and sp.isdigit():
             sp = int(sp)
         params[sp] = c_params[2+2*i:4+2*i]
+
+    if stree and lens and times:
+        treelens = map(sum, lens)
+        m = mean(treelens)
+        grates = [i/m for i in treelens]
+        rates = [i/j/g for row, g in zip(lens, grates)
+                 for i, j in zip(row, times)]
+        mu = mean(rates)
+        sigma2 = variance(rates)
+        params[stree.root.name] = [mu*mu/sigma2, mu/sigma2]
 
     return params
     

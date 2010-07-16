@@ -143,8 +143,7 @@ def main(conf, args):
     print "\t".join(map(str, logls))
     print runtime
 
-    params = spidir.rates_em_get_params(em, species)
-    params[1] = params["baserate"]
+    params = spidir.rates_em_get_params(em, species, stree, lens, times)
     params_list.append(params)
     
     if conf.params is not None:
