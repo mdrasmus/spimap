@@ -153,7 +153,7 @@ $(SPIDIR_OBJS): %.o: %.cpp
 
 
 clean:
-	rm -f $(PROG_OBJS) $(SPIMAP_PROG) $(LIBSPIDIR)
+	rm -f $(PROG_OBJS) $(SPIMAP_PROG) $(LIBSPIDIR) $(LIBSPIDIR_SHARED)
 
 clean-obj:
 	rm -f $(PROG_OBJS)

@@ -20,7 +20,10 @@ try:
     spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
 except:
     # search for libspidir.so in library path
-    spidir = cdll.LoadLibrary("libspidir.so")
+    try:
+        spidir = cdll.LoadLibrary("libspidir.so")
+    except:
+        spidir = None
 
 
 # add pre-bundled dependencies to the python path,
@@ -32,6 +35,8 @@ except ImportError:
         os.path.dirname(__file__), "deps")))
     import rasmus, compbio
 
+    
+
 
 #=============================================================================
 # wrap functions from c library
@@ -39,212 +44,213 @@ except ImportError:
 ex = Exporter(globals())
 export = ex.export
 
-
-# common functions
-export(spidir, "gamm", c_double, [c_double, "a"])
-export(spidir, "invgammaPdf", c_double,
-       [c_double, "x", c_double, "a", c_double, "b"])
-#export(spidir, "invgammaCdf", c_double,
-#       [c_double, "x", c_double, "a", c_double, "b"])
-#export(spidir, "quantInvgamma", c_double,
-#       [c_double, "p", c_double, "a", c_double, "b"])
-export(spidir, "gammalog", c_double,
-       [c_double, "x", c_double, "a", c_double, "b"])
-export(spidir, "gammaPdf", c_double,
-       [c_double, "x", c_double, "a", c_double, "b"])
-export(spidir, "gammaDerivX", c_double,
-       [c_double, "x", c_double, "a", c_double, "b"])
-export(spidir, "gammaDerivA", c_double,
-       [c_double, "x", c_double, "a", c_double, "b"])
-export(spidir, "gammaDerivB", c_double,
-       [c_double, "x", c_double, "a", c_double, "b"])
-export(spidir, "gammaDerivV", c_double,
-       [c_double, "x", c_double, "v"])
-export(spidir, "gammaDerivV2", c_double,
-       [c_double, "x", c_double, "v"])
-export(spidir, "gammaSumPdf", c_double,
-       [c_double, "y", c_int, "n", c_float_list, "alpha",
-        c_float_list, "beta", 
-        c_float, "tol"])
-export(spidir, "negbinomPdf", c_double,
-       [c_int, "k", c_double, "r", c_double, "p"])
-export(spidir, "negbinomDerivR", c_double,
-       [c_int, "k", c_double, "r", c_double, "p"])
-export(spidir, "negbinomDerivP", c_double,
-       [c_int, "k", c_double, "r", c_double, "p"])
-
-#export(spidir, "incompleteGammaC", c_double,
-#       [c_double, "s", c_double, "x"])
-
-# basic tree functions
-export(spidir, "deleteTree", c_int, [c_void_p, "tree"])
-export(spidir, "makeTree", c_void_p, [c_int, "nnodes",
-                                      c_int_p, "ptree"])
-export(spidir, "tree2ptree", c_int, [c_void_p, "tree", c_int_list, "ptree"],
-       newname="ctree2ptree")
-export(spidir, "setTreeDists", c_void_p, [c_void_p, "tree",
-                                          c_float_p, "dists"])
-
-
-# search
-export(spidir, "searchClimb", c_void_p,
-       [c_int, "niter", c_int, "quickiter",
-        c_int, "nseqs", c_char_p_p, "gene_names", c_char_p_p, "seqs",
-        c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
-        c_int_list, "gene2species",
-        c_float_list, "sp_alpha", c_float_list, "sp_beta",
-        c_float, "gene_rate",
-        c_float, "pretime_lambda", c_float, "birth", c_float, "death",
-        c_float, "gene_alpha", c_float, "gene_beta",
-        c_float_list, "bgfreq", c_float, "kappa",
-        c_int, "nsamples", c_int, "approx"])
-
-
-# topology prior birthdeath functions
-export(spidir, "inumHistories", c_int, [c_int, "nleaves"])
-export(spidir, "numHistories", c_double, [c_int, "nleaves"])
-export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
-export(spidir, "birthDeathCount", c_double,
-       [c_int, "ngenes", c_float, "time",
-        c_float, "birth", c_float, "death"])
-export(spidir, "birthDeathCounts", c_double,
-       [c_int, "start", c_int, "end", c_float, "time",
-        c_float, "birth", c_float, "death"])
-export(spidir, "birthDeathCounts", c_double,
-       [c_int, "start", c_int, "end", c_float, "time",
-        c_float, "birth", c_float, "death"])
-export(spidir, "birthDeathCounts2", c_double,
-       [c_int, "start", c_int, "end", c_float, "time",
-        c_float, "birth", c_float, "death"])
-
-# birth death tree counts
-export(spidir, "birthDeathTreeCounts", c_double,
-       [c_void_p, "tree", c_int, "nspecies", c_int_list, "counts", 
-        c_float, "birth", c_float, "death", c_int, "maxgene",
-        c_int, "rootgene", c_void_p, "tab"])
-export(spidir, "birthDeathForestCounts", c_double,
-       [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
-        c_int_matrix, "counts", c_int_list, "mult",
-        c_float, "birth", c_float, "death", c_int, "maxgene",
-        c_int, "rootgene", c_void_p, "tab"])
-
-export(spidir, "birthDeathCountsML_alloc", c_void_p,
-       [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
-        c_int_matrix, "counts", c_int_list, "mult",
-        c_float, "birth", c_float, "death", c_float, "step",
-        c_int, "maxgene", c_int, "rootgene"])
-export(spidir, "birthDeathCountsML_free", c_void_p,
-       [c_void_p, "opt"])
-export(spidir, "birthDeathCountsML_iter", c_int,
-       [c_void_p, "opt", c_float_list, "birth", c_float_list, "death",
-        c_float_list, "size"])
-
-# tree topology
-export(spidir, "calcDoomTable", c_int,
-       [c_void_p, "tree", c_float, "birth", c_float, "death",
-        c_int, "maxdoom", c_double_p, "doomtable"])
-export(spidir, "birthDeathTreePrior", c_double,
-       [c_void_p, "tree", c_void_p, "stree",
-        c_int_p, "recon", c_int_p, "events",
-        c_float, "birth", c_float, "death",
-        c_double_p, "doomtable", c_int, "maxdoom"])
-export(spidir, "birthDeathTreePriorFull", c_double,
-       [c_void_p, "tree", c_void_p, "stree",
-        c_int_p, "recon", c_int_p, "events",
-        c_float, "birth", c_float, "death",
-        c_double_p, "doomtable", c_int, "maxdoom"])
-export(spidir, "sampleBirthWaitTime", c_double,
-       [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
-export(spidir, "birthWaitTime", c_double,
-       [c_float, "t", c_int, "n", c_float, "T",
-        c_float, "birth", c_float, "death"])
-export(spidir, "probNoBirth", c_double,
-       [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
-export(spidir, "sampleBirthWaitTime1", c_double,
-       [c_float, "T", c_float, "birth", c_float, "death"])
-
-
-
-# branch prior functions
-export(spidir, "branchPrior", c_double,
-       [c_int, "nnodes", c_int_list, "ptree", c_float_list, "dists",
-        c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
-        c_int_list, "recon", c_int_list, "events",
-        c_float_list, "sp_alpha", c_float_list, "sp_beta",
-        c_float, "generate", 
-        c_float, "pretime_lambda", c_float, "dupprob", c_float, "lossprob",
-        c_float, "gene_alpha", c_float, "gene_beta",
-        c_int, "nsamples", c_int, "approx"])
-
-
-# parsimony
-export(spidir, "parsimony", c_void_p,
-       [c_int, "nnodes", c_int, "ptree", c_int, "nseqs",
-        c_char_p_p, "seqs", c_float, "dists",
-        c_int, "buildAncestral", c_char_p_p, "ancetralSeqs"])
-
 # typedefs
 c_floatlk = c_double
 c_floatlk_p = c_double_p
 
-# sequence likelihood functions
-export(spidir, "makeHkyMatrix", c_void_p,
-       [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
-        c_float_p, "matrix"])
-export(spidir, "makeHkyDerivMatrix", c_void_p,
-       [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
-        c_float_p, "matrix"])
-export(spidir, "makeHkyDeriv2Matrix", c_void_p,
-       [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
-        c_float_p, "matrix"])
-export(spidir, "branchLikelihoodHky", c_floatlk,
-       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
-        c_int, "seqlen", c_float_p, "bgfreq", c_float, "kappa",
-        c_float, "time"])
-export(spidir, "branchLikelihoodHkyDeriv", c_floatlk,
-       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
-        c_int, "seqlen", c_float_p, "bgfreq",
-        c_float, "kappa", c_float, "time"])       
-export(spidir, "branchLikelihoodHkyDeriv2", c_floatlk,
-       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
-        c_int, "seqlen", c_float_p, "bgfreq",
-        c_float, "kappa", c_float, "time"])
-export(spidir, "mleDistanceHky", c_float,
-       [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
-        c_int, "seqlen", c_float_p, "bgfreq",
-        c_float, "kappa", c_float, "t0", c_float, "t1"])
-export(spidir, "calcSeqProbHky", c_floatlk,
-       [c_void_p, "tree", c_int, "nseqs", c_char_p_p, "seqs",
-        c_float_p, "bgfreq", c_float, "kappa"])
-export(spidir, "findMLBranchLengthsHky", c_floatlk,
-       [c_int, "nnodes", c_int_p, "ptree", c_int, "nseqs",
-        c_char_p_p, "seqs", c_float_p, "dists",
-        c_float_p, "bgfreq", c_float, "kappa",
-        c_int, "maxiter", c_int, "parsinit"])
+
+if spidir:
+    # common functions
+    export(spidir, "gamm", c_double, [c_double, "a"])
+    export(spidir, "invgammaPdf", c_double,
+           [c_double, "x", c_double, "a", c_double, "b"])
+    #export(spidir, "invgammaCdf", c_double,
+    #       [c_double, "x", c_double, "a", c_double, "b"])
+    #export(spidir, "quantInvgamma", c_double,
+    #       [c_double, "p", c_double, "a", c_double, "b"])
+    export(spidir, "gammalog", c_double,
+           [c_double, "x", c_double, "a", c_double, "b"])
+    export(spidir, "gammaPdf", c_double,
+           [c_double, "x", c_double, "a", c_double, "b"])
+    export(spidir, "gammaDerivX", c_double,
+           [c_double, "x", c_double, "a", c_double, "b"])
+    export(spidir, "gammaDerivA", c_double,
+           [c_double, "x", c_double, "a", c_double, "b"])
+    export(spidir, "gammaDerivB", c_double,
+           [c_double, "x", c_double, "a", c_double, "b"])
+    export(spidir, "gammaDerivV", c_double,
+           [c_double, "x", c_double, "v"])
+    export(spidir, "gammaDerivV2", c_double,
+           [c_double, "x", c_double, "v"])
+    export(spidir, "gammaSumPdf", c_double,
+           [c_double, "y", c_int, "n", c_float_list, "alpha",
+            c_float_list, "beta", 
+            c_float, "tol"])
+    export(spidir, "negbinomPdf", c_double,
+           [c_int, "k", c_double, "r", c_double, "p"])
+    export(spidir, "negbinomDerivR", c_double,
+           [c_int, "k", c_double, "r", c_double, "p"])
+    export(spidir, "negbinomDerivP", c_double,
+           [c_int, "k", c_double, "r", c_double, "p"])
+
+    #export(spidir, "incompleteGammaC", c_double,
+    #       [c_double, "s", c_double, "x"])
+
+    # basic tree functions
+    export(spidir, "deleteTree", c_int, [c_void_p, "tree"])
+    export(spidir, "makeTree", c_void_p, [c_int, "nnodes",
+                                          c_int_p, "ptree"])
+    export(spidir, "tree2ptree", c_int, [c_void_p, "tree", c_int_list, "ptree"],
+           newname="ctree2ptree")
+    export(spidir, "setTreeDists", c_void_p, [c_void_p, "tree",
+                                              c_float_p, "dists"])
 
 
-# training functions
-export(spidir, "train", c_void_p,
-       [c_int, "ntrees", c_int, "nspecies",
-        c_int_list, "gene_sizes",
-        c_float_matrix, "lengths",
-        c_float_list, "times",
-        c_float_list, "sp_alpha", c_float_list, "sp_beta",
-        c_float_list, "gene_alpha", c_float_list, "gene_beta",
-        c_int, "nrates", c_int, "max_iter"])
-export(spidir, "allocRatesEM", c_void_p,
-       [c_int, "ntrees", c_int, "nspecies", c_int, "nrates",
-        c_int_p, "gene_sizes",
-        c_float_p_p, "lengths", c_float_p, "times",
-        c_float_p, "sp_alpha", c_float_p, "sp_beta", 
-        c_float, "gene_alpha", c_float, "gene_beta"])
-export(spidir, "freeRatesEM", c_void_p, [c_void_p, "em"])
-export(spidir, "RatesEM_Init", c_void_p, [c_void_p, "em"])
-export(spidir, "RatesEM_EStep", c_void_p, [c_void_p, "em"])
-export(spidir, "RatesEM_MStep", c_void_p, [c_void_p, "em"])
-export(spidir, "RatesEM_likelihood", c_float, [c_void_p, "em"])
-export(spidir, "RatesEM_getParams", c_void_p,
-       [c_void_p, "em", c_float_p, "params"])
+    # search
+    export(spidir, "searchClimb", c_void_p,
+           [c_int, "niter", c_int, "quickiter",
+            c_int, "nseqs", c_char_p_p, "gene_names", c_char_p_p, "seqs",
+            c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
+            c_int_list, "gene2species",
+            c_float_list, "sp_alpha", c_float_list, "sp_beta",
+            c_float, "gene_rate",
+            c_float, "pretime_lambda", c_float, "birth", c_float, "death",
+            c_float, "gene_alpha", c_float, "gene_beta",
+            c_float_list, "bgfreq", c_float, "kappa",
+            c_int, "nsamples", c_int, "approx"])
+
+
+    # topology prior birthdeath functions
+    export(spidir, "inumHistories", c_int, [c_int, "nleaves"])
+    export(spidir, "numHistories", c_double, [c_int, "nleaves"])
+    export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
+    export(spidir, "birthDeathCount", c_double,
+           [c_int, "ngenes", c_float, "time",
+            c_float, "birth", c_float, "death"])
+    export(spidir, "birthDeathCounts", c_double,
+           [c_int, "start", c_int, "end", c_float, "time",
+            c_float, "birth", c_float, "death"])
+    export(spidir, "birthDeathCounts", c_double,
+           [c_int, "start", c_int, "end", c_float, "time",
+            c_float, "birth", c_float, "death"])
+    export(spidir, "birthDeathCounts2", c_double,
+           [c_int, "start", c_int, "end", c_float, "time",
+            c_float, "birth", c_float, "death"])
+
+    # birth death tree counts
+    export(spidir, "birthDeathTreeCounts", c_double,
+           [c_void_p, "tree", c_int, "nspecies", c_int_list, "counts", 
+            c_float, "birth", c_float, "death", c_int, "maxgene",
+            c_int, "rootgene", c_void_p, "tab"])
+    export(spidir, "birthDeathForestCounts", c_double,
+           [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
+            c_int_matrix, "counts", c_int_list, "mult",
+            c_float, "birth", c_float, "death", c_int, "maxgene",
+            c_int, "rootgene", c_void_p, "tab"])
+
+    export(spidir, "birthDeathCountsML_alloc", c_void_p,
+           [c_void_p, "tree", c_int, "nspecies", c_int, "nfams",
+            c_int_matrix, "counts", c_int_list, "mult",
+            c_float, "birth", c_float, "death", c_float, "step",
+            c_int, "maxgene", c_int, "rootgene"])
+    export(spidir, "birthDeathCountsML_free", c_void_p,
+           [c_void_p, "opt"])
+    export(spidir, "birthDeathCountsML_iter", c_int,
+           [c_void_p, "opt", c_float_list, "birth", c_float_list, "death",
+            c_float_list, "size"])
+
+    # tree topology
+    export(spidir, "calcDoomTable", c_int,
+           [c_void_p, "tree", c_float, "birth", c_float, "death",
+            c_int, "maxdoom", c_double_p, "doomtable"])
+    export(spidir, "birthDeathTreePrior", c_double,
+           [c_void_p, "tree", c_void_p, "stree",
+            c_int_p, "recon", c_int_p, "events",
+            c_float, "birth", c_float, "death",
+            c_double_p, "doomtable", c_int, "maxdoom"])
+    export(spidir, "birthDeathTreePriorFull", c_double,
+           [c_void_p, "tree", c_void_p, "stree",
+            c_int_p, "recon", c_int_p, "events",
+            c_float, "birth", c_float, "death",
+            c_double_p, "doomtable", c_int, "maxdoom"])
+    export(spidir, "sampleBirthWaitTime", c_double,
+           [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
+    export(spidir, "birthWaitTime", c_double,
+           [c_float, "t", c_int, "n", c_float, "T",
+            c_float, "birth", c_float, "death"])
+    export(spidir, "probNoBirth", c_double,
+           [c_int, "n", c_float, "T", c_float, "birth", c_float, "death"])
+    export(spidir, "sampleBirthWaitTime1", c_double,
+           [c_float, "T", c_float, "birth", c_float, "death"])
+
+
+
+    # branch prior functions
+    export(spidir, "branchPrior", c_double,
+           [c_int, "nnodes", c_int_list, "ptree", c_float_list, "dists",
+            c_int, "nsnodes", c_int_list, "pstree", c_float_list, "sdists",
+            c_int_list, "recon", c_int_list, "events",
+            c_float_list, "sp_alpha", c_float_list, "sp_beta",
+            c_float, "generate", 
+            c_float, "pretime_lambda", c_float, "dupprob", c_float, "lossprob",
+            c_float, "gene_alpha", c_float, "gene_beta",
+            c_int, "nsamples", c_int, "approx"])
+
+
+    # parsimony
+    export(spidir, "parsimony", c_void_p,
+           [c_int, "nnodes", c_int, "ptree", c_int, "nseqs",
+            c_char_p_p, "seqs", c_float, "dists",
+            c_int, "buildAncestral", c_char_p_p, "ancetralSeqs"])
+
+    # sequence likelihood functions
+    export(spidir, "makeHkyMatrix", c_void_p,
+           [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
+            c_float_p, "matrix"])
+    export(spidir, "makeHkyDerivMatrix", c_void_p,
+           [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
+            c_float_p, "matrix"])
+    export(spidir, "makeHkyDeriv2Matrix", c_void_p,
+           [c_float_p, "bgfreq", c_float, "kappa", c_float, "time",
+            c_float_p, "matrix"])
+    export(spidir, "branchLikelihoodHky", c_floatlk,
+           [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
+            c_int, "seqlen", c_float_p, "bgfreq", c_float, "kappa",
+            c_float, "time"])
+    export(spidir, "branchLikelihoodHkyDeriv", c_floatlk,
+           [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
+            c_int, "seqlen", c_float_p, "bgfreq",
+            c_float, "kappa", c_float, "time"])       
+    export(spidir, "branchLikelihoodHkyDeriv2", c_floatlk,
+           [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
+            c_int, "seqlen", c_float_p, "bgfreq",
+            c_float, "kappa", c_float, "time"])
+    export(spidir, "mleDistanceHky", c_float,
+           [c_floatlk_p, "probs1", c_floatlk_p, "probs2",
+            c_int, "seqlen", c_float_p, "bgfreq",
+            c_float, "kappa", c_float, "t0", c_float, "t1"])
+    export(spidir, "calcSeqProbHky", c_floatlk,
+           [c_void_p, "tree", c_int, "nseqs", c_char_p_p, "seqs",
+            c_float_p, "bgfreq", c_float, "kappa"])
+    export(spidir, "findMLBranchLengthsHky", c_floatlk,
+           [c_int, "nnodes", c_int_p, "ptree", c_int, "nseqs",
+            c_char_p_p, "seqs", c_float_p, "dists",
+            c_float_p, "bgfreq", c_float, "kappa",
+            c_int, "maxiter", c_int, "parsinit"])
+
+
+    # training functions
+    export(spidir, "train", c_void_p,
+           [c_int, "ntrees", c_int, "nspecies",
+            c_int_list, "gene_sizes",
+            c_float_matrix, "lengths",
+            c_float_list, "times",
+            c_float_list, "sp_alpha", c_float_list, "sp_beta",
+            c_float_list, "gene_alpha", c_float_list, "gene_beta",
+            c_int, "nrates", c_int, "max_iter"])
+    export(spidir, "allocRatesEM", c_void_p,
+           [c_int, "ntrees", c_int, "nspecies", c_int, "nrates",
+            c_int_p, "gene_sizes",
+            c_float_p_p, "lengths", c_float_p, "times",
+            c_float_p, "sp_alpha", c_float_p, "sp_beta", 
+            c_float, "gene_alpha", c_float, "gene_beta"])
+    export(spidir, "freeRatesEM", c_void_p, [c_void_p, "em"])
+    export(spidir, "RatesEM_Init", c_void_p, [c_void_p, "em"])
+    export(spidir, "RatesEM_EStep", c_void_p, [c_void_p, "em"])
+    export(spidir, "RatesEM_MStep", c_void_p, [c_void_p, "em"])
+    export(spidir, "RatesEM_likelihood", c_float, [c_void_p, "em"])
+    export(spidir, "RatesEM_getParams", c_void_p,
+           [c_void_p, "em", c_float_p, "params"])
 
 
 
