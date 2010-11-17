@@ -61,6 +61,7 @@ SPIDIR_SRC = \
     src/branch_prior.cpp \
     src/birthdeath.cpp \
     src/birthdeath_ml.cpp \
+    src/logging.cpp \
     src/parsimony.cpp \
     src/nj.cpp \
     src/phylogeny.cpp \

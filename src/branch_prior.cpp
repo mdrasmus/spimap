@@ -13,6 +13,7 @@
 
 // spidir headers
 #include "common.h"
+#include "logging.h"
 #include "branch_prior.h"
 #include "birthdeath.h"
 #include "phylogeny.h"

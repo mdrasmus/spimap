@@ -4,6 +4,7 @@
 
 
 #include "common.h"
+#include "logging.h"
 #include "Matrix.h"
 #include "phylogeny.h"
 #include "nj.h"

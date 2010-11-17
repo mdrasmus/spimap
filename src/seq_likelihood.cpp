@@ -19,6 +19,7 @@
 
 // spidir headers
 #include "common.h"
+#include "logging.h"
 #include "Matrix.h"
 #include "seq_likelihood.h"
 #include "parsimony.h"

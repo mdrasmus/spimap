@@ -7,6 +7,7 @@
 
 // spidir headers
 #include "Tree.h"
+#include "logging.h"
 #include "Matrix.h"
 
 
