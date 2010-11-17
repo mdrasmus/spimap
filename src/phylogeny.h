@@ -94,11 +94,6 @@ protected:
 };
 
 
-//=============================================================================
-// phylogenetic reconstruction
-
-void neighborjoin(int ngenes, float **distmat, int *ptree, float *branches);
-
 
 //=============================================================================
 // reconciliation functions

@@ -60,7 +60,9 @@ SPIDIR_SRC = \
     src/common.cpp \
     src/branch_prior.cpp \
     src/birthdeath.cpp \
+    src/birthdeath_ml.cpp \
     src/parsimony.cpp \
+    src/nj.cpp \
     src/phylogeny.cpp \
     src/search.cpp \
     src/Sequences.cpp \

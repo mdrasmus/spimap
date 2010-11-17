@@ -6,6 +6,7 @@
 #include "common.h"
 #include "Matrix.h"
 #include "phylogeny.h"
+#include "nj.h"
 #include "branch_prior.h"
 #include "parsimony.h"
 #include "search.h"
@@ -633,10 +634,6 @@ void DupLossProposer::propose(Tree *tree)
     events.ensureSize(tree->nnodes);
     recon.setSize(tree->nnodes);
     events.setSize(tree->nnodes);
-    
-    reconcile(tree, stree, gene2species, recon);
-    labelEvents(tree, recon, events);
-
     
     ExtendArray<Tree*> trees(0, quickiter);
     ExtendArray<float> logls(0, quickiter);

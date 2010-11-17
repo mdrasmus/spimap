@@ -4,7 +4,7 @@
 
 
 #
-# Note, this model requires the rasmus and compbio python modules.
+# Note, this module requires the rasmus and compbio python modules.
 #
 
 import os
@@ -14,16 +14,7 @@ from ctypes import *
 from spidir.ctypes_export import *
 
 # import spidir C lib
-try:
-    # use library from source path
-    libdir = os.path.join(os.path.dirname(__file__), "..", "..", "lib")
-    spidir = cdll.LoadLibrary(os.path.join(libdir, "libspidir.so"))
-except:
-    # search for libspidir.so in library path
-    try:
-        spidir = cdll.LoadLibrary("libspidir.so")
-    except:
-        spidir = None
+spidir = load_library(["..", "..", "lib"], "libspidir.so")
 
 
 # add pre-bundled dependencies to the python path,
@@ -31,8 +22,8 @@ except:
 try:
     import rasmus, compbio
 except ImportError:
-    sys.path.append(os.path.realpath(os.path.join(
-        os.path.dirname(__file__), "deps")))
+    from . import dep
+    dep.load_deps()
     import rasmus, compbio
 
     
@@ -300,12 +291,12 @@ def make_ptree(tree):
     
     def leafsort(a, b):
         if a.is_leaf():
-            if b.isLeaf():
+            if b.is_leaf():
                 return 0
             else:
                 return -1
         else:
-            if b.isLeaf():
+            if b.is_leaf():
                 return 1
             else:
                 return 0
@@ -471,9 +462,7 @@ def calc_birth_death_prior(tree, stree, recon, birth, death, maxdoom=20,
     """Returns the topology prior of a gene tree"""
 
     from rasmus.bio import phylo
-
-    assert birth != death, "birth and death must be different rates"
-
+    
     if events is None:
         events = phylo.label_events(tree, recon)
 
