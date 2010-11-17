@@ -12,7 +12,6 @@
 =============================================================================*/
 
 // headers c++ 
-#include <sys/time.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -21,8 +20,6 @@
 #include <vector>
 #include <string.h>
 
-// gsl
-#include <gsl/gsl_randist.h>
 
 // spidir headers
 #include "ExtendArray.h"

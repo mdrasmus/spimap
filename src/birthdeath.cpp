@@ -900,7 +900,7 @@ double sampleBirthWaitTime(int n, float T, float birth, float death)
 {
     
     // TODO: could make this more efficient
-    
+
     if (birth == death) {
         double start_y = birthWaitTime(0, n, T, birth, death);
         double end_y = birthWaitTime(T, n, T, birth, death);
@@ -909,7 +909,7 @@ double sampleBirthWaitTime(int n, float T, float birth, float death)
         while (true) {
             double t = frand(T);
             double f = birthWaitTime(t, n, T, birth, death);
-
+            
             if (frand() <= f / M)
                 return t;
         }
@@ -964,6 +964,10 @@ double sampleBirthWaitTime1(float T, float birth, float death)
 {    
     // TODO: could make this much more efficient
 
+
+    printf("%f %f\n", birth, death);
+
+
     if (birth == death) {
         // uses rejection sampling
         double start_y = birthWaitTime(0, 1, T, birth, death);
@@ -973,6 +977,8 @@ double sampleBirthWaitTime1(float T, float birth, float death)
         while (true) {
             double t = frand(T);
             double f = birthWaitTime(t, 1, T, birth, death);
+
+            printf("f=%f\n", f);
 
             if (frand() <= f / M)
                 return t;

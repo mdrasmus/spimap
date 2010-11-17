@@ -17,6 +17,11 @@
 
 // gsl
 #include <gsl/gsl_sf.h>
+#include <gsl/gsl_randist.h>
+#define GSL_INCLUDED
+#ifndef __GSL_SF_H__
+#undef GSL_INCLUDED
+#endif
 
 
 // spidir headers
@@ -155,6 +160,9 @@ double invgammaDerivB(double x, double a, double b)
 }
 
 
+
+#ifdef GSL_INCLUDED
+
 double invgammaDerivG(double x, double d)
 {
     double logd = log(d);
@@ -198,18 +206,6 @@ double invgammaDerivG2(double x, double d)
     */
 }
 
-
-/*
-float invgammaCdf(float x, float a, float b)
-{
-    return incompletegammac(a, b / x) / gamm(a);
-}
-
-double quantInvgamma(double p, double a, double b)
-{
-    return b / invincompletegammac(a, gamm(a) * p);
-}
-*/
 
 // Derivative of Gamma distribution with respect to x
 double gammaDerivX(double x, double a, double b)
@@ -288,6 +284,7 @@ double gammaDerivV2(double x, double v)
     */
 }
 
+#endif // GSL_INCLUDED
 
 
 // PDF of a sum of n gamma variables
@@ -355,13 +352,12 @@ double gammaSumPdf(double y, int n, float *alpha, float *beta,
 }
 
 
-
+#ifdef GSL_INCLUDED
 
 double negbinomPdf(int k, double r, double p)
 {
     return gsl_ran_negative_binomial_pdf(k, p, r);
 }
-
 
 
 // Log Derivative of Negative Binomial distribution with respect to r
@@ -373,6 +369,8 @@ double negbinomDerivR(int k, double r, double p)
     double B = gsl_sf_psi_n(0, k+r) - gsl_sf_psi_n(0, r) + lnp;
     return exp(A) * B;
 }
+
+#endif // GSL_INCLUDED
 
 
 // Derivative of Negative Binomial distribution with respect to p
