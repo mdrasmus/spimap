@@ -11,6 +11,7 @@
 #include "branch_prior.h"
 #include "top_prior.h"
 #include "parsimony.h"
+#include "newick.h"
 #include "search.h"
 #include "seq_likelihood.h"
 
@@ -970,7 +971,7 @@ void printLogTree(int loglevel, Tree *tree)
 {
     if (isLogLevel(loglevel)) {
         printLog(loglevel, "tree: ");
-        tree->writeNewick(getLogFile(), NULL, 0, true);
+        writeNewickTree(getLogFile(), tree, 0, true);
         printLog(loglevel, "\n\n");
     }
 }

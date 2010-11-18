@@ -226,29 +226,10 @@ public:
     
     // Returns a new copy of the tree
     Tree *copy();
-   
-    
-    // Reads a tree structure from an input stream 'infile'
-    // Returns true on success
-    bool readNewick(FILE *infile);
-    
-    // Reads a tree structure from a file 'filename'
-    // Returns true on success
-    bool readNewick(const char *filename);
-    
-    // Writes a tree structure to an output stream 'out'
-    void writeNewick(FILE *out=stdout, Node *node=NULL, int depth=0, bool oneline=false);
-    
-    // Writes a tree structure to a file 'filename'
-    bool writeNewick(const char *filename, bool oneline=false);
-    
+       
     // Returns whether the tree is self consistent
     bool assertTree();
-    
-protected:
-    // Reads a single node from an open file
-    Node *readNode(FILE *infile, Node *parent, int &depth);    
-    
+        
 public:    
     int nnodes;                 // number of nodes in tree
     Node *root;                 // root of the tree (NULL if no nodes)

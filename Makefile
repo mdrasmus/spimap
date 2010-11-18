@@ -61,6 +61,7 @@ SPIDIR_SRC = \
     src/gamma.cpp \
     src/hky.cpp \
     src/logging.cpp \
+    src/newick.cpp \
     src/nj.cpp \
     src/parsimony.cpp \
     src/parsing.cpp \
