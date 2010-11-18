@@ -72,6 +72,7 @@ SPIDIR_SRC = \
     src/spidir.cpp \
     src/top_prior.cpp \
     src/Tree.cpp \
+    src/treevis.cpp \
     src/train.cpp
 
 

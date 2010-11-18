@@ -20,17 +20,18 @@
 
 // spidir headers
 #include "common.h"
-#include "parsing.h"
+#include "ConfigParam.h"
 #include "logging.h"
+#include "Matrix.h"
 #include "newick.h"
-#include "phylogeny.h"
 #include "parsimony.h"
+#include "parsing.h"
+#include "phylogeny.h"
 #include "search.h"
 #include "seq_likelihood.h"
-#include "Matrix.h"
-#include "ConfigParam.h"
 #include "Sequences.h"
 #include "spidir.h"
+#include "treevis.h"
 
 
 #define VERSION_INFO  "\

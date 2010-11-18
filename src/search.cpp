@@ -4,16 +4,17 @@
 
 
 #include "common.h"
+#include "branch_prior.h"
 #include "logging.h"
 #include "Matrix.h"
-#include "phylogeny.h"
 #include "nj.h"
-#include "branch_prior.h"
-#include "top_prior.h"
-#include "parsimony.h"
 #include "newick.h"
+#include "parsimony.h"
+#include "phylogeny.h"
 #include "search.h"
 #include "seq_likelihood.h"
+#include "top_prior.h"
+#include "treevis.h"
 
 
 namespace spidir {
