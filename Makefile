@@ -58,6 +58,7 @@ SPIDIR_SRC = \
     src/birthdeath_ml.cpp \
     src/branch_prior.cpp \
     src/common.cpp \
+    src/gamma.cpp \
     src/hky.cpp \
     src/logging.cpp \
     src/nj.cpp \

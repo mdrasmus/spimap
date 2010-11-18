@@ -80,54 +80,11 @@ inline float normallog(float x, float u, float s)
 extern "C" {
 
 float poisson(int x, float lambda);
-double gammln(double xx);
-double gamm(double x);
-double gammalog(double x, double a, double b);
-double gammaPdf(double x, double a, double b);
-double invgammaPdf(double x, double a, double b);
-double loginvgammaPdf(double x, double a, double b);
-double invgammaDerivA(double x, double a, double b);
-double invgammaDerivB(double x, double a, double b);
-double invgammaDerivG(double x, double g);
-double invgammaDerivG2(double x, double g);
-//float invgammaCdf(float x, float a, float b);
-//double quantInvgamma(double p, double a, double b);
-
-// Derivative of Gamma distribution with respect to x
-double gammaDerivX(double x, double a, double b);
-    
-// Derivative of Gamma distribution with respect to a
-double gammaDerivA(double x, double a, double b);
-
-// Derivative of Gamma distribution with respect to b
-double gammaDerivB(double x, double a, double b);
-
-// Derivative of Gamma distribution with respect to nu (its variance)
-double gammaDerivV(double x, double v);
-
-// Second Derivative of Gamma distribution with respect to nu (its variance)
-double gammaDerivV2(double x, double v);
-
-// PDF of a sum of n gamma variables
-double gammaSumPdf(double y, int n, float *alpha, float *beta, 
-		   float tol);
 
 float normalvariate(float mu, float sigma);
-float gammavariate(float alpha, float beta);
-
-inline float invgammavariate(float alpha, float beta)
-{ return 1.0 / gammavariate(alpha, beta); }
 
 inline float expovariate(float lambda)
 { return -log(frand()) / lambda; }
-
-double negbinomPdf(int k, double r, double p);
-
-// Derivative of Negative Binomial distribution with respect to r
-double negbinomDerivR(int k, double r, double p);
-
-// Derivative of Negative Binomial distribution with respect to p
-double negbinomDerivP(int k, double r, double p);
 
 
 

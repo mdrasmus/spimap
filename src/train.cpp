@@ -18,9 +18,10 @@
 
 // spidir headers
 #include "common.h"
+#include "gamma.h"
 #include "Matrix.h"
-#include "seq_likelihood.h"
 #include "parsimony.h"
+#include "seq_likelihood.h"
 #include "spidir.h"
 #include "Tree.h"
 
