@@ -54,19 +54,21 @@ SCRIPTS =  bin/spimap-prep-rates \
 BINARIES = $(SPIMAP_PROG) $(SCRIPTS)
 
 SPIDIR_SRC = \
-    src/spidir.cpp \
-    src/seq_likelihood.cpp \
-    src/hky.cpp \
-    src/common.cpp \
-    src/branch_prior.cpp \
     src/birthdeath.cpp \
     src/birthdeath_ml.cpp \
+    src/branch_prior.cpp \
+    src/common.cpp \
+    src/hky.cpp \
     src/logging.cpp \
-    src/parsimony.cpp \
     src/nj.cpp \
+    src/parsimony.cpp \
+    src/parsing.cpp \
     src/phylogeny.cpp \
     src/search.cpp \
+    src/seq_likelihood.cpp \
     src/Sequences.cpp \
+    src/spidir.cpp \
+    src/top_prior.cpp \
     src/Tree.cpp \
     src/train.cpp
 

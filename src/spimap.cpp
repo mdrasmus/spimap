@@ -20,6 +20,7 @@
 
 // spidir headers
 #include "common.h"
+#include "parsing.h"
 #include "logging.h"
 #include "phylogeny.h"
 #include "parsimony.h"

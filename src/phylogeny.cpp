@@ -4,6 +4,7 @@
 
 
 #include "phylogeny.h"
+#include "parsing.h"
 
 namespace spidir {
 

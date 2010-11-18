@@ -9,6 +9,7 @@
 #include "phylogeny.h"
 #include "nj.h"
 #include "branch_prior.h"
+#include "top_prior.h"
 #include "parsimony.h"
 #include "search.h"
 #include "seq_likelihood.h"
