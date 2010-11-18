@@ -13,13 +13,6 @@
 namespace spidir {
 
 
-// reading functions for newick tree format
-float readDist(FILE *infile, int &depth);
-char readChar(FILE *stream, int &depth);
-char readUntil(FILE *stream, string &token, const char *stops, int &depth);
-
-
-
 // return a copy of the tree
 Tree *Tree::copy()
 {
