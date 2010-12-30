@@ -105,7 +105,7 @@ if spidir:
     # topology prior birthdeath functions
     export(spidir, "inumHistories", c_int, [c_int, "nleaves"])
     export(spidir, "numHistories", c_double, [c_int, "nleaves"])
-    export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
+    #export(spidir, "numTopologyHistories", c_double, [c_void_p, "tree"])
     export(spidir, "birthDeathCount", c_double,
            [c_int, "ngenes", c_float, "time",
             c_float, "birth", c_float, "death"])

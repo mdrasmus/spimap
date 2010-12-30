@@ -6,8 +6,7 @@
 
 """
 
-import sys, unittest, ctypes, os
-
+import sys, unittest, ctypes, os, traceback
 
 sys.path.append("python")
 import spidir
@@ -45,7 +44,7 @@ def rename_leaves(tree, stree, gene2species):
 
 
 
-class TestBirthDeathSim (unittest.TestCase):
+class BirthDeathSim (unittest.TestCase):
 
     def setUp(self):
         pass
@@ -123,7 +122,7 @@ class TestBirthDeathSim (unittest.TestCase):
         for i in xrange(ntrees):
             tree, recon, events = birthdeath.sample_birth_death_gene_tree(
                 stree, duprate, lossrate, removeloss=True)            
-            if len(tree.nodes) == 0:
+            if len(tree.nodes) == 1 and recon[tree.root] == stree.root:
                 doomed += 1
         util.toc()
 
@@ -160,16 +159,15 @@ class TestBirthDeathSim (unittest.TestCase):
             tree, recon, events = birthdeath.sample_birth_death_gene_tree(
                 stree, duprate, lossrate, 
                 removeloss=True)
-            rename_tree(tree, gene2species)
-            phylo.add_implied_spec_nodes(tree, stree, recon, events)
-            
-            if len(tree.nodes) == 0:
+
+            if len(tree.nodes) == 1 and recon[tree.root] == stree.root:
+                #print tree.nodes, recon[tree.root], stree.root
                 tops.append("()")
                 lookup["()"] = (None, None, None)
             else:
-                rename_leaves(tree, stree, gene2species)
+                rename_tree(tree, gene2species)
+
                 tops.append(phylo.hash_tree(tree))
-                #tops.append(phylo.hash_tree(tree, gene2species))
                 lookup[tops[-1]] = (tree, recon, events)
         util.toc()
         
@@ -188,15 +186,8 @@ class TestBirthDeathSim (unittest.TestCase):
                 p2 = calcBirthDeathPrior(tree, stree, recon,
                                          duprate, lossrate,
                                          maxdoom, events=events)
-                #try:
-                #    fequal(p, p2)
-                #except:
-                # 
-                #    recon2 = phylo.reconcile(tree, stree, gene2species)
-                #    if recon != recon2:
-                #        print "recon is not parsimonious"
-                #    tree.write_newick(oneline=True)
-                #    raise
+
+                fequal(p, p2)
                 probs.append(exp(p))
 
         return hist, probs
@@ -400,20 +391,27 @@ class TestBirthDeathSim (unittest.TestCase):
         #fequal(p, p2)
 
 
-
+        
+    # test birth death prior against simulation
     def test_birth_death_sim(self):
-        """test birth death prior against simulation"""
 
         def gene2species(gene):
             return gene[:1].upper()
 
         stree = treelib.parse_newick("((A:1,B:1):1,C:2);")
-        hist, probs = self.do_test_birth_death_gene_sim(
-            stree, gene2species,
-            duprate=.2, lossrate=.1, ntrees=10000)
+        try:
+            hist, probs = self.do_test_birth_death_gene_sim(
+                stree, gene2species,
+                duprate=.2, lossrate=.1, ntrees=10000)
+        except Exception, e:
+            traceback.print_exc()
+            sys.stdout.flush()
+            sys.exit()
+            
         outdir = "test/output/birthdeath_sim"
         prep_dir(outdir)
         self.calc_fit(outdir + "/sim_prior", hist, probs)
+
         
     def test_birth_death_sim2(self):
         """test birth death prior against simulation"""
@@ -440,7 +438,7 @@ class TestBirthDeathSim (unittest.TestCase):
         stree = treelib.parse_newick("((A:1,B:1):1,C:2);")
         hist, probs = self.do_test_birth_death_gene_sim(
             stree, gene2species,
-            duprate=1, lossrate=1.5,
+            duprate=1, lossrate=1.5, maxdoom=40,
             ntrees=10000)
         outdir = "test/output/birthdeath_sim3"
         prep_dir(outdir)
@@ -491,12 +489,14 @@ class TestBirthDeathSim (unittest.TestCase):
             stree, gene2species,
             duprate=2, lossrate=1.5,
             ntrees=10000, maxdoom=10)
+        
         print sim_doom, prior_doom
+        fequal(sim_doom, prior_doom)
         
         
 
 if __name__ == "__main__":
-    unittest.main(testRunner=TestRunner())
+    unittest.main()
 
 
 

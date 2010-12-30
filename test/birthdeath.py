@@ -37,7 +37,7 @@ calcBirthDeathPrior = dup_loss_topology_prior
 #=============================================================================
 
 
-class TestBirthDeath2 (unittest.TestCase):
+class BirthDeath2 (unittest.TestCase):
 
     def setUp(self):
         pass
@@ -77,7 +77,7 @@ class TestBirthDeath2 (unittest.TestCase):
         
 
 
-class TestBirthDeath (unittest.TestCase):
+class BirthDeath (unittest.TestCase):
 
     def setUp(self):
         pass
@@ -215,8 +215,8 @@ class TestBirthDeath (unittest.TestCase):
         # test gene reconciling within species tree
         tree = treelib.parseNewick("((a1,b1),c1);")
         recon = phylo.reconcile(tree, stree, gene2species)
-        p = c_calcBirthDeathPrior(tree, stree, recon, l, u, maxdoom)
-        p2 = calcBirthDeathPrior(tree, stree, recon, l, u, maxdoom)
+        p = c_calcBirthDeathPrior(tree, stree, recon, l, l, maxdoom)
+        p2 = calcBirthDeathPrior(tree, stree, recon, l, l, maxdoom)
         print "prior", p, p2
         fequal(p, p2)
 
@@ -355,8 +355,7 @@ class TestBirthDeath (unittest.TestCase):
         
 
 if __name__ == "__main__":
-    unittest.main(testRunner=TestRunner())
-
+    unittest.main()
 
 
 
