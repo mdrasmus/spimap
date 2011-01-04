@@ -8,23 +8,18 @@ namespace spidir {
 
 extern "C" {
 
-void calcDoomTable(Tree *tree, float birth, float death, int maxdoom,
-                   double *doomtable);
+void calcDoomTable(Tree *tree, float birth, float death, double *doomtable);
 
 void getSpecSubtree(Node *node, Node *snode, int *recon, int *events,
                     ExtendArray<Node*> &nodes);
 
 double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
                           int *events, float birth, float death,
-                          double *doomtable, int maxdoom);
+                          double *doomtable);
 
 double birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
                               int *events, float birth, float death,
-                              double *doomtable, int maxdoom);
-
-double birthDeathTreeQuickPrior(Tree *tree, SpeciesTree *stree, int *recon, 
-                                int *events, float birth, float death);
-
+                              double *doomtable);
 
 
 

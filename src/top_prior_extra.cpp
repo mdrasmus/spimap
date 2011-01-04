@@ -106,6 +106,44 @@ double numTopologyHistories(Tree *tree)
 }
 
 
+// computes the entries of the doom probabilty table more slowly
+void calcDoomTableSlow(Tree *tree, float birthRate, float deathRate, 
+                       int maxdoom,
+                       double *doomtable)
+{
+    // get nodes in post order
+    ExtendArray<Node*> nodes(0, tree->nnodes);
+    getTreePostOrder(tree, &nodes);
+
+    
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = nodes[i];
+        
+        if (node->isLeaf()) {
+            doomtable[node->name] = -INFINITY;
+        } else {
+            double prod = 0.0;
+            
+            for (int j=0; j<node->nchildren; j++) {
+                Node *child = node->children[j];
+                double sum = 0.0;
+
+                for (int ndoom=0; ndoom<=maxdoom; ndoom++) {
+                    sum += (birthDeathCount(ndoom, child->dist, 
+                                            birthRate, deathRate) *
+                            ipow(exp(doomtable[child->name]), ndoom));
+                }
+
+                prod += log(sum);
+            }
+	    
+            doomtable[node->name] = prod;
+        }
+    }
+}
+
+
+
 // returns the number of labeled histories exist for the given tree topology
 // uses the subtree starting at root and going until leaves.
 // NOTE: assumes binary tree

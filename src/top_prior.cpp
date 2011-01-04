@@ -17,6 +17,8 @@ namespace spidir
 extern "C" {
 
 
+// TODO: make this into a class, so that allocations can happen once
+
 // returns the number of labeled histories exist for the given tree topology
 // uses the subtree starting at root and going until leaves.
 // NOTE: assumes binary tree
@@ -106,12 +108,19 @@ double fullTreeCorrection(Tree *tree, Tree *stree, int *recon)
 
 
 // computes the entries of the doom probabilty table
-void calcDoomTable(Tree *tree, float birthRate, float deathRate, int maxdoom,
+// uses analytic solution to infinite summation
+void calcDoomTable(Tree *tree, float birthRate, float deathRate, 
                    double *doomtable)
 {
+    const double l = birthRate;
+    const double u = deathRate;
+    const double r = l - u;
+    double ut, Pt;
+
+
     // get nodes in post order
     ExtendArray<Node*> nodes(0, tree->nnodes);
-    getTreePostOrder(tree, &nodes);
+    getTreePostOrder(tree, &nodes);    
 
     
     for (int i=0; i<tree->nnodes; i++) {
@@ -119,56 +128,24 @@ void calcDoomTable(Tree *tree, float birthRate, float deathRate, int maxdoom,
         
         if (node->isLeaf()) {
             doomtable[node->name] = -INFINITY;
-        } else {
-            double prod = 0.0;
-            
+        } else {          
+            double prod = 0.0;            
             for (int j=0; j<node->nchildren; j++) {
                 Node *child = node->children[j];
-                double sum = 0.0;
 
-                for (int ndoom=0; ndoom<=maxdoom; ndoom++) {
-                    sum += (birthDeathCount(ndoom, child->dist, 
-                                            birthRate, deathRate) *
-                            ipow(exp(doomtable[child->name]), ndoom));
+                // compute u_t and P(t(c))
+                const double t = child->dist;
+                const double dc = exp(doomtable[child->name]);
+                if (birthRate == deathRate) {
+                    ut = t / (1.0 / u + t);
+                    Pt = 1.0 / (1.0 + u * t);
+                } else {
+                    const double ert = exp(-r * t);
+                    ut = l * (1.0 - ert) / (l - u * ert);
+                    Pt = r / (l - u * ert);
                 }
 
-                prod += log(sum);
-            }
-	    
-            doomtable[node->name] = prod;
-        }
-    }
-}
-
-
-// computes the entries of the doom probabilty table
-void calcDoomTable2(Tree *tree, float birthRate, float deathRate, int maxdoom,
-                   double *doomtable)
-{
-    // get nodes in post order
-    ExtendArray<Node*> nodes(0, tree->nnodes);
-    getTreePostOrder(tree, &nodes);
-
-    
-    for (int i=0; i<tree->nnodes; i++) {
-        Node *node = nodes[i];
-        
-        if (node->isLeaf()) {
-            doomtable[node->name] = -INFINITY;
-        } else {
-            double prod = 0.0;
-            
-            for (int j=0; j<node->nchildren; j++) {
-                Node *child = node->children[j];
-                double sum = 0.0;
-
-                for (int ndoom=0; ndoom<=maxdoom; ndoom++) {
-                    sum += (birthDeathCount(ndoom, child->dist, 
-                                            birthRate, deathRate) *
-                            ipow(exp(doomtable[child->name]), ndoom));
-                }
-
-                prod += log(sum);
+                prod += log(1.0 + Pt * (dc - 1.0) / (1 - ut * dc));
             }
 	    
             doomtable[node->name] = prod;
@@ -202,9 +179,13 @@ void getSpecSubtree(Node *node, Node *snode, int *recon, int *events,
 // NOTE: assumes binary species tree
 double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon, 
                            int *events, float birthRate, float deathRate,
-                           double *doomtable, int maxdoom)
+                           double *doomtable)
 {
-
+    const double l = birthRate;
+    const double u = deathRate;
+    const double r = l - u;
+    const double lu = l / u;
+    double p0, p1;
     double prob = 0.0;
     ExtendArray<Node*> subleaves(0, tree->nnodes);    
 
@@ -225,10 +206,37 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                 subleaves.clear();
                 getSpecSubtree(node, schild, recon, events, subleaves);
 
-		if (subleaves.size() > 1)
-		    prob += log(subtreeCorrection(tree, node, subleaves));
+                // compute u_t and P(t(c))
+                const double t = schild->dist;
+                const double dc = exp(doomtable[schild->name]);
+                const int s = subleaves.size();
+
                 
-                // sum over ndoom
+                if (birthRate == deathRate) {
+                    const double lt = l * t;
+                    const double lt1 = 1.0 + lt;
+                    p0 = lt / lt1;
+                    p1 = 1.0 / lt1 / lt1;
+                } else {
+                    const double ert = exp(-r * t);
+                    const double luert = l - u*ert;
+                    p0 = (u - u * ert) / luert;
+                    p1 = r*r * ert / luert / luert;
+                }
+
+                if (s > 1) {
+                    prob += log(subtreeCorrection(tree, node, subleaves));
+                    prob += log(pow(lu * p0, s-1) * p1 / 
+                            (pow(1.0 - lu * p0 * dc, s+1)));
+		} else if (s == 1) {
+                    const double a = 1.0 - lu * p0 * dc;
+                    prob += log(p1 / a / a);
+                } else { // s == 0
+                    prob += log(p0 + p1 * dc / (1.0 - lu * p0 *dc));
+                }
+                
+                // sum over ndoom; non-analytic solution
+                /*
                 double sum = 0.0;
                 for (int ndoom=0;  ndoom<=maxdoom; ndoom++) {
                     int totleaves = subleaves.size() + ndoom;
@@ -238,8 +246,8 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                                         birthRate, deathRate) *
                         ipow(exp(doomtable[schild->name]), ndoom);
                 }
-
                 prob += log(sum);
+                */
             }
         }
     }
@@ -255,7 +263,7 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
 // NOTE: assumes binary species tree
 double birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon, 
                                int *events, float birthRate, float deathRate,
-                               double *doomtable, int maxdoom)
+                               double *doomtable)
 {
     ExtendArray<int> recon2(0, 2 * tree->nnodes);
     recon2.extend(recon, tree->nnodes);
@@ -267,42 +275,10 @@ double birthDeathTreePriorFull(Tree *tree, Tree *stree, int *recon,
     int addedNodes = addImpliedSpecNodes(tree, stree, recon2, events2);
     double p = birthDeathTreePrior(tree, stree, recon2, events2, 
                                    birthRate, deathRate,
-                                   doomtable,  maxdoom);
+                                   doomtable);
     removeImpliedSpecNodes(tree, addedNodes);
 
     return p;
-}
-
-
-//===========================================================================
-// get/set tree node timestamps
-
-void getNodeTimes_helper(Node *node, float time, float *times)
-{
-    const float t = time + node->dist;
-    times[node->name] = t;
-    
-    for (int i=0; i<node->nchildren; i++)
-        getNodeTimes_helper(node->children[i], t, times);
-}
-
-// gets the time from the root for each node
-void getNodeTimes(Tree *tree, float *times)
-{
-    getNodeTimes_helper(tree->root, 0.0, times);
-}
-
-void setNodeTimes(Tree *tree, float *times)
-{
-    for (int i=0; i<tree->nnodes; i++) {
-        Node *node = tree->nodes[i];
-        if (node->parent) {
-            node->dist = times[node->name] - times[node->parent->name];
-        } else {
-            // root branch
-            node->dist = times[node->name];
-        }
-    }
 }
 
 
