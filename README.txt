@@ -10,7 +10,7 @@ reconstructing gene trees.  It uses code from the SPIDIR phylogenetic library.
 
 SPIMAP citation: 
 Rasmussen, Kellis.  A Bayesian Approach for Fast and Accurate Gene-tree 
-Reconstruction. In prep 2010.
+Reconstruction. Mol Biol Evol. 2011 Jan;28(1):273-90. Epub 2010 Jul 25.
 
 SPIDIR citation:
 Rasmussen, Kellis. Accurate gene-tree reconstruction by learning

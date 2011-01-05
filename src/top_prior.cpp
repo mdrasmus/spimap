@@ -24,10 +24,7 @@ extern "C" {
 // NOTE: assumes binary tree
 double subtreeCorrection(Tree *tree, Node *root, ExtendArray<Node*> &leaves)
 {
-    double n = 1;
-
-    // multiple by 2^|I(T)|
-    n *= pow(2, leaves.size() - 1);
+    double n = 1.0;
     
     // get nodes in post order
     ExtendArray<Node*> queue(0, tree->nnodes);
@@ -64,8 +61,6 @@ double subtreeCorrection(Tree *tree, Node *root, ExtendArray<Node*> &leaves)
         const int left = ninternals[node->children[0]->name];
         const int x = ninternals[node->name] = 1 + right + left;
         n /= x;
-        //for (int j=2; j<=x; j++) // divide by x!
-        //    n /= j; 
 
         if (node == root)
             return n;
@@ -115,8 +110,8 @@ void calcDoomTable(Tree *tree, float birthRate, float deathRate,
     const double l = birthRate;
     const double u = deathRate;
     const double r = l - u;
-    double ut, Pt;
-
+    const double lu = l / u;
+    double p0, p1;
 
     // get nodes in post order
     ExtendArray<Node*> nodes(0, tree->nnodes);
@@ -136,16 +131,20 @@ void calcDoomTable(Tree *tree, float birthRate, float deathRate,
                 // compute u_t and P(t(c))
                 const double t = child->dist;
                 const double dc = exp(doomtable[child->name]);
+
                 if (birthRate == deathRate) {
-                    ut = t / (1.0 / u + t);
-                    Pt = 1.0 / (1.0 + u * t);
+                    const double lt = l * t;
+                    const double lt1 = 1.0 + lt;
+                    p0 = lt / lt1;
+                    p1 = 1.0 / lt1 / lt1;
                 } else {
                     const double ert = exp(-r * t);
-                    ut = l * (1.0 - ert) / (l - u * ert);
-                    Pt = r / (l - u * ert);
+                    const double luert = l - u*ert;
+                    p0 = (u - u * ert) / luert;
+                    p1 = r*r * ert / luert / luert;
                 }
 
-                prod += log(1.0 + Pt * (dc - 1.0) / (1 - ut * dc));
+                prod += log(p0 + dc * p1 / (1.0 - lu * p0 * dc));
             }
 	    
             doomtable[node->name] = prod;
@@ -161,13 +160,13 @@ void getSpecSubtree(Node *node, Node *snode, int *recon, int *events,
     for (int i=0; i<node->nchildren; i++) {
         Node *child = node->children[i];
 
-        // only consider nodes the reconcile to snode
+        // only consider nodes that reconcile to snode
         if (recon[child->name] == snode->name) {
             if (events[child->name] == EVENT_SPEC ||
                 events[child->name] == EVENT_GENE)
             {
                 nodes.append(child);
-            } else {
+            } else { // EVENT_DUP
                 getSpecSubtree(child, snode, recon, events, nodes);
             }
         }
@@ -210,7 +209,6 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                 const double t = schild->dist;
                 const double dc = exp(doomtable[schild->name]);
                 const int s = subleaves.size();
-
                 
                 if (birthRate == deathRate) {
                     const double lt = l * t;
@@ -249,6 +247,9 @@ double birthDeathTreePrior(Tree *tree, Tree *stree, int *recon,
                 prob += log(sum);
                 */
             }
+        } else if (events[node->name] == EVENT_DUP) {
+            // 2^{|dup(T, R, S)|}
+            prob += log(2.0);
         }
     }
 
