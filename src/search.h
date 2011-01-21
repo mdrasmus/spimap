@@ -3,6 +3,7 @@
 #define SPIDIR_SEARCH_H
 
 #include "spidir.h"
+#include "newick.h"
 #include <set>
 
 
@@ -228,7 +229,6 @@ protected:
     float dupprob;
     float lossprob;
     double *doomtable;
-    const static int maxdoom = 10;
     TreeSet uniques;
 
     ExtendArray<int> recon;
@@ -427,7 +427,7 @@ public:
 
     void operator()(Tree *tree)
     {
-        tree->writeNewick(output, NULL, 0, true);
+        writeNewickTree(output, tree, 0, true);
         fprintf(output, "\n");
     }
     

@@ -50,21 +50,30 @@ SCRIPTS =  bin/spimap-prep-rates \
            bin/spimap-train-rates \
            bin/spimap-prep-duploss \
            bin/spimap-train-duploss \
-           bin/gene-tree-sim
+           bin/spimap-sim
 BINARIES = $(SPIMAP_PROG) $(SCRIPTS)
 
 SPIDIR_SRC = \
-    src/spidir.cpp \
-    src/seq_likelihood.cpp \
-    src/hky.cpp \
-    src/common.cpp \
-    src/branch_prior.cpp \
     src/birthdeath.cpp \
+    src/birthdeath_ml.cpp \
+    src/branch_prior.cpp \
+    src/common.cpp \
+    src/gamma.cpp \
+    src/hky.cpp \
+    src/logging.cpp \
+    src/newick.cpp \
+    src/nj.cpp \
     src/parsimony.cpp \
+    src/parsing.cpp \
     src/phylogeny.cpp \
     src/search.cpp \
+    src/seq_likelihood.cpp \
     src/Sequences.cpp \
+    src/spidir.cpp \
+    src/top_prior.cpp \
+    src/top_prior_extra.cpp \
     src/Tree.cpp \
+    src/treevis.cpp \
     src/train.cpp
 
 
@@ -153,7 +162,7 @@ $(SPIDIR_OBJS): %.o: %.cpp
 
 
 clean:
-	rm -f $(PROG_OBJS) $(SPIMAP_PROG) $(LIBSPIDIR)
+	rm -f $(PROG_OBJS) $(SPIMAP_PROG) $(LIBSPIDIR) $(LIBSPIDIR_SHARED)
 
 clean-obj:
 	rm -f $(PROG_OBJS)

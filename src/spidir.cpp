@@ -1,5 +1,7 @@
 
+#include "common.h"
 #include "spidir.h"
+#include "logging.h"
 #include "phylogeny.h"
 
 namespace spidir {
@@ -56,7 +58,7 @@ void computeBgfreq(int nseqs, char **seqs, float *bgfreq)
 
     for (int i=0; i<nseqs; i++) {
         for (char *c=seqs[i]; *c; c++) {
-            int d = dna2int[*c];
+            int d = dna2int[(int) *c];
             if (d != -1) {
                 count++;
                 bgfreq[d] += 1.0;

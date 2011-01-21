@@ -4,12 +4,17 @@
 
 
 #include "common.h"
-#include "Matrix.h"
-#include "phylogeny.h"
 #include "branch_prior.h"
+#include "logging.h"
+#include "Matrix.h"
+#include "nj.h"
+#include "newick.h"
 #include "parsimony.h"
+#include "phylogeny.h"
 #include "search.h"
 #include "seq_likelihood.h"
+#include "top_prior.h"
+#include "treevis.h"
 
 
 namespace spidir {
@@ -603,7 +608,7 @@ DupLossProposer::DupLossProposer(TopologyProposer *proposer,
     oldtop(NULL)
 {
     doomtable = new double [stree->nnodes];
-    calcDoomTable(stree, dupprob, lossprob, maxdoom, doomtable);
+    calcDoomTable(stree, dupprob, lossprob, doomtable);
 
 }
 
@@ -634,10 +639,6 @@ void DupLossProposer::propose(Tree *tree)
     recon.setSize(tree->nnodes);
     events.setSize(tree->nnodes);
     
-    reconcile(tree, stree, gene2species, recon);
-    labelEvents(tree, recon, events);
-
-    
     ExtendArray<Tree*> trees(0, quickiter);
     ExtendArray<float> logls(0, quickiter);
     
@@ -645,7 +646,7 @@ void DupLossProposer::propose(Tree *tree)
     labelEvents(tree, recon, events);
     double bestlogp = birthDeathTreePriorFull(tree, stree, recon, events, 
                                               dupprob, lossprob,
-                                              doomtable, maxdoom);
+                                              doomtable);
 
 
     double sum = -INFINITY;
@@ -666,7 +667,7 @@ void DupLossProposer::propose(Tree *tree)
         labelEvents(tree, recon, events);
         double logp = birthDeathTreePriorFull(tree, stree, recon, events, 
                                               dupprob, lossprob,
-                                              doomtable, maxdoom);
+                                              doomtable);
         printLog(LOG_HIGH, "search: qiter %d %f %f\n", i, logp, bestlogp);
         
         Tree *tree2 = tree->copy();
@@ -813,10 +814,8 @@ SpidirPrior::SpidirPrior(
     approx(approx),
     useBranchPrior(useBranchPrior)
 {
-    const int maxdoom = 20;
-
     doomtable = new double [stree->nnodes];
-    calcDoomTable(stree, dupprob, lossprob, maxdoom, doomtable);
+    calcDoomTable(stree, dupprob, lossprob, doomtable);
 }
 
 
@@ -860,12 +859,10 @@ double SpidirPrior::topologyPrior(Tree *tree)
     
 
     //reconAssert(tree, stree, recon);
-
-    const int maxdoom = 20;
-
+    
     double logp = birthDeathTreePriorFull(tree, stree, recon, events, 
                                          dupprob, lossprob,
-                                         doomtable, maxdoom);
+                                         doomtable);
 
     top_runtime += timer.time();
 
@@ -971,7 +968,7 @@ void printLogTree(int loglevel, Tree *tree)
 {
     if (isLogLevel(loglevel)) {
         printLog(loglevel, "tree: ");
-        tree->writeNewick(getLogFile(), NULL, 0, true);
+        writeNewickTree(getLogFile(), tree, 0, true);
         printLog(loglevel, "\n\n");
     }
 }
@@ -1397,7 +1394,7 @@ void DupLossProposer::queueTrees(Tree *tree)
         labelEvents(tree, recon, events);
         float logl = birthDeathTreePriorFull(tree, stree, recon, events, 
                                              dupprob, lossprob,
-                                             doomtable, maxdoom);
+                                             doomtable);
         sum = logadd(sum, logl);
         
         // save tree and logl

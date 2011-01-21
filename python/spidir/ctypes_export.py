@@ -5,6 +5,8 @@
 
 """
 
+import sys
+import os
 from ctypes import *
 
 
@@ -107,4 +109,19 @@ class Exporter (object):
         # set documentation
         args_doc = prototypes[1::2]
         self._env[newname].__doc__ = "%s(%s)" % (funcname, ",".join(args_doc))
+
+
+def load_library(path, lib):
+    try:
+        # use library from source path
+        libdir = os.path.join(os.path.dirname(__file__), *path)
+        return cdll.LoadLibrary(os.path.join(libdir, lib))
+    except Exception, e:
+        # search for lib in library path
+        try:
+            return cdll.LoadLibrary(lib)
+        except Exception, e2:
+            print >>sys.stderr, e
+            print >>sys.stderr, e2
+            return None
 

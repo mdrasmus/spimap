@@ -2,6 +2,7 @@
 // spidir headers
 #include "spidir.h"
 #include "Sequences.h"
+#include "parsing.h"
 
 namespace spidir {
 
