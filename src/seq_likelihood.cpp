@@ -1,10 +1,10 @@
 /*=============================================================================
 
-    SPIDIR    
-    Maximum Likelihood Branch Length Estimation
-    
-    mldist.cpp
-    started: Sun Jul  1 13:11:02 EDT 2007
+  Matt Rasmussen
+  Copyright 2007-2011
+
+  Computing sequence likelihood
+  Maximum Likelihood Branch Length Estimation
 
 =============================================================================*/
 

@@ -1,7 +1,13 @@
 #!/usr/bin/env python
-# train the SPIDIR model
-# Sun Apr  5 17:47:47 EDT 2009
+#
+# SPIMAP
+# Matt Rasmussen 2010-2011
+#
+# Train the SPIMAP substitution rates model from a branch length matrix
+#
 
+#=============================================================================
+# imports
 import os, sys, optparse
 from os.path import realpath, dirname, join
 
@@ -14,6 +20,8 @@ except:
 from rasmus import treelib, util, stats
 
 
+#=============================================================================
+# options
 
 o = optparse.OptionParser()
 o.set_defaults()
@@ -22,6 +30,10 @@ o.add_option("-s", "--stree", dest="stree",
              metavar="<species tree newick file>")
 o.add_option("-l", "--lenmatrix", dest="lenmatrix",
              metavar="<branch length matrix output file>")
+o.add_option("-p", "--params", dest="params",
+             metavar="<output parameters file>")
+
+# misc
 o.add_option("-n", "--niter", dest="niter",
              metavar="<number of iterations>",
              type="int")
@@ -29,16 +41,17 @@ o.add_option("-r", "--nrates", dest="nrates",
              metavar="<number of rate categories>",
              type="int",
              default=20)
-o.add_option("-p", "--params", dest="params",
-             metavar="<output parameters file>")
 o.add_option("-f", "--filter", dest="filter",
              metavar="<treelen percentile>",
-             type="float", default=1.00)
+             type="float", default=1.00,
+             help="discard outlier trees with very large branch lengths")
 o.add_option("-m", "--mincount", dest="mincount",
              metavar="<minimum subst. count on a branch>",
-             type="int", default=0)
+             type="int", default=0,
+             help="discard branches that have too few substitutions")
 
 
+#=============================================================================
     
 def write_params_list(filename, species, params, logls):
     

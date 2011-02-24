@@ -1,6 +1,12 @@
 #!/usr/bin/env python
-# Make gene count matrix from a cluster/part file
+#
+# SPIMAP
+# Matt Rasmussen 2010-2011
+#
+# Train the SPIMAP dup/loss rates model from a gene count matrix
+#
 
+#=============================================================================
 # python libs
 import sys, optparse
 from math import log, exp
@@ -19,6 +25,8 @@ from rasmus import util, treelib, plotting
 # compbio libs
 from compbio import phylo
 
+#=============================================================================
+# options
 
 o = optparse.OptionParser()
 o.set_defaults()
@@ -48,6 +56,8 @@ o.add_option("-H", "--heatmap", dest="heatmap",
              default="duploss",
              metavar="<heatmap file>")
 
+
+#=============================================================================
 
 def error(message, exit=1):
     print >>sys.stderr, message

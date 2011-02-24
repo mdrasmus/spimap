@@ -1,10 +1,13 @@
 #!/usr/bin/env python
-"""
+#
+# SPIMAP
+# Matt Rasmussen 2010-2011
+#
+# Simulate a gene trees from the SPIMAP model (dup,loss,substitution rates)
+#
 
-    Simulate a birth death tree on a species tree
 
-"""
-
+#=============================================================================
 # python libs
 import sys, time, os, random, math, copy, optparse
 from os.path import realpath, dirname, join
@@ -25,6 +28,8 @@ from rasmus import stats
 from compbio import fasta, phylo, birthdeath
 
 
+#=============================================================================
+# options
 
 o = optparse.OptionParser()
 o.set_defaults()
@@ -106,7 +111,7 @@ if len(sys.argv) == 1:
 
 #=============================================================================
 
-def parseBgFreq(txt):
+def parse_bg_freq(txt):
     return map(float, txt.split(","))
 
 
@@ -283,7 +288,7 @@ def main(conf):
     
 
     if conf.bgfreq:
-        conf.bgfreq = parseBgFreq(conf.bgfreq)
+        conf.bgfreq = parse_bg_freq(conf.bgfreq)
     else:
         conf.bgfreq = [.25, .25, .25, .25]
 

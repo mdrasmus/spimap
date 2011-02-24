@@ -1,3 +1,13 @@
+/*=============================================================================
+
+  Matt Rasmussen
+  Copyright 2010-2011
+
+  Branch length prior of the SPIMAP model
+
+=============================================================================*/
+
+
 #ifndef SPIDIR_BRANCH_PRIOR_H
 #define SPIDIR_BRANCH_PRIOR_H
 

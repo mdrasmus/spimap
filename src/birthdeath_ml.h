@@ -1,3 +1,13 @@
+/*=============================================================================
+
+  Matt Rasmussen
+  Copyright 2010-2011
+
+  Estimating birth-death rates from gene counts (Hahn et al 2005)
+
+=============================================================================*/
+
+
 #ifndef SPIDIR_BIRTHDEATH_ML_H
 #define SPIDIR_BIRTHDEATH_ML_H
 

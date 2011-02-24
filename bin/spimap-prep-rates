@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 #
 # SPIMAP
-# Matt Rasmussen 2010
+# Matt Rasmussen 2010-2011
 #
 # Prepare a branch length matrix from a list of trees
 #
 
+#=============================================================================
+# python libs
 import sys, optparse
 from itertools import izip
 from os.path import realpath, dirname, join
@@ -20,7 +22,8 @@ except:
 from rasmus import util, treelib
 from compbio import phylo, fasta
 
-
+#=============================================================================
+# options
 o = optparse.OptionParser()
 o.set_defaults()
 
@@ -38,6 +41,8 @@ o.add_option("-l", "--lenmatrix", dest="lenmatrix",
 o.add_option("-r", "--reroot", dest="reroot",
              action="store_true")
 
+
+#=============================================================================
 
 class TreeException (Exception):
     pass

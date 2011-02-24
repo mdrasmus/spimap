@@ -1,15 +1,15 @@
-#ifndef SPIDIR_ROOTS_H
-#define SPIDIR_ROOTS_H
-
 /*=============================================================================
 
-    SPIDIR - SPecies Informed DIstanced-based Reconstruction
-    
-    Matt Rasmussen
-    Thu Nov 18 17:07:00 EST 2010
+  Matt Rasmussen
+  Copyright 2007-2011
 
+  Simple root finding methods
 
 =============================================================================*/
+
+
+#ifndef SPIDIR_ROOTS_H
+#define SPIDIR_ROOTS_H
 
 // headers c++ 
 #include <stdlib.h>

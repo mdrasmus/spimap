@@ -27,7 +27,7 @@ DEPENDENCIES
 SPIMAP has the following requirements:
 
 - GNU Scientific library (GSL) http://www.gnu.org/software/gsl/
-- Python http://python.org/
+- Python (2.5 or greater) http://python.org/
 
 
 =============================================================================

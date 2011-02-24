@@ -1,3 +1,13 @@
+/*=============================================================================
+
+  Matt Rasmussen
+  Copyright 2007-2011
+
+  Gene tree topology prior of the SPIMAP model
+
+=============================================================================*/
+
+
 #ifndef SPIDIR_TOP_PRIOR_H
 #define SPIDIR_TOP_PRIOR_H
 

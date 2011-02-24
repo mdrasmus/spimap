@@ -1,7 +1,7 @@
 #
-# SPIDIR (SPecies Informed DIstance-based Reconstruction) 
+# SPIMAP (SPecies Informed Max A Posteriori gene tree reconstruction)
 # Matt Rasmussen
-# Copyright 2007-2010
+# Copyright 2007-2011
 #
 # Makefile
 #
@@ -38,7 +38,7 @@ endif
 # SPIMAP program files
 
 # package
-PKG_VERSION=1.0
+PKG_VERSION=1.1
 PKG_NAME=spimap
 SPIMAP_PKG=dist/$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_DIR=dist/$(PKG_NAME)-$(PKG_VERSION)
@@ -57,6 +57,7 @@ SPIDIR_SRC = \
     src/birthdeath.cpp \
     src/birthdeath_ml.cpp \
     src/branch_prior.cpp \
+    src/branch_prior_train.cpp \
     src/common.cpp \
     src/gamma.cpp \
     src/hky.cpp \
@@ -73,8 +74,7 @@ SPIDIR_SRC = \
     src/top_prior.cpp \
     src/top_prior_extra.cpp \
     src/Tree.cpp \
-    src/treevis.cpp \
-    src/train.cpp
+    src/treevis.cpp
 
 
 SPIDIR_OBJS = $(SPIDIR_SRC:.cpp=.o)
