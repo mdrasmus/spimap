@@ -198,7 +198,7 @@ def sim_seq(tree, seqlen=999,
 
     # evolve sequences down tree
     def walk(node, seq):
-        if node.isLeaf():
+        if node.is_leaf():
             # save sequence
             seqs[node.name] = seq
 

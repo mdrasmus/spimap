@@ -82,6 +82,9 @@ def main(conf, args):
 
     removed = 0
     for row, size in zip(lens, gene_sizes):
+        if size < 0:
+            # gene_size is not available for this family, skip
+            continue
         for j in xrange(len(row)):
             c = row[j] * size
             if c < conf.mincount:

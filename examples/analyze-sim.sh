@@ -2,7 +2,7 @@
 #
 # This is an example of how to use SPIMAP to reconstruct gene families.
 #
-# In this example, we reconstruct the families of 16 fungi species
+# In this example, we reconstruct simulated data.
 #
 
 # Make sure tools are compiled and installed before running the commands in 
@@ -26,13 +26,71 @@ cd examples
 
 
 #=============================================================================
+# 0. Simulate new gene families with parameters similar to real fungi species
+
+# get help information
+../bin/spimap-sim -h
+
+#Usage: spimap-sim [options]
+#
+#Options:
+#  -h, --help            show this help message and exit
+#  -s <species tree newick file>, --stree=<species tree newick file>
+#  -p <params>, --params=<params>
+#  -g <gene rate>, --generate=<gene rate>
+#  --generatefunc=<gene rate function>
+#  -l <gene length in base pairs>, --genelen=<gene length in base pairs>
+#  --genelenprobs==<gene length distribution>
+#  -r <transition/transversion ratio>, --tsvratio=<transition/transversion ratio>
+#  -b <A>,<C>,<G>,<T>, --bgfreq=<A>,<C>,<G>,<T>
+#  -m <min # of genes per tree>, --minsize=<min # of genes per tree>
+#  -M <max # of genes per tree>, --maxsize=<max # of genes per tree>
+#  -D <duplication rate>, --duprate=<duplication rate>
+#  -L <loss rate>, --lossrate==<loss rate>
+#  -n <number of trees to produce>, --ntrees=<number of trees to produce>
+#  --start=<starting number>
+#  --nospecrates         do not use species rates
+#  -O <output directory>, --outtree=<output directory>
+#  -T <output tree extension>, --outtreeext=<output tree extension>
+#  -A <output align extension>, --outalignext=<output align extension>
+#  -F <output sequence FASTA extension>, --outseqext=<output sequence FASTA extension>
+#  -I <output information extenstion>, --outinfoext=<output information extenstion>
+#  --nodir               do not create sub-directories
+#  --resume              
+
+# simulate 100 fungi families with genes that are 1000bp in length
+../bin/spimap-sim \
+    -s config/fungi.stree \
+    -p config/sim/fungi.params \
+    -l 1000 \
+    -m 4 \
+    -D 0.000564 \
+    -L 0.003056 \
+    -n 100 \
+    -O fungi-sim
+
+
+# simulate 100 one-to-one fungi families with genes that are 1000bp in length
+../bin/spimap-sim \
+    -s config/fungi.stree \
+    -p config/sim/fungi.params \
+    -l 1000 \
+    -D 0 \
+    -L 0 \
+    -n 100 \
+    -O fungi-sim-one2ones
+
+
+
+
+#=============================================================================
 # 1. Learn substitution rates from training set of 1-to-1 orthologous gene 
-# families (fungi-one2ones/*/*.nt.tree)
+# families (fungi-sim-one2ones/*/*.nt.tree)
 # These trees should all contain exactly one gene per species and be 
 # congruent to the species tree "config/fungi.stree".
 
 # 1.a. Extract all branch lengths from the newick trees 
-# "fungi-one2ones/*/*.nt.tree" into a branch length matrix file 
+# "fungi-sim-one2ones/*/*.tree" into a branch length matrix file 
 # "train/fungi.lens" using the script "spimap-prep-rates"
 
 # get help information
@@ -52,17 +110,16 @@ cd examples
 
 # extract branch lengths
 mkdir -p train
-find fungi-one2ones -name '*.nt.tree' | \
+find fungi-sim-one2ones -name '?.tree' -or -name '??.tree' | \
 ../bin/spimap-prep-rates \
-    -T .nt.tree \
-    -A .nt.align \
+    -T .tree \
     -s config/fungi.stree \
     -S config/fungi.smap \
-    -l train/fungi.lens
+    -l train/fungi-sim.lens
 
 
-# 1.b. Use branch length matrix file "train/fungi.lens" to learn substitution 
-# rate parameters "train/fungi.param"
+# 1.b. Use branch length matrix file "train/fungi-sim.lens" to learn 
+# substitution rate parameters "train/fungi-sim.param"
 
 # get help information
 ../bin/spimap-train-rates -h
@@ -83,8 +140,8 @@ find fungi-one2ones -name '*.nt.tree' | \
 # train rates parameters
 ../bin/spimap-train-rates \
     -s config/fungi.stree \
-    -l train/fungi.lens \
-    -p train/fungi.params
+    -l train/fungi-sim.lens \
+    -p train/fungi-sim.params
 
 
 
@@ -93,7 +150,7 @@ find fungi-one2ones -name '*.nt.tree' | \
 # clusters.
 
 # 2.a. Use the script "spimap-prep-duploss" to extract genes per species counts
-# from FASTA alignments "fungi-fams/*/*.nt.align"
+# from FASTA alignments "fungi-sim/*/*.align"
 
 # get help information
 ../bin/spimap-prep-duploss -h
@@ -108,14 +165,14 @@ find fungi-one2ones -name '*.nt.tree' | \
 #  -p <gene partition file>, --part=<gene partition file>
 
 # get gene counts
-find fungi-fams/*/*.nt.align | ../bin/spimap-prep-duploss \
+find fungi-sim/*/*.align | ../bin/spimap-prep-duploss \
     -s config/fungi.stree \
     -S config/fungi.smap \
-    -c train/fungi.counts
+    -c train/fungi-sim.counts
     
 
 # 2.b. Use the script "spimap-train-duploss" to learn duplication and loss
-# rates from gene counts "train/fungi.counts".
+# rates from gene counts "train/fungi-sim.counts".
 
 # get help information
 ../bin/spimap-train-duploss -h
@@ -139,7 +196,7 @@ find fungi-fams/*/*.nt.align | ../bin/spimap-prep-duploss \
 ../bin/spimap-train-duploss \
     -s config/fungi.stree \
     -S config/fungi.smap \
-    -c train/fungi.counts > train/fungi.duploss
+    -c train/fungi-sim.counts > train/fungi-sim.duploss
 
 
 #=============================================================================
@@ -183,15 +240,15 @@ spimap -h
 #    verbosity level 0=quiet, 1=low, 2=medium, 3=high
 
 
-# run SPIMAP for family 100
+# run SPIMAP for family 0
 spimap \
-    -a fungi-fams/100/100.nt.align \
+    -a fungi-sim/0/0.align \
     -s config/fungi.stree \
     -S config/fungi.smap \
-    -p train/fungi.params \
-    -o fungi-fams/100/100 \
-    -D 0.000564 \
-    -L 0.003056 \
+    -p train/fungi-sim.params \
+    -o fungi-sim/0/0.spimap \
+    -D 0.000597 \
+    -L 0.003022 \
     -i 100 \
     --quickiter 1000 \
     -V 1 --log -
@@ -199,21 +256,43 @@ spimap \
 
 
 # example of how to run SPIMAP for many families
-ls fungi-fams | (while read FAMID; do
-  NAME=fungi-fams/$FAMID/$FAMID
+/bin/ls fungi-sim | (while read FAMID; do
+  NAME=fungi-sim/$FAMID/$FAMID
   spimap \
-    -a $NAME.nt.align \
+    -a $NAME.align \
     -s config/fungi.stree \
     -S config/fungi.smap \
-    -p train/fungi.params \
-    -o $NAME \
-    -D 0.000564 \
-    -L 0.003056 \
-    -i 100 \
+    -p train/fungi-sim.params \
+    -o $NAME.spimap \
+    -D 0.000597 \
+    -L 0.003022 \
+    -i 1000 \
     --quickiter 1000 \
     -V 1
 done)
 
+
+# compute percent correct topologies
+find fungi-sim -name '*.spimap.tree' | python -c '
+import spidir
+from rasmus import treelib
+from compbio import phylo
+import sys
+
+ncorrect = 0
+total = 0
+for line in sys.stdin:
+  treefile = line.rstrip()
+  spimap_tree = treelib.read_tree(treefile)
+  sim_tree = treelib.read_tree(treefile.replace(".spimap", ""))
+
+  ncorrect += int(phylo.hash_tree(spimap_tree) == phylo.hash_tree(sim_tree))
+  total += 1
+
+print "total", total
+print "correct", ncorrect
+print "percent", ncorrect / float(total)
+'
 
 
 #=============================================================================

@@ -28,7 +28,6 @@ o.add_option("-T", "--tree", dest="treeext",
              default=".tree",
              metavar="<tree file extension>")
 o.add_option("-A", "--align", dest="alignext",
-             default=".mfa",
              metavar="<alignment file extension>")
 o.add_option("-s", "--stree", dest="stree",
              metavar="<species tree newick file>")
@@ -51,15 +50,27 @@ def error(message, exit=1):
 
 def get_filenames(conf, filename):
 
-    if filename.endswith(conf.treeext):
-        treefile = filename
-        alignfile = util.replace_ext(filename, conf.treeext, conf.alignext)
-    elif filename.endswith(conf.alignext):
-        treefile = util.replace_ext(filename, conf.alignext, conf.treeext)
-        alignfile = filename
+    if conf.alignext is not None:
+        if filename.endswith(conf.treeext):
+            treefile = filename
+            alignfile = util.replace_ext(filename, conf.treeext, conf.alignext)
+        elif filename.endswith(conf.alignext):
+            treefile = util.replace_ext(filename, conf.alignext, conf.treeext)
+            alignfile = filename
+        else:
+            raise Exception("unknown file type '%s'" % filename)
+
+        return treefile, alignfile
     else:
-        raise Exception("unknown file type '%s'" % filename)
-    return treefile, alignfile
+        if filename.endswith(conf.treeext):
+            treefile = filename
+            alignfile = None
+        else:
+            raise Exception("unknown file type '%s'" % filename)
+        
+        return treefile, alignfile
+        
+
 
 
 def get_align_length(alignfile):
@@ -170,7 +181,10 @@ def main(conf, args):
     try:
         for filename in sys.stdin:        
             treefile, alignfile = get_filenames(conf, filename.rstrip("\n"))
-            alignlen = alignlens = get_align_length(alignfile)
+            if alignfile is not None:
+                alignlen = get_align_length(alignfile)
+            else:
+                alignlen = -1
             tree = treelib.read_tree(treefile)
 
             if conf.reroot:            
