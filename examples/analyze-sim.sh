@@ -301,6 +301,6 @@ print "percent", ncorrect / float(total)
 # Remove all outputs from example analysis
 #
 
-rm -f train/fungi*
-find fungi-fams/ | egrep '\.tree$|\.log$' | xargs rm
+rm -f train/fungi-sim
+find fungi-sim | egrep '\.spimap\.tree$|\.log$' | xargs rm
 
