@@ -21,7 +21,6 @@
 #include "Matrix.h"
 #include "parsimony.h"
 #include "seq_likelihood.h"
-#include "spidir.h"
 #include "Tree.h"
 
 

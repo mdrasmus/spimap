@@ -1,46 +1,67 @@
 # DO NOT DELETE
 
-src/Sequences.o: src/spidir.h src/Sequences.h src/common.h src/ExtendArray.h
-src/Tree.o: src/Tree.h src/common.h src/ExtendArray.h src/Matrix.h
-src/birthdeath.o: src/Matrix.h src/Tree.h src/common.h src/ExtendArray.h
-src/birthdeath.o: src/phylogeny.h src/HashTable.h src/birthdeath.h
-src/birthdeath.o: src/spidir.h
-src/branch_prior.o: src/common.h src/ExtendArray.h src/branch_prior.h
-src/branch_prior.o: src/Tree.h src/spidir.h src/birthdeath.h src/phylogeny.h
-src/branch_prior.o: src/HashTable.h src/seq_likelihood.h
-src/common.o: src/common.h src/ExtendArray.h
-src/hky.o: src/hky.h src/spidir.h src/common.h src/ExtendArray.h
-src/matlab_interface.o: src/matlab_interface.h
-src/maxml.o: src/common.h src/ExtendArray.h src/phylogeny.h src/Tree.h
-src/maxml.o: src/HashTable.h src/parsimony.h src/search.h src/spidir.h
-src/maxml.o: src/Matrix.h src/ConfigParam.h src/Sequences.h
-src/parsimony.o: src/common.h src/ExtendArray.h src/spidir.h src/parsimony.h
-src/parsimony.o: src/Tree.h
-src/phylogeny.o: src/phylogeny.h src/Tree.h src/common.h src/ExtendArray.h
-src/phylogeny.o: src/HashTable.h src/Matrix.h
-src/search.o: src/common.h src/ExtendArray.h src/Matrix.h src/phylogeny.h
-src/search.o: src/Tree.h src/HashTable.h src/branch_prior.h src/spidir.h
-src/search.o: src/birthdeath.h src/parsimony.h src/search.h
-src/search.o: src/seq_likelihood.h
-src/seq_likelihood.o: src/common.h src/ExtendArray.h src/Matrix.h
-src/seq_likelihood.o: src/seq_likelihood.h src/Tree.h src/parsimony.h
-src/seq_likelihood.o: src/spidir.h src/hky.h
-src/spidir.o: src/spidir.h src/phylogeny.h src/Tree.h src/common.h
-src/spidir.o: src/ExtendArray.h src/HashTable.h
-src/spimap.o: src/common.h src/ExtendArray.h src/phylogeny.h src/Tree.h
-src/spimap.o: src/HashTable.h src/parsimony.h src/search.h src/spidir.h
-src/spimap.o: src/seq_likelihood.h src/Matrix.h src/ConfigParam.h
-src/spimap.o: src/Sequences.h
-src/train.o: src/common.h src/ExtendArray.h src/Matrix.h src/seq_likelihood.h
-src/train.o: src/Tree.h src/parsimony.h src/spidir.h
+src/Sequences.o: src/seq.h src/Sequences.h src/common.h src/ExtendArray.h
+src/Sequences.o: src/parsing.h
+src/Tree.o: src/Tree.h src/ExtendArray.h src/common.h
+src/birthdeath.o: src/common.h src/birthdeath.h
+src/birthdeath_ml.o: src/Matrix.h src/Tree.h src/ExtendArray.h
+src/birthdeath_ml.o: src/phylogeny.h src/HashTable.h src/birthdeath.h
+src/branch_prior.o: src/common.h src/ExtendArray.h src/birthdeath.h
+src/branch_prior.o: src/branch_prior.h src/Tree.h src/model_params.h
+src/branch_prior.o: src/gamma.h src/logging.h src/phylogeny.h src/HashTable.h
+src/branch_prior.o: src/seq_likelihood.h
+src/branch_prior_train.o: src/common.h src/gamma.h src/Matrix.h
+src/branch_prior_train.o: src/parsimony.h src/Tree.h src/ExtendArray.h
+src/branch_prior_train.o: src/seq_likelihood.h
+src/common.o: src/common.h
+src/distmatrix.o: src/distmatrix.h
+src/gamma.o: src/common.h src/gamma.h
+src/hky.o: src/hky.h src/common.h src/seq.h
+src/logging.o: src/logging.h
+src/maxml.o: src/common.h src/phylogeny.h src/Tree.h src/ExtendArray.h
+src/maxml.o: src/HashTable.h src/parsimony.h src/search.h src/model_params.h
+src/maxml.o: src/newick.h src/Matrix.h src/ConfigParam.h src/Sequences.h
+src/model_params.o: src/common.h src/model_params.h src/logging.h
+src/model_params.o: src/phylogeny.h src/Tree.h src/ExtendArray.h
+src/model_params.o: src/HashTable.h
+src/newick.o: src/Tree.h src/ExtendArray.h src/newick.h src/parsing.h
+src/newick.o: src/logging.h
+src/nj.o: src/common.h src/Matrix.h
+src/parsimony.o: src/common.h src/seq.h src/parsimony.h src/Tree.h
+src/parsimony.o: src/ExtendArray.h
+src/parsing.o: src/parsing.h src/ExtendArray.h
+src/phylogeny.o: src/phylogeny.h src/Tree.h src/ExtendArray.h src/HashTable.h
+src/phylogeny.o: src/parsing.h
+src/search.o: src/common.h src/branch_prior.h src/Tree.h src/ExtendArray.h
+src/search.o: src/model_params.h src/birthdeath.h src/distmatrix.h
+src/search.o: src/logging.h src/Matrix.h src/nj.h src/newick.h
+src/search.o: src/parsimony.h src/phylogeny.h src/HashTable.h src/search.h
+src/search.o: src/seq_likelihood.h src/top_prior.h src/treevis.h
+src/seq.o: src/seq.h
+src/seq_likelihood.o: src/common.h src/hky.h src/logging.h src/Matrix.h
+src/seq_likelihood.o: src/parsimony.h src/Tree.h src/ExtendArray.h
+src/seq_likelihood.o: src/roots.h src/seq.h src/seq_likelihood.h
+src/spimap.o: src/common.h src/ConfigParam.h src/logging.h src/Matrix.h
+src/spimap.o: src/model_params.h src/newick.h src/Tree.h src/ExtendArray.h
+src/spimap.o: src/parsimony.h src/parsing.h src/phylogeny.h src/HashTable.h
+src/spimap.o: src/search.h src/seq.h src/seq_likelihood.h src/Sequences.h
+src/spimap.o: src/treevis.h
+src/top_prior.o: src/birthdeath.h src/common.h src/phylogeny.h src/Tree.h
+src/top_prior.o: src/ExtendArray.h src/HashTable.h
+src/top_prior_extra.o: src/birthdeath.h src/common.h src/phylogeny.h
+src/top_prior_extra.o: src/Tree.h src/ExtendArray.h src/HashTable.h
+src/top_prior_extra.o: src/top_prior.h
+src/treevis.o: src/Tree.h src/ExtendArray.h src/common.h src/Matrix.h
 src/Sequences.o: src/common.h src/ExtendArray.h
-src/Tree.o: src/common.h src/ExtendArray.h
-src/birthdeath.o: src/Tree.h src/common.h src/ExtendArray.h src/spidir.h
-src/branch_prior.o: src/Tree.h src/common.h src/ExtendArray.h src/spidir.h
+src/Tree.o: src/ExtendArray.h
+src/birthdeath_ml.o: src/Tree.h src/ExtendArray.h
+src/branch_prior.o: src/Tree.h src/ExtendArray.h src/model_params.h
 src/branch_prior.o: src/birthdeath.h
-src/common.o: src/ExtendArray.h
-src/hky.o: src/spidir.h
-src/parsimony.o: src/Tree.h src/common.h src/ExtendArray.h
-src/phylogeny.o: src/Tree.h src/common.h src/ExtendArray.h src/HashTable.h
-src/search.o: src/spidir.h
-src/seq_likelihood.o: src/Tree.h src/common.h src/ExtendArray.h
+src/newick.o: src/Tree.h src/ExtendArray.h
+src/parsimony.o: src/Tree.h src/ExtendArray.h
+src/parsing.o: src/ExtendArray.h
+src/phylogeny.o: src/Tree.h src/ExtendArray.h src/HashTable.h
+src/search.o: src/model_params.h src/newick.h src/Tree.h src/ExtendArray.h
+src/seq_likelihood.o: src/Tree.h src/ExtendArray.h
+src/top_prior.o: src/Tree.h src/ExtendArray.h
+src/top_prior_extra.o: src/Tree.h src/ExtendArray.h

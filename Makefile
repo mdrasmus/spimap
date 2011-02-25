@@ -59,18 +59,20 @@ SPIDIR_SRC = \
     src/branch_prior.cpp \
     src/branch_prior_train.cpp \
     src/common.cpp \
+    src/distmatrix.cpp \
     src/gamma.cpp \
     src/hky.cpp \
     src/logging.cpp \
+    src/model_params.cpp \
     src/newick.cpp \
     src/nj.cpp \
     src/parsimony.cpp \
     src/parsing.cpp \
     src/phylogeny.cpp \
     src/search.cpp \
+    src/seq.cpp \
     src/seq_likelihood.cpp \
     src/Sequences.cpp \
-    src/spidir.cpp \
     src/top_prior.cpp \
     src/top_prior_extra.cpp \
     src/Tree.cpp \

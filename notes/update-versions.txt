@@ -1,0 +1,4 @@
+To update the version number edit:
+src/spimap.cpp
+Makefile
+

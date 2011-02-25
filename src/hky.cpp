@@ -10,6 +10,7 @@
 
 #include "hky.h"
 #include "common.h"
+#include "seq.h"
 
 namespace spidir {
 

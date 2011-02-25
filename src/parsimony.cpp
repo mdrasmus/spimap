@@ -16,7 +16,7 @@
 
 // spidir headers
 #include "common.h"
-#include "spidir.h"
+#include "seq.h"
 #include "parsimony.h"
 #include "Tree.h"
 

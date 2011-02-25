@@ -11,7 +11,6 @@
 #ifndef SPIDIR_HKY_H
 #define SPIDIR_HKY_H
 
-#include "spidir.h"
 #include "assert.h"
 #include "math.h"
 

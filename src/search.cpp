@@ -10,6 +10,7 @@
 
 #include "common.h"
 #include "branch_prior.h"
+#include "distmatrix.h"
 #include "logging.h"
 #include "Matrix.h"
 #include "nj.h"

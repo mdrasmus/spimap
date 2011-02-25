@@ -3,7 +3,7 @@
   Matt Rasmussen
   Copyright 2010-2011
 
-  Estimating birth-death rates from gene counts (Hahn et al 2005)
+  Estimating birth-death rates from gene counts (implementing Hahn et al 2005)
 
 =============================================================================*/
 
@@ -12,7 +12,6 @@
 #define SPIDIR_BIRTHDEATH_ML_H
 
 #include "Tree.h"
-#include "spidir.h"
 
 namespace spidir {
 

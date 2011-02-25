@@ -8,7 +8,7 @@
 =============================================================================*/
 
 // spidir headers
-#include "spidir.h"
+#include "seq.h"
 #include "Sequences.h"
 #include "parsing.h"
 
@@ -136,6 +136,8 @@ void resampleAlign(Sequences *aln, Sequences *aln2)
         }
     }
 }
+
+
 
 
 } // namespace spidir

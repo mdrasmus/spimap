@@ -23,14 +23,15 @@
 #include "ConfigParam.h"
 #include "logging.h"
 #include "Matrix.h"
+#include "model_params.h"
 #include "newick.h"
 #include "parsimony.h"
 #include "parsing.h"
 #include "phylogeny.h"
 #include "search.h"
+#include "seq.h"
 #include "seq_likelihood.h"
 #include "Sequences.h"
-#include "spidir.h"
 #include "treevis.h"
 
 

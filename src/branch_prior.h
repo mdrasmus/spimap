@@ -12,7 +12,7 @@
 #define SPIDIR_BRANCH_PRIOR_H
 
 #include "Tree.h"
-#include "spidir.h"
+#include "model_params.h"
 #include "birthdeath.h"
 
 namespace spidir {

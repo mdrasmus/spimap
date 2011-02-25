@@ -12,7 +12,6 @@
 #define SPIDIR_TOP_PRIOR_H
 
 #include "Tree.h"
-#include "spidir.h"
 
 namespace spidir {
 

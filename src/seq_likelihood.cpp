@@ -23,8 +23,8 @@
 #include "Matrix.h"
 #include "parsimony.h"
 #include "roots.h"
+#include "seq.h"
 #include "seq_likelihood.h"
-#include "spidir.h"
 #include "Tree.h"
 
 

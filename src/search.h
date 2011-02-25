@@ -11,7 +11,7 @@
 #ifndef SPIDIR_SEARCH_H
 #define SPIDIR_SEARCH_H
 
-#include "spidir.h"
+#include "model_params.h"
 #include "newick.h"
 #include <set>
 
