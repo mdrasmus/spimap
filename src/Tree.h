@@ -10,6 +10,7 @@
 #ifndef SPIDIR_TREE_H
 #define SPIDIR_TREE_H
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string>
 
