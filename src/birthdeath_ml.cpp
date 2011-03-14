@@ -220,7 +220,7 @@ public:
             dpenalty = -death;
             death = 0.0000002;
         }
-
+        
         BirthDeathCountsML *p = (BirthDeathCountsML*) params;
 
         double prob = -birthDeathForestCounts(p->tree, p->nspecies, p->nfams,

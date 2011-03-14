@@ -95,6 +95,43 @@ class BirthDeath (unittest.TestCase):
                 fequal(p1, p2, .01)
 
 
+    def test_birthDeathCounts(self):
+        """birthDeathCounts"""
+        l = 3.0
+        u = .5
+        t = 1.0
+
+        print spidir.birthDeathCount(1, t, l, u)
+        
+        for s in range(1, 10):
+            for e in range(0, 10):
+                p1 = spidir.birthDeathCounts(s, e, t, l, u)
+                p2 = birthdeath.prob_birth_death(s, e, t, l, u)
+                print s, e, p1, p2
+                fequal(p1, p2, .01)
+
+
+    def test_birthDeathCounts2(self):
+        """birthDeathCounts"""
+        l = 3.0
+        u = .5
+        t = 1.0
+        
+        for s in range(1, 40):
+            for e in range(0, 40):
+                p1 = spidir.birthDeathCounts(s, e, t, l, u)
+                p2 = birthdeath.prob_birth_death(s, e, t, l, u)
+                print s, e, p1, p2
+                fequal(p1, p2, .01)
+
+
+    def test_birthDeathCounts3(self):
+        """birthDeathCounts"""
+        
+        print spidir.birthDeathCounts(30, 33, .05, 173.2958, 171.58002)        
+        print spidir.birthDeathCounts(26, 27, 0.068190, 173.2958, 171.58002)
+
+
 
     def test_numHistories(self):
         """numHistories"""
