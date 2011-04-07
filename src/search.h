@@ -330,7 +330,7 @@ public:
 
 
 
-
+/*
 class BranchLengthFitter
 {
 public:
@@ -359,13 +359,94 @@ public:
     double minlen;
     double maxlen;
 };
-
+*/
 
 
 //=============================================================================
 
 
 
+class SampleFunc
+{
+public:
+    SampleFunc(FILE *output) :
+        output(output)
+    {
+    }
+    
+    virtual ~SampleFunc()
+    {
+        fclose(output);
+    }
+
+    void operator()(Tree *tree)
+    {
+        writeNewickTree(output, tree, 0, true);
+        fprintf(output, "\n");
+    }
+    
+protected:
+    FILE *output;
+};
+
+
+class TreeSearch
+{
+public:
+
+    TreeSearch() :
+        proposal_runtime(0.0)
+    {}
+
+    virtual ~TreeSearch()
+    {}
+
+    virtual Tree *search(Tree *initTree, 
+			 string *genes, 
+			 int nseqs, int seqlen, char **seqs)
+    { return NULL; }
+
+    double proposal_runtime;
+};
+
+
+class TreeSearchClimb : public TreeSearch
+{
+public:
+
+    TreeSearchClimb(Model *model, TopologyProposer *proposer);
+    virtual ~TreeSearchClimb();
+
+    virtual Tree *search(Tree *initTree, 
+			 string *genes, 
+			 int nseqs, int seqlen, char **seqs);
+
+protected:
+    Model *model;
+    TopologyProposer *proposer;
+
+};
+
+
+
+
+Tree *getInitialTree(string *genes, int nseqs, int seqlen, char **seqs,
+                     SpeciesTree *stree, int *gene2species);
+Tree *getInitialTree(string *genes, int nseqs, int seqlen, char **seqs);
+
+
+
+} // namespace spidir
+
+
+
+
+
+
+//=============================================================================
+// OLD CODE
+
+/*
 class Prior
 {
 public:
@@ -419,91 +500,22 @@ protected:
     bool useBranchPrior;
     double *doomtable;
 };
+*/
 
 
-class SampleFunc
-{
-public:
-    SampleFunc(FILE *output) :
-        output(output)
-    {
-    }
-    
-    virtual ~SampleFunc()
-    {
-        fclose(output);
-    }
-
-    void operator()(Tree *tree)
-    {
-        writeNewickTree(output, tree, 0, true);
-        fprintf(output, "\n");
-    }
-    
-protected:
-    FILE *output;
-};
-
-
-class TreeSearch
-{
-public:
-
-    TreeSearch() :
-        proposal_runtime(0.0)
-    {}
-
-    virtual ~TreeSearch()
-    {}
-
-    virtual Tree *search(Tree *initTree, 
-			 string *genes, 
-			 int nseqs, int seqlen, char **seqs)
-    { return NULL; }
-
-    double proposal_runtime;
-};
-
-
-class TreeSearchClimb : public TreeSearch
-{
-public:
-
-    TreeSearchClimb(Prior *prior,
-		    TopologyProposer *proposer,
-		    BranchLengthFitter *fitter);
-
-    virtual ~TreeSearchClimb();
-
-    virtual Tree *search(Tree *initTree, 
-			 string *genes, 
-			 int nseqs, int seqlen, char **seqs);
-
-protected:
-    Prior *prior;
-    TopologyProposer *proposer;
-    BranchLengthFitter *fitter;
-
-};
-
-
-
-
-Tree *getInitialTree(string *genes, int nseqs, int seqlen, char **seqs,
-                     SpeciesTree *stree, int *gene2species);
-Tree *getInitialTree(string *genes, int nseqs, int seqlen, char **seqs);
-
-
-
-
+/*
 Tree *searchMCMC(Tree *initTree, 
                  string *genes, int nseqs, int seqlen, char **seqs,
                  SampleFunc *samples,
                  Prior *lkfunc,
                  TopologyProposer *proposer,
                  BranchLengthFitter *fitter);
+*/
 
 
-} // namespace spidir
 
 #endif // SPIDIR_SEARCH_H
+
+
+
+

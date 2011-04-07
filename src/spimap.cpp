@@ -14,15 +14,16 @@
 #include <time.h>
 #include <string>
 #include <vector>
+#include <memory>
 
-// third party
+// third party headers
 #include <gsl/gsl_errno.h>
 
 // spidir headers
 #include "common.h"
 #include "ConfigParam.h"
 #include "logging.h"
-#include "Matrix.h"
+#include "model.h"
 #include "model_params.h"
 #include "newick.h"
 #include "parsimony.h"
@@ -58,7 +59,7 @@ using namespace spidir;
 const int DEBUG_OPT = 1;
 
 
-
+// parsing command-line options
 class SpidirConfig
 {
 public:
@@ -378,15 +379,15 @@ int main(int argc, char **argv)
     stree.setDepths();
     
     
-    // read sequences
-    Sequences *aln;
-    
-    if ((aln = readAlignFasta(c.alignfile.c_str())) == NULL ||
-        !checkSequences(aln->nseqs, aln->seqlen, aln->seqs)) {
+    // read sequences 
+    Sequences *aln = readAlignFasta(c.alignfile.c_str());
+    auto_ptr<Sequences> aln_ptr(aln);
+    if (aln == NULL || !checkSequences(aln->nseqs, aln->seqlen, aln->seqs)) {
         printError("bad alignment file");
         return 1;
     }
     
+    // check alignment
     if (aln->nseqs < 3) {
         printError("too few sequences");
         return 1;
@@ -394,13 +395,14 @@ int main(int argc, char **argv)
     
 
     // read SPIDIR parameters
-    SpidirParams *params;
-    if ((params = readSpidirParams(c.paramsfile.c_str())) == NULL)
-    {
+    SpidirParams *params = readSpidirParams(c.paramsfile.c_str());
+    auto_ptr<SpidirParams> params_ptr(params);
+    if (params == NULL) {
         printError("error reading parameters file '%s'", c.paramsfile.c_str());
         return 1;
     }
     
+    // check params
     if (!params->order(&stree)) {
         printError("parameters do not correspond to the given species tree");
         return 1;
@@ -428,54 +430,37 @@ int main(int argc, char **argv)
         }
     }
     
-    
-    int nnodes = aln->nseqs * 2 - 1;
 
     // read gene2species map
     Gene2species mapping;
     if (!mapping.read(c.smapfile.c_str())) {
-        printError("error reading gene2species mapping '%s'", c.smapfile.c_str());
+        printError("error reading gene2species mapping '%s'", 
+                   c.smapfile.c_str());
         return 1;
     }
 
-    // produce mapping array
+    // get gene names
     ExtendArray<string> genes(0, aln->nseqs);
     genes.extend(aln->names, aln->nseqs);    
     
+    // get species names
     ExtendArray<string> species(stree.nnodes);
     stree.getLeafNames(species);
     
+    // make gene to species mapping
+    int nnodes = aln->nseqs * 2 - 1;
     ExtendArray<int> gene2species(nnodes);
     mapping.getMap(genes, aln->nseqs, species, stree.nnodes, gene2species);
     
+    // get initial gene tree
     Tree *tree = getInitialTree(genes, aln->nseqs, aln->seqlen, aln->seqs,
                                 &stree, gene2species);
+    auto_ptr<Tree> tree_ptr(tree);
 
-    
-    //=====================================================
-    // init prior function
-    Prior *prior;    
-
-    if (c.prioropt == "none")
-        prior = new Prior();
-    
-    else if (c.prioropt == "spimap")
-        prior = new SpidirPrior(nnodes, &stree, params, 
-				gene2species,
-				c.pretime, 
-				c.duprate, 
-				c.lossrate,
-				c.priorSamples,
-				!c.priorExact,
-				true);
-    else {
-        printError("unknown prior '%s'", c.prioropt.c_str());
-        return 1;
-    }
-    
+       
 
     //========================================================
-    // branch lengths
+    // determine kappa
 
     if (c.kappa < 0) {
         const float minkappa = .4;
@@ -491,12 +476,27 @@ int main(int argc, char **argv)
         printLog(LOG_LOW, "optimum kappa = %f\n", c.kappa);
     }
     
-    // determine branch length algorithm
-    BranchLengthFitter *fitter = NULL;
-    fitter = new HkyFitter(aln->nseqs, aln->seqlen, aln->seqs,  
-			   bgfreq, c.kappa, c.lkiter, 
-                           c.minlen, c.maxlen);
+
+    //=====================================================
+    // init model
+    Model *model;    
+
+    SpimapModel *m = new SpimapModel(nnodes, &stree, params, 
+                                     gene2species,
+                                     c.pretime, 
+                                     c.duprate, 
+                                     c.lossrate,
+                                     c.priorSamples,
+                                     !c.priorExact,
+                                     true);
+    m->setLikelihoodFunc(new HkySeqLikelihood(
+        aln->nseqs, aln->seqlen, aln->seqs, 
+        bgfreq, c.kappa, c.lkiter, 
+        c.minlen, c.maxlen));
     
+    model = m;
+    auto_ptr<Model> model_ptr(model);
+
     
     //========================================================
     // initialize search
@@ -511,7 +511,8 @@ int main(int argc, char **argv)
     TopologyProposer *proposer = &prop.mix2;
 
     // init search
-    TreeSearch *search = new TreeSearchClimb(prior, proposer, fitter);
+    TreeSearch *search = new TreeSearchClimb(model, proposer);
+    auto_ptr<TreeSearch> search_ptr(search);
 
     // load correct tree
     Tree correctTree;    
@@ -535,25 +536,13 @@ int main(int argc, char **argv)
 
     //=======================================================
     // search
-    Tree *toptree;
+    Tree *toptree = search->search(tree, genes, 
+                                   aln->nseqs, aln->seqlen, aln->seqs);
+    auto_ptr<Tree> toptree_ptr(toptree);
     
-    if (c.bootiter <= 1) {
-	toptree = search->search(tree, genes, 
-				 aln->nseqs, aln->seqlen, aln->seqs);
-    } else {        
-	toptree = search->search(tree, genes, 
-				 aln->nseqs, aln->seqlen, aln->seqs);
-	if (!bootstrap(aln, genes, search, c.bootiter, c.outprefix)) {
-            delete aln;
-            delete toptree;
-            delete tree;
-            delete params;
-            delete fitter;
-            delete prior;
-            delete search;
-
+    if (c.bootiter > 1) {
+	if (!bootstrap(aln, genes, search, c.bootiter, c.outprefix))
 	    return 1;
-	}
     }
     
     //========================================================
@@ -583,22 +572,13 @@ int main(int argc, char **argv)
         
     // log runtime
     time_t runtime = time(NULL) - startTime;
-    printLog(LOG_LOW, "seq runtime:\t%f\n", fitter->runtime);
-    printLog(LOG_LOW, "branch runtime:\t%f\n", prior->branch_runtime);
-    printLog(LOG_LOW, "topology runtime:\t%f\n", prior->top_runtime);
+    printLog(LOG_LOW, "seq runtime:\t%f\n", model->seq_runtime);
+    printLog(LOG_LOW, "branch runtime:\t%f\n", model->branch_runtime);
+    printLog(LOG_LOW, "topology runtime:\t%f\n", model->top_runtime);
     printLog(LOG_LOW, "proposal runtime:\t%f\n", search->proposal_runtime);
     printLog(LOG_LOW, "runtime seconds:\t%d\n", runtime);
     printLog(LOG_LOW, "runtime minutes:\t%.1f\n", float(runtime / 60.0));
     printLog(LOG_LOW, "runtime hours:\t%.1f\n", float(runtime / 3600.0));
     closeLogFile();
-    
-    // clean up
-    delete aln;
-    delete toptree;
-    delete tree;
-    delete params;
-    delete fitter;
-    delete prior;
-    delete search;
 }
 

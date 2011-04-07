@@ -27,7 +27,7 @@ def exc_default(func, val, exc=Exception):
         return val
 
 
-class TestProg (unittest.TestCase):
+class Prog (unittest.TestCase):
        
     def test_prog(self):
         """Test the main program"""
@@ -42,7 +42,7 @@ class TestProg (unittest.TestCase):
             alignfile = "test/data/flies-duploss/%s/%s.align" % (treeid, treeid)
             tree_correct = "test/data/flies-duploss/%s/%s.tree" % (treeid, treeid)
 
-            self.run_spidir(alignfile, tree_correct, outdir+"/"+treeid)
+            self.run_spidir(alignfile, tree_correct, outdir+"/"+treeid, iter=10)
 
     def test_prog_boot(self):
         """Test the main program with bootstrapping"""

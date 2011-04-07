@@ -63,6 +63,7 @@ SPIDIR_SRC = \
     src/gamma.cpp \
     src/hky.cpp \
     src/logging.cpp \
+    src/model.cpp \
     src/model_params.cpp \
     src/newick.cpp \
     src/nj.cpp \

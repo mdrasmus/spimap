@@ -21,6 +21,11 @@ src/logging.o: src/logging.h
 src/maxml.o: src/common.h src/phylogeny.h src/Tree.h src/ExtendArray.h
 src/maxml.o: src/HashTable.h src/parsimony.h src/search.h src/model_params.h
 src/maxml.o: src/newick.h src/Matrix.h src/ConfigParam.h src/Sequences.h
+src/model.o: src/common.h src/branch_prior.h src/Tree.h src/ExtendArray.h
+src/model.o: src/model_params.h src/birthdeath.h src/distmatrix.h
+src/model.o: src/logging.h src/Matrix.h src/model.h src/newick.h src/nj.h
+src/model.o: src/parsimony.h src/phylogeny.h src/HashTable.h src/search.h
+src/model.o: src/seq_likelihood.h src/top_prior.h src/treevis.h
 src/model_params.o: src/common.h src/model_params.h src/logging.h
 src/model_params.o: src/phylogeny.h src/Tree.h src/ExtendArray.h
 src/model_params.o: src/HashTable.h
@@ -34,14 +39,14 @@ src/phylogeny.o: src/phylogeny.h src/Tree.h src/ExtendArray.h src/HashTable.h
 src/phylogeny.o: src/parsing.h
 src/search.o: src/common.h src/branch_prior.h src/Tree.h src/ExtendArray.h
 src/search.o: src/model_params.h src/birthdeath.h src/distmatrix.h
-src/search.o: src/logging.h src/Matrix.h src/nj.h src/newick.h
+src/search.o: src/logging.h src/Matrix.h src/model.h src/newick.h src/nj.h
 src/search.o: src/parsimony.h src/phylogeny.h src/HashTable.h src/search.h
 src/search.o: src/seq_likelihood.h src/top_prior.h src/treevis.h
 src/seq.o: src/seq.h
 src/seq_likelihood.o: src/common.h src/hky.h src/logging.h src/Matrix.h
 src/seq_likelihood.o: src/parsimony.h src/Tree.h src/ExtendArray.h
 src/seq_likelihood.o: src/roots.h src/seq.h src/seq_likelihood.h
-src/spimap.o: src/common.h src/ConfigParam.h src/logging.h src/Matrix.h
+src/spimap.o: src/common.h src/ConfigParam.h src/logging.h src/model.h
 src/spimap.o: src/model_params.h src/newick.h src/Tree.h src/ExtendArray.h
 src/spimap.o: src/parsimony.h src/parsing.h src/phylogeny.h src/HashTable.h
 src/spimap.o: src/search.h src/seq.h src/seq_likelihood.h src/Sequences.h
@@ -57,6 +62,7 @@ src/Tree.o: src/ExtendArray.h
 src/birthdeath_ml.o: src/Tree.h src/ExtendArray.h
 src/branch_prior.o: src/Tree.h src/ExtendArray.h src/model_params.h
 src/branch_prior.o: src/birthdeath.h
+src/model.o: src/model_params.h src/newick.h src/Tree.h src/ExtendArray.h
 src/newick.o: src/Tree.h src/ExtendArray.h
 src/parsimony.o: src/Tree.h src/ExtendArray.h
 src/parsing.o: src/ExtendArray.h
