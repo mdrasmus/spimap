@@ -90,6 +90,10 @@ public:
 		   ("-o", "--output", "<output filename prefix>", 
 		    &outprefix, "spimap",
 		    "prefix for all output filenames"));
+        config.add(new ConfigSwitch
+		   ("-r", "--recon", 
+		    &outputRecon,
+		    "Output reconciliation"));
     
         // sequence model
 	config.add(new ConfigParamComment("Sequence evolution model"));
@@ -234,6 +238,7 @@ public:
     string streefile;
     string paramsfile;
     string outprefix;
+    bool outputRecon;
 
     // sequence model
     float kappa;
@@ -334,8 +339,7 @@ int main(int argc, char **argv)
 	return ret;
     
     //============================================================
-    // output filenames
-    string outtreeFilename = c.outprefix  + ".tree";
+    // logging
     
     // use default log filename
     if (c.logfile == "")
@@ -445,7 +449,7 @@ int main(int argc, char **argv)
     
     // get species names
     ExtendArray<string> species(stree.nnodes);
-    stree.getLeafNames(species);
+    stree.getNames(species);
     
     // make gene to species mapping
     int nnodes = aln->nseqs * 2 - 1;
@@ -548,11 +552,29 @@ int main(int argc, char **argv)
     //========================================================
     // output final tree
     
-    displayTree(toptree);
-
-    toptree->setLeafNames(genes);
-    writeNewickTree(outtreeFilename.c_str(), toptree);
+    if (isLogLevel(LOG_LOW))
+        displayTree(toptree, getLogFile());
     
+    // output recon
+    if (c.outputRecon) {
+        setInternalNames(toptree);
+        setInternalNames(&stree);
+
+        ExtendArray<int> recon(toptree->nnodes);
+        ExtendArray<int> events(toptree->nnodes);
+        reconcile(toptree, &stree, gene2species, recon);
+        labelEvents(toptree, recon, events);
+
+        string outreconFilename = c.outprefix  + ".recon";
+        writeRecon(outreconFilename.c_str(), toptree, &stree, 
+                   recon, events);
+    }
+
+    // output gene tree
+    string outtreeFilename = c.outprefix  + ".tree";
+    writeNewickTree(outtreeFilename.c_str(), toptree);
+
+
     
     // log tree correctness
     if (c.correctFile != "") {

@@ -577,7 +577,7 @@ void printSearchStatus(Tree *tree, SpeciesTree *stree, int *gene2species,
     }                
     
     if (isLogLevel(LOG_LOW))
-        displayTree(tree, getLogFile());    
+        displayTree(tree, getLogFile());
 }
 
 
@@ -586,7 +586,7 @@ void printLogTree(int loglevel, Tree *tree)
     if (isLogLevel(loglevel)) {
         printLog(loglevel, "tree: ");
         writeNewickTree(getLogFile(), tree, 0, true);
-        printLog(loglevel, "\n\n");
+        printLog(loglevel, "\n");
     }
 }
 
@@ -746,6 +746,8 @@ Tree *TreeSearchClimb::search(Tree *initTree, string *genes,
             proposer->accept(false);             
             proposer->revert(tree);
         }
+
+        printLog(LOG_LOW, "\n");
     }
     
     // print final log messages

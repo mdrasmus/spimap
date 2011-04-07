@@ -8,7 +8,7 @@
 =============================================================================*/
 
 
-
+#include "logging.h"
 #include "phylogeny.h"
 #include "parsing.h"
 
@@ -382,6 +382,54 @@ void removeImpliedSpecNodes(Tree *tree, int addedNodes)
         delete oldnode;
     }
 }
+
+
+void writeRecon(FILE *out, Tree *tree, SpeciesTree *stree,
+                int *recon, int *events)
+{
+    const char* eventstr[] = { "gene", "spec", "dup" };
+
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = tree->nodes[i];
+        fprintf(out, "%s\t%s\t%s\n", node->longname.c_str(), 
+                stree->nodes[recon[i]]->longname.c_str(), 
+                eventstr[events[i]]);
+    }
+}
+
+
+bool writeRecon(const char *filename, Tree *tree, SpeciesTree *stree,
+                int *recon, int *events)
+{
+    FILE *out = NULL;
+    
+    if ((out = fopen(filename, "w")) == NULL) {
+        printError("cannot write file '%s'\n", filename);
+        return false;
+    }
+
+    writeRecon(out, tree, stree, recon, events);
+    fclose(out);
+    return true;
+}
+
+
+
+// set the longnames of the internal nodes of a tree
+void setInternalNames(Tree *tree)
+{
+    const int maxsize = 20;
+    char numstr[maxsize + 1];
+
+    for (int i=0; i<tree->nnodes; i++) {
+        Node *node = tree->nodes[i];
+        if (!node->isLeaf()) {
+            snprintf(numstr, maxsize, "n%d", node->name);
+            node->longname = string(numstr);
+        }
+    }
+}
+
 
 //=============================================================================
 // Gene2species

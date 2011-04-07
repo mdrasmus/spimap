@@ -55,7 +55,10 @@ public:
 class Model
 {
 public:
-    Model() :
+    Model(int nnodes=0) :
+        tree(NULL),
+        recon(nnodes),
+        events(nnodes),
         seq_runtime(0),
         branch_runtime(0),
         top_runtime(0)
@@ -70,7 +73,10 @@ public:
     virtual SpeciesTree *getSpeciesTree() { return NULL; }
     virtual int *getGene2species() { return NULL; }
 
+    // reconciled gene tree
     Tree *tree;
+    ExtendArray<int> recon;
+    ExtendArray<int> events;
 
     // runtimes
     float seq_runtime;
@@ -105,8 +111,6 @@ protected:
     SpeciesTree *stree;
     SpidirParams *params;
     int *gene2species;
-    ExtendArray<int> recon;
-    ExtendArray<int> events;
     float predupprob;
     float dupprob;
     float lossprob;

@@ -120,9 +120,12 @@ Node *readNewickNode(FILE *infile, Tree *tree, Node *parent, int &depth)
             node->dist = readDist(infile, depth);
             if (!(chr = readUntil(infile, token, "):,", depth)))
                 return NULL;
+        } else {
+            // node name, if it does not start with a number or ".","-"
+            if (!isdigit(chr) && chr != '.' && chr != '-') {
+                node->longname = char1 + trim(token.c_str());
+            }
         }
-        //if (chr == ';' && depth == 0)
-        //    return node;
         
         return node;
     } else {
@@ -135,8 +138,7 @@ Node *readNewickNode(FILE *infile, Tree *tree, Node *parent, int &depth)
         // read name
         if (!(chr = readUntil(infile, token, ":),", depth)))
             return NULL;
-        token = char1 + trim(token.c_str());
-        node->longname = token;
+        node->longname = char1 + trim(token.c_str());
         
         // read distance for this node
         if (chr == ':') {
@@ -252,7 +254,9 @@ void writeNewickNode(FILE *out, Node *node, int depth, bool oneline)
         fprintf(out, ")");
         
         if (depth > 0)
-            fprintf(out, ":%f", node->dist);
+            fprintf(out, "%s:%f", node->longname.c_str(), node->dist);
+        else
+            fprintf(out, "%s", node->longname.c_str());
     }
 }
 
@@ -278,6 +282,7 @@ bool writeNewickTree(const char *filename, Tree *tree, bool oneline)
     }
 
     writeNewickTree(out, tree, 0, oneline);
+    fclose(out);
     return true;
 }
 

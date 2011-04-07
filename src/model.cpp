@@ -10,18 +10,13 @@
 
 #include "common.h"
 #include "branch_prior.h"
-#include "distmatrix.h"
 #include "logging.h"
 #include "Matrix.h"
 #include "model.h"
-#include "nj.h"
-#include "newick.h"
-#include "parsimony.h"
 #include "phylogeny.h"
-#include "search.h"
 #include "seq_likelihood.h"
 #include "top_prior.h"
-#include "treevis.h"
+
 
 
 namespace spidir {
@@ -34,12 +29,11 @@ SpimapModel::SpimapModel(
     float predupprob, float dupprob, float lossprob, 
     int nsamples, bool approx, bool useBranchPrior) :
     
+    Model(nnodes),
     nnodes(nnodes),
     stree(stree),
     params(params),
     gene2species(gene2species),
-    recon(nnodes),
-    events(nnodes),
     predupprob(predupprob),
     dupprob(dupprob),
     lossprob(lossprob),
