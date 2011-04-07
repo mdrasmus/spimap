@@ -42,9 +42,9 @@ o.add_option("", "--maxgene", dest="maxgene", type="int",
 
 o.add_option("", "--maxiter", dest="maxiter", type="int",
              default=100, metavar="<maximum number of ML iterations>")
-o.add_option("", "--birth", dest="birth_init", type="float",
+o.add_option("", "--dup", dest="dup_init", type="float",
              default=.1, metavar="<initial birth rate>")
-o.add_option("", "--death", dest="death_init", type="float",
+o.add_option("", "--loss", dest="loss_init", type="float",
              default=.1, metavar="<initial death rate>")
 o.add_option("", "--step", dest="step", type="float",
              default=1.0, metavar="<initial step size>")
@@ -92,14 +92,14 @@ def main(conf, args):
     else:
         # estimate ml birth death parameters
         b, d = birth_death_ml(conf, stree, counts)
-        print "birth\t%f" % b
-        print "death\t%f" % d
+        print "dup\t%f" % b
+        print "loss\t%f" % d
 
 
 def birth_death_ml(conf, stree, counts):
 
-    birth0 = conf.birth_init
-    death0 = conf.death_init
+    birth0 = conf.dup_init
+    death0 = conf.loss_init
     step = conf.step
 
 
@@ -115,7 +115,15 @@ def birth_death_ml(conf, stree, counts):
 
     for i in range(conf.maxiter):
         status, size, (b,d) = spidir.birth_death_counts_ml_iter(opt)
-        print >>sys.stderr, "b=%f\td=%f\tsize=%f" % (b/scale, d/scale, size)
+
+        # check errors
+        if status > 0:
+            print >>sys.stderr, "Error: an optimization error has occurred (GSL error code %d)" % status
+            if status == 5:
+                print >>sys.stderr, "Try different starting dup/loss values (see --dup --loss)"
+            break
+
+        print >>sys.stderr, "dup=%f\tloss=%f\tconverge=%f" % (b/scale, d/scale, size)
         if status == 0:
             break
 

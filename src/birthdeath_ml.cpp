@@ -293,6 +293,9 @@ void *birthDeathCountsML_alloc(Tree *tree, int nspecies, int nfams,
                                int maxgene,
                                int rootgene)
 {
+    // handle errors myself
+    gsl_set_error_handler_off();
+
     // copy arrays to separate memory
     int **counts2 = allocMatrix<int>(nfams, nspecies);
     int *mult2 = new int [nfams];
