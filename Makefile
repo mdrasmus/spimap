@@ -74,6 +74,7 @@ SPIDIR_SRC = \
     src/seq.cpp \
     src/seq_likelihood.cpp \
     src/Sequences.cpp \
+    src/top_change.cpp \
     src/top_prior.cpp \
     src/top_prior_extra.cpp \
     src/Tree.cpp \
