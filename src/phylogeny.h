@@ -165,7 +165,7 @@ void writeRecon(FILE *out, Tree *tree, SpeciesTree *stree,
                 int *recon, int *events);
 bool writeRecon(const char *filename, Tree *tree, SpeciesTree *stree,
                 int *recon, int *events);
-void setInternalNames(Tree *tree);
+int setInternalNames(Tree *tree, Node *node=NULL, int name=1);
 
 
 

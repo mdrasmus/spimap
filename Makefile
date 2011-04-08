@@ -17,6 +17,14 @@ CFLAGS := $(CFLAGS) \
     -Wall -fPIC \
     -Isrc
 
+# GSL is the only third party dependency of the SPIMAP C++
+# If GSL is not automatically detected you can manually specify its location
+# using this varibale
+GSL_LIBS=`gsl-config --libs`
+
+# example of hard coding GSL location
+#GSL_LIBS=-L/usr/lib -lgsl -lgslcblas -lm
+
 
 #=============================================================================
 # optional CFLAGS
@@ -85,8 +93,7 @@ SPIDIR_OBJS = $(SPIDIR_SRC:.cpp=.o)
 
 PROG_SRC = src/spimap.cpp 
 PROG_OBJS = src/spimap.o $(SPIDIR_OBJS)
-PROG_LIBS = `gsl-config --libs`
-#-lgsl -lgslcblas -lm
+PROG_LIBS = $(GSL_LIBS)
 
 
 #=======================
@@ -147,7 +154,6 @@ $(SPIMAP_PKG):
 install: $(BINARIES) $(LIBSPIDIR_SHARED_INSTALL)
 	mkdir -p $(prefix)/bin
 	cp $(BINARIES) $(prefix)/bin
-	echo $(LIBSPIDIR_SHARED_INSTALL)
 	python setup.py install --prefix=$(prefix)
 
 pylib: $(LIBSPIDIR_SHARED_INSTALL)

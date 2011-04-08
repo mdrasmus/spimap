@@ -1,0 +1,489 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{setspace}
+\usepackage{listings}
+\usepackage{bm} % bold greek math symbols
+%\usepackage{fancyvrb}
+\usepackage{multirow}
+\usepackage[normalem]{ulem}
+\usepackage[left=1.0in,top=1.0in,right=1.0in,bottom=1.0in]{geometry}
+\usepackage{pslatex}
+\usepackage[bookmarks=true]{hyperref} 
+\usepackage{ulem}   % gives \sout
+\usepackage{enumitem}  % adjust item separation
+
+% font
+\usepackage[T1]{fontenc}
+\usepackage[scaled]{helvet}
+\renewcommand*\familydefault{\sfdefault} %% Only if the base font of the document is to be sans serif
+
+
+% page formatting
+%\pdfpagewidth 8.5in
+%\pdfpageheight 11in 
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{10pt}
+\setlength{\parsep}{10pt}
+%\setlength{\headsep}{0pt}
+%\setlength{\topskip}{0pt}
+%\setlength{\topmargin}{0pt}
+%\setlength{\topsep}{0pt}
+%\setlength{\partopsep}{0pt}
+
+
+% setup headers and footers
+%\usepackage{fancyhdr}
+%\pagestyle{fancy}   % use default (page numbering on bottom)
+%\fancyhead{}        % clear header
+%\renewcommand{\headrulewidth}{0in}  % don't show horizontal header bar
+
+
+% formatting macros
+\newcommand{\codeblock}[1]{\vspace{.1in} {\tt #1} \vspace{.1in}}
+\newcommand{\comment}[1]{}
+\newcommand{\etal}{{\it et al.}}
+
+% reference macros
+\newcommand{\figref}[1]{Figure~\ref{#1}}
+\newcommand{\supfigref}[2]{Figure~#1\ref{#2}}
+\newcommand{\secref}[1]{Section~\ref{#1}}
+\newcommand{\appref}[1]{Appendix~\ref{#1}}
+\newcommand{\eqnref}[1]{\ref{#1}}
+\newcommand{\algref}[1]{Algorithm~\ref{#1}}
+
+\newcommand{\spimap}{{\sf\scshape SPIMAP}}
+
+\DeclareMathOperator*{\argmax}{argmax}
+\DeclareMathOperator*{\diag}{diag}
+\newcommand{\p}{\partial}
+\newcommand{\grad}{\bigtriangledown}
+\newcommand{\strike}[1]{\text{\sout{$#1$}}}
+\newcommand{\colv}[2]{\left(\begin{array}{c} #1 \\ #2 \end{array}\right)}
+\newcommand{\V}[1]{{\bm #1}}
+\newcommand{\parent}{\rho}
+
+
+\newcommand{\gtree}{{\mathbb G}}
+\newcommand{\stree}{{\mathbb S}}
+\newcommand{\gtop}{T}
+\newcommand{\sptop}{S}
+\newcommand{\recon}{R}
+
+
+\bibliographystyle{plain}
+
+
+
+%=============================================================================
+\begin{document}
+
+
+%=============================================================================
+% TITLE PAGE
+
+\begin{center}
+{\Huge \bf 
+SPIMAP: Species Informed Maximum A Posteriori Gene Tree Reconstruction
+}
+
+\vspace{.2in}
+
+{\LARGE 
+Documentation for the SPIMAP software package
+}
+
+{\LARGE \today}
+
+
+\vspace{.5in}
+
+{\bf Author:} Matthew D. Rasmussen (rasmus@mit.edu) \\
+{\bf Software website:} http://compbio.mit.edu/spimap
+
+\vspace{.1in}
+
+{\bf citation}: \\
+Matthew D. Rasmussen and Manolis Kellis.
+{\it A Bayesian Approach for Fast and Accurate Gene Tree Reconstruction}.
+Molecular Biology and Evolution. 2010. doi: 10.1093/molbev/msq189
+
+\end{center}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+%=============================================================================
+\section{File formats}
+
+%=============================================================================
+\subsection{Sequence alignment format (*.align)}
+
+\spimap\ uses the FASTA file format
+(\url{http://en.wikipedia.org/wiki/FASTA\_format}) for sequences
+alignments.  The file extension is not important and many different 
+extensions are in common use (*.fa, *.mfa, *.fasta, *.align).
+
+Each line starting with ``>'' is used to indicate a gene name
+(\figref{fig:align}).  The entire line after the ``>'' is used as the
+gene name.  The aligned sequence of is then given on the following
+lines.  It may be wrapped to any number of columns (no not wrapped at
+all).  Gaps in the alignment are represented with the ``-'' character.
+
+At this time (version 1.1), \spimap\ can only use DNA sequences.  The
+sequence can be in both upper case and lower case (\spimap\ ignores
+case) and degeneracy codes can be used (``NnRrYyWwSsKkMmBbDdHhVv''),
+however at this time \spimap\ treats all degeneracies as completely
+missing data (``N'').
+
+
+%=========================================
+% ALIGN FIGURE
+\begin{figure}
+\begin{center}
+\begin{lstlisting}[frame=tblr]
+>KLLA0C08239g
+ATGAGTCTCAAACGTGTAGTTGTCACTGGTCTTGGGGCCTACACGCCCCTTGGTTCTACAGTTTCAAAGTCTTGGGCAGG
+TTTGCTT---GCTGCTAAGCAATCACTAATACCCTTAGATGCTTTCTACAACAGAGAA---GACTTTGCAAAAGTGAAAA
+AGTTGGTCCCACTAGATACAGCAGTGAGTAGGTTACAT------------------------------------------
+>ADL072C
+---ATGCATCCCCGAGTGGTCGTGACCGGCATTGGGTGCTATACTCCTCTGGGGCCGTCGCTAGCCCAGTCTTGGAAGGA
+GCTGTTG---CGAGGGACGAGCGGCCTTGTCAGGCTGCAAGATCTGGCAGAGTACGAGGGCGATTACAAACCACTGTCGA
+GGCTTATATCCGGTGATCTTCGAGTCGGGAAAGTTGGATTTGAG------------------------------------
+>kwal_5828
+---ATGACTTCCAGAGTCGTTGTTACTGGGCTTGGTGCTATCACTCCACTTGGGAGGACTGTTTCCGAGTCATGGAGAGC
+TTTATTG---GCAGGCAAGTCCGGAATTCGTCCCATTCGCGATCTTCCC------------AATGCTAAAAGCTACGAAG
+GACACTGTCCTGCATCTGTTGCCGTTGCAGACATTCCTGATTTC------------GATCCA------------------
+\end{lstlisting}
+\end{center}
+
+\caption{{\bf Example *.align file.} Three gene DNA sequences
+are given, each with 240 sites.}
+\label{fig:align}
+\end{figure}
+
+
+%=============================================================================
+\subsection{Species tree file format (*.stree)}
+\label{sec:file:stree}
+
+Species trees should be specified using the Newick file format.  See
+\url{http://en.wikipedia.org/wiki/Newick\_format} for details.  Beyond
+the newick format, \spimap\ has only a few additional requirements.
+First, the species names given in the species tree should match those
+given in the SMAP file (\secref{sec:file:smap}).  Second, the branch
+lengths of the species tree should be expressed in units of time
+(\figref{fig:stree}).  Any unit of time can be used (e.g. millions of
+years, generations, relative units, etc).  The only requirement is
+that the duplication and loss rates are also expressed in compatible
+units.  Therefore, if branch lengths are in {\em millions of years},
+the duplication rate (specified by {\tt spimap}'s ``-D'' option)
+should be in units of duplications/gene/{\em million years}.
+
+\paragraph{Naming ancestral nodes.}
+\spimap\ also supports naming ancestral nodes in the species tree using
+the newick format.  For example, the parental node of {\tt human} and 
+{\tt chimp} can be named {\tt primate} using the following syntax:
+
+\begin{lstlisting}
+((human:5,chimp:5)primate:70,mouse:75)mammal;
+\end{lstlisting}
+
+If ancestral nodes are named, they will be used in the output of the 
+reconciliation mapping (\secref{sec:file:recon}).
+
+
+
+%=========================================
+% STREE FIGURE
+\begin{figure}
+\begin{center}
+
+\begin{minipage}{2in}
+\tiny
+\begin{lstlisting}[frame=tblr]
+(((((((scer:7.061760,
+       spar:7.061760
+      )n7:4.999680,
+      smik:12.061440
+     )n6:5.970600,
+     sbay:18.032040
+    )n5:52.682400,
+    cgla:70.714260
+   )n4:7.220700,
+   scas:77.934960
+  )n3:23.181480,
+  (
+   (
+    agos:78.553260,
+    klac:78.553260
+   )n9:10.434960,
+   kwal:88.988220
+  )n8:12.128400
+ )n2:78.883560,
+ (
+  (
+   (
+    calb:41.275620,
+    ctro:41.275980
+   )n12:29.632860,
+   (
+    cpar:52.323120,
+    lelo:52.323120
+   )n13:18.585720
+  )n11:31.149540,
+  (
+   (
+    cgui:75.615840,
+    dhan:75.615840
+   )n15:14.006880,
+   clus:89.622720
+  )n14:12.435660
+ )n10:77.941620
+)n1;
+\end{lstlisting}
+\end{minipage} \hfill \begin{minipage}{4in}
+\hspace{.5in}
+\includegraphics[width=4in]{figures/fungi-stree.pdf}
+\end{minipage}
+
+
+\end{center}
+
+\caption{{\bf Example *.stree file and corresponding tree.} This file
+(left) specifies the species tree (right) using the newick file
+format.  Branch lengths should be expressed in units of time
+(e.g. millions of years).  Ancestral nodes can also optionally be
+named (the names ``n1'', ``n2'', etc are used in this example).}
+\label{fig:stree}
+\end{figure}
+
+
+
+%=============================================================================
+\subsection{Gene to species name mapping file format (*.smap)}
+\label{sec:file:smap}
+
+\spimap\ uses a special file format ({\tt *.smap}) to specify which
+genes belong to which species. Each line contains two tab-delimited
+fields: 
+\begin{enumerate}[itemsep=0pt,topsep=0pt]
+\item pattern matching a gene ID
+\item species ID
+\end{enumerate}
+
+Only 3 types of gene ID patterns are supported.  The pattern can
+either be an exact matching string, a prefix (denoted {\tt "text*"}),
+or a suffix (denoted {\tt "*text"}).  The "*" is the only special
+wildcard character.
+
+The species ID should be the same as the ones used in the species tree
+files.  All patterns and IDs are case-sensitive.
+
+When mapping a gene name to a species name all exact matches are
+processed first.  If no exact match is found, the patterns are then
+processed in the same order as they appear in the file until a match
+is found. For example in the SMAP file given in \figref{fig:smap}, the
+gene ID {\tt "YALI123"} should match the species {\tt "ylip"}, instead of
+{\tt"yeast"}, because the pattern {\tt "YALI*"} occurs before {\tt
+"Y*"}.
+
+
+%=========================================
+% SMAP FIGURE
+\begin{figure}
+\begin{center}
+\begin{lstlisting}[frame=tblr]
+A*      agos
+orf19*  calb
+CDUG_*  cdub
+CAGL*   cgla
+IPF_*   cgla
+CGUG_*  cgui
+sbay_*  sbay
+scas_*  scas
+smik_*  smik
+spar_*  spar
+SCP*    spom
+YALI*   ylip
+Y*      scer
+Q*      scer
+\end{lstlisting}
+\end{center}
+
+\caption{{\bf Example *.smap file.} This file specifies how to map
+gene names to their corresponding species.  The first column indicates
+a gene name pattern (in this case a prefix) and the second column specifies 
+a species name.  Note: this example only gives a partial list of the species 
+in \figref{fig:stree}. }
+\label{fig:smap}
+\end{figure}
+
+
+%=============================================================================
+\subsection{Reconciliation file format (*.recon)}
+\label{sec:file:recon}
+
+When \spimap's ``-r'' option is used, the reconciliation found for the
+gene tree and species is saved to a file ``{\tt OUTPUT\_PREFIX.recon}''.
+The reconciliation file format is tab-delimited, where each line has
+three fields:
+\begin{enumerate}[itemsep=0pt,topsep=0pt]
+\item gene node ID.  
+\item species node ID.
+\item event (one of the following: ``gene'', ``spec'', ``dup'')
+\end{enumerate}
+
+Each line specifies the mapping of one node in the gene tree (field 1) to one 
+node or branch in the species tree (field 2).  Branches are indicate using
+the node ID directly below it (i.e. the younger of the two incident nodes).
+The lines can be given in any order.
+
+If the gene node is a leaf, it will map to a leaf in the species tree and
+the event field will contain the event ``gene''.  All internal nodes of
+the gene tree are marked either as speciations (event ``spec'') or
+duplications (event ``dup'').  Specaition nodes map directly to the indicated
+species node, and duplication nodes map to the indication species branch.
+The time of the duplication along the species branch is not indicated
+in this file format nor is it inferred by \spimap.
+
+If gene IDs are not given to the ancestral nodes of a gene tree or species
+tree, \spimap\ will by default name them with ``nXXX'' where XXX is the
+preorder traversal of the internal nodes.
+
+
+%=========================================
+% SMAP FIGURE
+\begin{figure}
+\begin{center}
+
+\begin{minipage}{2.5in}
+\begin{lstlisting}[frame=tblr]
+KLLA0C08239g  klac  gene  
+ADL072C       agos  gene  
+kwal_5828     kwal  gene  
+CAGL0J02970g  cgla  gene  
+scas_g715.48  scas  gene  
+smik_6662     smik  gene  
+sbay_7039     sbay  gene  
+smik_6659     smik  gene  
+sbay_7037     sbay  gene  
+YER061C       scer  gene  
+spar_6281     spar  gene  
+n10           n5    spec  
+n9            n7    spec  
+n8            n6    spec  
+n7            n5    spec  
+n6            n5    dup   
+n5            n3    spec  
+n4            n3    spec   
+n3            n9    spec  
+n2            n8    spec  
+n1            n2    spec  
+\end{lstlisting}
+\end{minipage} \hfill \begin{minipage}{3.5in}
+\includegraphics[width=3.5in]{figures/gene-tree.pdf}
+\end{minipage}
+
+\end{center}
+
+\caption{{\bf Example *.recon file.} The reconciliation file format
+(left) specifies how all the nodes in a gene tree (right) map to the
+nodes and branches in the species tree (see \figref{fig:stree}).
+Notice that gene node ``n6'' (red dot) represents a duplication event
+along species branch ``n5'' (shown \figref{fig:stree}).  The gene tree
+and species tree have their own name space (``n5'' in the gene tree is
+not the same as ``n5'' in the species tree).}
+\label{fig:smap}
+\end{figure}
+
+
+%=============================================================================
+\subsection{SPIMAP model parameters file format (*.params)}
+\label{sec:file:params}
+
+\spimap\ has several parameters for its substitution rates model.  These
+parameters are learned by the {\tt spimap-train-rates} program, which
+saves the parameters in a custom {\tt *.params} file format.  The {\tt 
+spimap} program reads these parameters using the ``-p'' option.
+Most uses of \spimap\ do not require understanding the contents of
+a {\tt *.params} file.
+
+The {\tt *.params} file format is tab-delimited and each line is
+processed one at a time.
+
+If the first field of a line is the word ``baserate'', then the
+remaining two fields are interpreted as floating point values
+$\alpha_G$ and $\beta_G$, which are the two parameters, shape and
+scale, of the inverse-gamma distributed gene-specific rate.
+
+If the first field of the line does not match ``baserate'', then the first
+field indicates a species tree branch and the remaining two fields
+are interpreted as floating point values $\alpha_i$ and $\beta_i$,
+which are the two parameters, shape and scale, of the gamma distributed
+species-specific rate.  Each branch is indicated by its more recent node.
+Ancestral nodes are indicated by an integer, where are assigned in 
+pretraversal order.
+
+
+%=========================================
+% PARAMS FIGURE
+\begin{figure}
+\begin{center}
+\small
+\begin{lstlisting}[frame=tblr]
+baserate  6.98457288742   5.98457288742
+1         3.28887700831   394.209221588
+2         4.64684152603   551.109741211
+3         1.13027572632   164.191940308
+4         0.610769152641  75.0393371582
+5         7.14405012131   927.631103516
+6         2.96983885765   238.195861816
+7         5.63683271408   632.264831543
+8         0.974860072136  94.9837493896
+9         0.856632292271  78.6899032593
+10        4.64683914185   544.528686523
+11        1.92581880093   271.891052246
+12        3.84569692612   624.703308105
+13        3.14617466927   335.446655273
+14        0.699178874493  84.1814575195
+15        0.746283352375  137.345901489
+scer      8.42576217651   763.305847168
+ctro      6.70220327377   999.845153809
+scas      9.14448356628   1253.45031738
+agos      8.84074497223   801.648925781
+sbay      6.95680332184   1048.7590332
+kwal      14.3321857452   1962.9083252
+dhan      15.7483224869   2699.00878906
+smik      10.2562847137   1143.78076172
+cgla      9.81903266907   1015.43951416
+spar      5.80616807938   799.18963623
+calb      8.38038921356   1233.68322754
+lelo      9.40990924835   973.772583008
+cpar      9.43262672424   1184.28100586
+klac      6.6709280014    767.418823242
+clus      8.37989234924   881.762878418
+cgui      11.9692239761   1187.47314453
+\end{lstlisting}
+
+
+\end{center}
+
+\caption{{\bf Example *.params file.}  The {\tt *.params} file contains the
+parameters for \spimap's substitution rate model.}
+\label{fig:params}
+\end{figure}
+
+
+%=============================================================================
+%\clearpage
+%raggedright
+%\setstretch{1} 
+%\bibliography{spimap-manual}
+
+\end{document}

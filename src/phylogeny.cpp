@@ -415,19 +415,32 @@ bool writeRecon(const char *filename, Tree *tree, SpeciesTree *stree,
 
 
 
-// set the longnames of the internal nodes of a tree
-void setInternalNames(Tree *tree)
+// sets the longnames of the internal nodes of a tree that do not already 
+// have longnames.
+// uses preorder traversal, by default root is "n1"
+// returns last name used in subtree
+int setInternalNames(Tree *tree, Node *node, int name)
 {
     const int maxsize = 20;
     char numstr[maxsize + 1];
 
-    for (int i=0; i<tree->nnodes; i++) {
-        Node *node = tree->nodes[i];
-        if (!node->isLeaf()) {
-            snprintf(numstr, maxsize, "n%d", node->name);
-            node->longname = string(numstr);
+    if (node == NULL) {
+        node = tree->root;
+    }
+
+
+    if (node->longname == "") {
+        snprintf(numstr, maxsize, "n%d", name);
+        node->longname = string(numstr);
+    }
+
+    for (int i=0; i<node->nchildren; i++) {
+        if (!node->children[i]->isLeaf()) {
+            name = setInternalNames(tree, node->children[i], name+1);
         }
     }
+
+    return name;
 }
 
 
