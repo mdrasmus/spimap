@@ -241,7 +241,7 @@ spimap -h
 
 
 # run SPIMAP for family 0
-spimap \
+../bin/spimap \
     -a fungi-sim/0/0.align \
     -s config/fungi.stree \
     -S config/fungi.smap \
@@ -258,7 +258,7 @@ spimap \
 # example of how to run SPIMAP for many families
 /bin/ls fungi-sim | (while read FAMID; do
   NAME=fungi-sim/$FAMID/$FAMID
-  spimap \
+  ../bin/spimap \
     -a $NAME.align \
     -s config/fungi.stree \
     -S config/fungi.smap \
@@ -301,6 +301,6 @@ print "percent", ncorrect / float(total)
 # Remove all outputs from example analysis
 #
 
-rm -f train/fungi-sim
-find fungi-sim | egrep '\.spimap\.tree$|\.log$' | xargs rm
-
+if [ -f fungi-sim ]; then
+    find fungi-sim | egrep '\.spimap\.tree$|\.log$' | xargs rm
+fi

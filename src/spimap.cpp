@@ -36,7 +36,7 @@
 #include "treevis.h"
 
 
-#define VERSION_TEXT "1.1"
+#define VERSION_TEXT "1.2"
 #define VERSION_INFO  "\
 SPIMAP " VERSION_TEXT " \n\
 SPecies Informed Max A Posteriori gene tree reconstruction \n\

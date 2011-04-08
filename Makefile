@@ -38,7 +38,7 @@ endif
 # SPIMAP program files
 
 # package
-PKG_VERSION=1.1
+PKG_VERSION=1.2
 PKG_NAME=spimap
 SPIMAP_PKG=dist/$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_DIR=dist/$(PKG_NAME)-$(PKG_VERSION)

@@ -146,7 +146,7 @@ find fungi-fams/*/*.nt.align | ../bin/spimap-prep-duploss \
 # 3. Reconstruct gene trees using trained parameters
 
 # show help information
-spimap -h
+../bin/spimap -h
 
 #Usage: spimap [OPTION]
 #  -a,--align  <alignment fasta>
@@ -184,7 +184,7 @@ spimap -h
 
 
 # run SPIMAP for family 100
-spimap \
+../bin/spimap \
     -a fungi-fams/100/100.nt.align \
     -s config/fungi.stree \
     -S config/fungi.smap \

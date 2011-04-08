@@ -33,7 +33,7 @@ SPIMAP has the following requirements:
 =============================================================================
 INSTALL
 
-NOTE: Makefile is installation will work best on UNIX or CYGWIN.
+NOTE: Makefile installation will work best on UNIX or CYGWIN.
 
 
 To compile the SPIMAP stand-alone program use the Makefile.
