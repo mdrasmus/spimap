@@ -132,6 +132,20 @@ class BirthDeath (unittest.TestCase):
         print spidir.birthDeathCounts(26, 27, 0.068190, 173.2958, 171.58002)
 
 
+    def test_birthDeathCountsLog(self):
+        """birthDeathCounts"""
+        l = 3.0
+        u = .5
+        t = 1.0
+        
+        for s in range(1, 40):
+            for e in range(0, 40):
+                p1 = exp(spidir.birthDeathCountsLog(s, e, t, l, u))
+                p2 = birthdeath.prob_birth_death(s, e, t, l, u)
+                print s, e, p1, p2
+                fequal(p1, p2, .01)
+
+
 
     def test_numHistories(self):
         """numHistories"""

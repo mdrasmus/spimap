@@ -77,8 +77,9 @@ double birthDeathTreeCounts(Tree *tree, int nspecies, int *counts,
                 double sum = 0.0;
                 
                 for (int j2=0; j2<maxgene; j2++) {
-                    double f = birthDeathCounts(j, j2, t, birth, death) * 
-                           tab[c][j2];
+                    double f = exp(birthDeathCountsLog(j, j2, t, 
+                                                       birth, death)) * 
+                        tab[c][j2];
                     sum += f;
                 }
 

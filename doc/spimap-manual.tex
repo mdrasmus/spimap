@@ -3,15 +3,14 @@
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{setspace}
-\usepackage{listings}
+\usepackage{listings} % code inserts
 \usepackage{bm} % bold greek math symbols
 %\usepackage{fancyvrb}
 \usepackage{multirow}
-\usepackage[normalem]{ulem}
+\usepackage[normalem]{ulem} % gives \sout
 \usepackage[left=1.0in,top=1.0in,right=1.0in,bottom=1.0in]{geometry}
 \usepackage{pslatex}
-\usepackage[bookmarks=true]{hyperref} 
-\usepackage{ulem}   % gives \sout
+\usepackage[bookmarks=true,colorlinks=true]{hyperref} 
 \usepackage{enumitem}  % adjust item separation
 
 % font
@@ -146,6 +145,7 @@ missing data (``N'').
 % ALIGN FIGURE
 \begin{figure}
 \begin{center}
+\footnotesize
 \begin{lstlisting}[frame=tblr]
 >KLLA0C08239g
 ATGAGTCTCAAACGTGTAGTTGTCACTGGTCTTGGGGCCTACACGCCCCTTGGTTCTACAGTTTCAAAGTCTTGGGCAGG
@@ -298,6 +298,7 @@ gene ID {\tt "YALI123"} should match the species {\tt "ylip"}, instead of
 % SMAP FIGURE
 \begin{figure}
 \begin{center}
+\footnotesize
 \begin{lstlisting}[frame=tblr]
 A*      agos
 orf19*  calb
@@ -363,6 +364,7 @@ preorder traversal of the internal nodes.
 \begin{center}
 
 \begin{minipage}{2.5in}
+\footnotesize
 \begin{lstlisting}[frame=tblr]
 KLLA0C08239g  klac  gene  
 ADL072C       agos  gene  
@@ -407,12 +409,12 @@ not the same as ``n5'' in the species tree).}
 \subsection{SPIMAP model parameters file format (*.params)}
 \label{sec:file:params}
 
-\spimap\ has several parameters for its substitution rates model.  These
-parameters are learned by the {\tt spimap-train-rates} program, which
-saves the parameters in a custom {\tt *.params} file format.  The {\tt 
-spimap} program reads these parameters using the ``-p'' option.
-Most uses of \spimap\ do not require understanding the contents of
-a {\tt *.params} file.
+\spimap\ has several parameters for its substitution rates model.
+These parameters are learned by the {\tt spimap-train-rates} program,
+which saves the parameters in a custom {\tt *.params} file format
+(\figref{fig:params}).  The {\tt spimap} program reads these
+parameters using the ``-p'' option.  Most uses of \spimap\ do not
+require understanding the contents of a {\tt *.params} file.
 
 The {\tt *.params} file format is tab-delimited and each line is
 processed one at a time.
@@ -420,7 +422,7 @@ processed one at a time.
 If the first field of a line is the word ``baserate'', then the
 remaining two fields are interpreted as floating point values
 $\alpha_G$ and $\beta_G$, which are the two parameters, shape and
-scale, of the inverse-gamma distributed gene-specific rate.
+scale, of the inverse-gamma distributed gene-specific rate.  
 
 If the first field of the line does not match ``baserate'', then the first
 field indicates a species tree branch and the remaining two fields
@@ -435,7 +437,7 @@ pretraversal order.
 % PARAMS FIGURE
 \begin{figure}
 \begin{center}
-\small
+\footnotesize
 \begin{lstlisting}[frame=tblr]
 baserate  6.98457288742   5.98457288742
 1         3.28887700831   394.209221588
@@ -478,6 +480,8 @@ cgui      11.9692239761   1187.47314453
 parameters for \spimap's substitution rate model.}
 \label{fig:params}
 \end{figure}
+
+
 
 
 %=============================================================================

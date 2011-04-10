@@ -112,6 +112,9 @@ if spidir:
     export(spidir, "birthDeathCounts", c_double,
            [c_int, "start", c_int, "end", c_float, "time",
             c_float, "birth", c_float, "death"])
+    export(spidir, "birthDeathCountsLog", c_double,
+           [c_int, "start", c_int, "end", c_float, "time",
+            c_float, "birth", c_float, "death"])
     export(spidir, "birthDeathCountsSlow", c_double,
            [c_int, "start", c_int, "end", c_float, "time",
             c_float, "birth", c_float, "death"])

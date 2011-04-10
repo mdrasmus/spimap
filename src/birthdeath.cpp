@@ -101,9 +101,9 @@ double birthDeathCountsLog(int start, int end, float time,
 {
     if (start == 0) {
         if (end == 0)
-            return 1.0;
-        else
             return 0.0;
+        else
+            return -INFINITY;
     }
 
     const double ertime = exp((birth-death)*time);
@@ -113,7 +113,8 @@ double birthDeathCountsLog(int start, int end, float time,
     
     // all 'start' genes die out
     if (end == 0) {
-        return ipow(a, start);
+        //return ipow(a, start);
+        return log(a) * start;
     }
     
     // log scale
@@ -143,17 +144,10 @@ double birthDeathCountsLog(int start, int end, float time,
         //printf("p=%f, s=%f, f=%f, c=%f\n", p, s, f, c);
     }
 
-    p = sp * exp(p);
-
-    if (p < 0.0)
-        p = 0.0;
+    // round to zero prob
+    if (sp < 0)
+        return -INFINITY;
     
-
-    if (p > 1.0) {
-        // resort to a slower more stable function
-        return birthDeathCountsSlow(start, end, time, birth, death);
-    }
-
     return p;
 }
 
