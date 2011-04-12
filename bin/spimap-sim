@@ -87,6 +87,9 @@ o.add_option("-O", "--outtree", dest="outtree", metavar="<output directory>",
 o.add_option("-T", "--outtreeext", dest="outtreeext",
              metavar="<output tree extension>",
              default=".tree")
+o.add_option("-R", "--outreconext", dest="outreconext",
+             metavar="<output recon extension>",
+             default=".recon")
 o.add_option("-A", "--outalignext", dest="outalignext",
              metavar="<output align extension>",
              default=".align")
@@ -184,7 +187,7 @@ def sim_tree(stree, params, duprate, lossrate, generate, use_spec,
         if isinstance(node.name, int):
             pretree.rename(node.name, "doom_%d" % node.name)
     
-    return pretree, tree
+    return pretree, tree, recon, events
 
 
 
@@ -268,6 +271,26 @@ def list2str(lst):
     return "[" + ",".join(map(str, lst)) + "]"
 
 
+def rename_nodes_preorder(tree):
+    """Rename internals by preorder traversal"""
+
+    # rename all nodes to something else
+    for node in list(tree):
+        if not node.is_leaf():
+            tree.rename(node.name, "__rename__" + str(node.name))
+
+    # rename to preorder
+    def walk(node, name=1):
+        if not node.is_leaf():
+            tree.rename(node.name, name)
+            name += 1
+            for child in node.children:
+                name = walk(child, name)
+        return name
+    walk(tree.root)
+
+    
+        
 
 #=============================================================================
 # main function
@@ -318,17 +341,22 @@ def main(conf):
         infofile = open(infofilename, "w")                    
         
         # create tree and write it
-        pretree, tree = sim_tree(stree, params, conf.duprate,
-                                 conf.lossrate, 
-                                 generate,
-                                 not conf.nospecrates,
-                                 infofile=infofile,
-                                 minsize=conf.minsize,
-                                 maxsize=conf.maxsize,
-                                 generatefunc=conf.generatefunc)
-        pretree.write(os.path.join(dirname, str(i) + ".times" +
-                                   conf.outtreeext))
-        tree.write(os.path.join(dirname, str(i) + conf.outtreeext))
+        pretree, tree, recon, events = sim_tree(
+            stree, params, conf.duprate,
+            conf.lossrate, 
+            generate,
+            not conf.nospecrates,
+            infofile=infofile,
+            minsize=conf.minsize,
+            maxsize=conf.maxsize,
+            generatefunc=conf.generatefunc)
+        rename_nodes_preorder(tree)
+        
+        outfile = os.path.join(dirname, str(i))
+        
+        pretree.write(outfile + ".times" + conf.outtreeext)
+        tree.write(outfile + conf.outtreeext)
+        phylo.write_recon_events(outfile + conf.outreconext, recon, events)
         
         # create sequence for tree
         if conf.genelenprobs:
@@ -336,7 +364,7 @@ def main(conf):
         else:
             genelen = conf.genelen
         
-        outfile = os.path.join(dirname, str(i))
+
         align = sim_seq(tree, seqlen=genelen, 
                         tsvratio=conf.tsvratio, bgfreq=conf.bgfreq)
         

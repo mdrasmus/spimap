@@ -38,7 +38,7 @@ o.add_option("-S", "--smap", dest="smap",
 o.add_option("-c", "--countmatrix", dest="countmatrix",
              metavar="<gene count matrix output file>")
 o.add_option("", "--maxgene", dest="maxgene", type="int",
-             default=20, metavar="<maximum number of genes in ancestor>")
+             default=None, metavar="<maximum number of genes in ancestor>")
 
 o.add_option("", "--maxiter", dest="maxiter", type="int",
              default=100, metavar="<maximum number of ML iterations>")
@@ -83,8 +83,8 @@ def main(conf, args):
               for line in infile]
 
     top = max(map(max, counts))
-    conf.maxgene = max(top*2, conf.maxgene)
-
+    if conf.maxgene is None:
+        conf.maxgene = top*2
     
     if conf.range is not None:
         # make heatmap

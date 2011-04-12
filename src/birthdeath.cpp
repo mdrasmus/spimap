@@ -97,7 +97,7 @@ double birthDeathCountsSlow(int start, int end, float time,
 // time 'time'
 // much faster computation than birthDeathCountsSlow
 double birthDeathCountsLog(int start, int end, float time, 
-                        float birth, float death)
+                           float birth, float death)
 {
     if (start == 0) {
         if (end == 0)
@@ -131,10 +131,10 @@ double birthDeathCountsLog(int start, int end, float time,
     double x = start;
     double y = end;
     double z = start + end - 1;
-    const double oneab = 1.0 - a - b;
+    const double oneab = (1.0 - a - b) / (a * b);
     const int iter = (start < end) ? start : end;
     for (int j=1; j<=iter; j++) {
-        double c = oneab * x * y / (j * a * b * z);
+        double c = oneab * x * y / (j * z);        
         sf *= (2 * int(c > 0.0) - 1);
         f += log(fabs(c));
         logadd_sign(sp, p, sf, f, &sp, &p);

@@ -118,6 +118,40 @@ Molecular Biology and Evolution. 2010. doi: 10.1093/molbev/msq189
 \newpage
 
 %=============================================================================
+\section{Introduction}
+
+This documention is currently under development and will be regularly 
+updated with more information about the \spimap\ software package.
+
+%=============================================================================
+\section{Preparing your data set}
+
+\paragraph{Restrictions on gene IDs and species IDs.}  Due to the
+file formats that \spimap\ uses, there as several restrictions on what IDs
+are allowed.  Many of these restrictions are common for other similar
+phylogenetic software.  The safest IDs follow these restrictions:
+\begin{enumerate}[itemsep=0pt,topsep=0pt]
+\item the first and last characters of the ID are a-z A-Z 0-9 \_ - .
+\item the middle characters can be a-z A-Z 0-9 \_ - . or the space character ' '
+\item the ID should not be purely numerical characters 0-9
+\item the ID should be unique within a gene tree or within a species tree
+\end{enumerate}
+
+Space characters are discouraged from gene IDs and species IDs since
+they will probably cause problems with other bioinfomatic software
+that you may use (although \spimap\ can handle spaces).  Characters
+such as parentheses ``(`` ``)'' and colons ``:'' are not allowed
+because the newick file format (see \secref{sec:file:stree}) uses these
+characters for describing the structure of the tree.
+
+It is also easier to use gene IDs that have a prefix or suffix that indicates
+the species ID.  For example ``human\_HOXC5'' is a human gene.  This is not
+a requirement, but it does make preparing a gene to species mapping 
+file (*.smap) easier (see \secref{sec:file:smap}).
+
+
+
+%=============================================================================
 \section{File formats}
 
 %=============================================================================
@@ -128,17 +162,17 @@ Molecular Biology and Evolution. 2010. doi: 10.1093/molbev/msq189
 alignments.  The file extension is not important and many different 
 extensions are in common use (*.fa, *.mfa, *.fasta, *.align).
 
-Each line starting with ``>'' is used to indicate a gene name
-(\figref{fig:align}).  The entire line after the ``>'' is used as the
-gene name.  The aligned sequence of is then given on the following
-lines.  It may be wrapped to any number of columns (no not wrapped at
+Each line starting with ``>'' indicates a gene name
+(\figref{fig:align}).  Note, the entire line after the ``>'' is used as the
+gene name.  The gene's sequence is given on the following
+lines and it may be wrapped to any number of columns (or not wrapped at
 all).  Gaps in the alignment are represented with the ``-'' character.
 
 At this time (version 1.1), \spimap\ can only use DNA sequences.  The
 sequence can be in both upper case and lower case (\spimap\ ignores
 case) and degeneracy codes can be used (``NnRrYyWwSsKkMmBbDdHhVv''),
 however at this time \spimap\ treats all degeneracies as completely
-missing data (``N'').
+missing data (``N'').  Gaps ``-'' are also treated as missing data.
 
 
 %=========================================
@@ -282,15 +316,15 @@ either be an exact matching string, a prefix (denoted {\tt "text*"}),
 or a suffix (denoted {\tt "*text"}).  The "*" is the only special
 wildcard character.
 
-The species ID should be the same as the ones used in the species tree
-files.  All patterns and IDs are case-sensitive.
+The species ID should be the same as those used in the species tree.
+All patterns and IDs are case-sensitive.
 
-When mapping a gene name to a species name all exact matches are
+When mapping a gene ID to a species ID all exact matches are
 processed first.  If no exact match is found, the patterns are then
 processed in the same order as they appear in the file until a match
 is found. For example in the SMAP file given in \figref{fig:smap}, the
 gene ID {\tt "YALI123"} should match the species {\tt "ylip"}, instead of
-{\tt"yeast"}, because the pattern {\tt "YALI*"} occurs before {\tt
+{\tt"scer"}, because the pattern {\tt "YALI*"} occurs before {\tt
 "Y*"}.
 
 
@@ -331,9 +365,9 @@ in \figref{fig:stree}. }
 \label{sec:file:recon}
 
 When \spimap's ``-r'' option is used, the reconciliation found for the
-gene tree and species is saved to a file ``{\tt OUTPUT\_PREFIX.recon}''.
-The reconciliation file format is tab-delimited, where each line has
-three fields:
+gene tree and species is saved to a file ``{\tt
+OUTPUT\_PREFIX.recon}'' (\figref{fig:recon}).  The reconciliation file
+format is tab-delimited, where each line has three fields:
 \begin{enumerate}[itemsep=0pt,topsep=0pt]
 \item gene node ID.  
 \item species node ID.
@@ -401,7 +435,7 @@ Notice that gene node ``n6'' (red dot) represents a duplication event
 along species branch ``n5'' (shown \figref{fig:stree}).  The gene tree
 and species tree have their own name space (``n5'' in the gene tree is
 not the same as ``n5'' in the species tree).}
-\label{fig:smap}
+\label{fig:recon}
 \end{figure}
 
 

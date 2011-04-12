@@ -99,31 +99,25 @@ inline void logadd_sign(int sa, double lna,
                         int sb, double lnb,
                         int *sc, double *lnc)
 {
-    if (sa > 0 && sb > 0) {
-        *sc = 1; *lnc = logadd(lna, lnb);
-    } else if (sa == 0) {
-        *sc = sb; *lnc = lnb;
-    } else if (sb == 0) {
-        *sc = sa; *lnc = lna;
-    } else if (sa < 0 && sb < 0) {
-        *sc = -1; *lnc = logadd(lna, lnb);
-
-    } else if (sa > 0 && sb < 0) {
-        if (lna > lnb) {
-            *sc = 1; *lnc = logsub(lna, lnb);
-        } else if (lna == lnb) {
-            *sc = 0; *lnc = -INFINITY;
+    if (sa > 0) {
+        if (sb > 0) {
+            *sc = 1; *lnc = logadd(lna, lnb);
         } else {
-            *sc = -1; *lnc = logsub(lnb, lna);
+            if (lna > lnb) {
+                *sc = 1; *lnc = logsub(lna, lnb);
+            } else {
+                *sc = -1; *lnc = logsub(lnb, lna);
+            }
         }
-
-    } else if (sa < 0 && sb > 0) {
-        if (lna > lnb) {
-            *sc = -1; *lnc = logsub(lna, lnb);
-        } else if (lna == lnb) {
-            *sc = 0; *lnc = -INFINITY;
+    } else {
+        if (sb > 0) {
+            if (lna > lnb) {
+                *sc = -1; *lnc = logsub(lna, lnb);
+            } else {
+                *sc = 1; *lnc = logsub(lnb, lna);
+            }
         } else {
-            *sc = 1; *lnc = logsub(lnb, lna);
+            *sc = -1; *lnc = logadd(lna, lnb);
         }
     }
 }
