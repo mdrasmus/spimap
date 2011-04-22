@@ -99,7 +99,7 @@ Documentation for the SPIMAP software package
 
 \vspace{.5in}
 
-{\bf Author:} Matthew D. Rasmussen (rasmus@mit.edu) \\
+{\bf Author:} Matthew D. Rasmussen (rasmus@mit.edu, matt.rasmus@gmail.com) \\
 {\bf Software website:} http://compbio.mit.edu/spimap
 
 \vspace{.1in}
@@ -123,8 +123,230 @@ Molecular Biology and Evolution. 2010. doi: 10.1093/molbev/msq189
 This documention is currently under development and will be regularly 
 updated with more information about the \spimap\ software package.
 
+
+%=============================================================================
+\section{Programs}
+
+%=========================================
+% PARAMS FIGURE
+\begin{figure}
+\begin{center}
+\includegraphics[width=5.5in]{figures/pipeline.pdf}
+\vspace{-.4in}
+\end{center}
+
+\caption{{\bf Computational pipeline for the SPIMAP software package.}
+ (a) The typical phylogenomic pipeline consists of several common
+ steps, although particular implementations may vary.  The pipeline
+ input is the set of all gene sequences across several species and the
+ known species tree relating the species (blue boxes).  Gene sequences
+ are then compared across species and clustered according to their
+ sequence similarity, resulting in a set of homologous gene families.
+ A multiple sequence alignment is then constructed for each gene
+ family, followed by phylogenetic reconstruction of each aligned
+ family to produce gene trees.  Each gene tree is then reconciled to
+ the known species tree in order to infer orthologs, paralogs, and
+ gene duplications and loss events, which are the pipeline outputs
+ (orange box).  \newline (b) Our phylogenomic pipeline follows similar
+ steps, except that \spimap\ includes a model parameter estimation
+ step (dashed light green box).  Using per-species gene counts in the
+ gene clusters, the {\tt spimap-train-duploss} program
+ (\secref{sec:prog:spimap-train-duploss}) learns duplication and loss
+ rates ($\lambda$ and $\mu$).  Using a subset of trusted orthologous
+ alignments supported by synteny or other information and congruent to
+ the species tree, the {\tt spimap-train-rates} program
+ (\secref{sec:prog:spimap-train-rates}) learns gene- and
+ species-specific substitution rates ($\beta_G, \V{\alpha},
+ \V{\beta}$). These learned evolutionary parameters are then
+used by the {\tt spimap} program (\secref{sec:prog:spimap}) to perform
+ gene tree building and reconciliation simultaneously (dark
+ green box). }
+\label{fig:pipeline}
+\end{figure}
+
+%=============================================================================
+\subsection{spimap}
+\label{sec:prog:spimap}
+
+The main \spimap\ algorithm is implemented in the {\tt spimap} program.
+The purpose of this program is reconstruct gene trees from DNA alignments.
+Accurately reconstructing gene trees is a challenging problem.  \spimap's
+strategy is to more accurately reconstruct gene trees by using additional 
+information learned from the species tree and the genome.  
+
+This genome-wide information is captured in two sets of parameters 
+that the {\tt spimap} program needs.  The first set are gene duplication and
+loss rates ($\lambda$ and $\mu$).  You can either specify these rates 
+based on previously performed studies, or you can use the
+{\tt spimap-train-duploss} program (\secref{sec:prog:spimap-train-duploss})
+to learn them from gene counts.
+
+The second set of parameters needed by {\tt spimap} are substitution rate
+parameters ($\beta_G$, $\V{\alpha}$, $\V{\beta}$).  These are estimated
+from a small subset of trusted purely orthologous gene trees.  Once these
+parameters are learned, they can be used to aid in the reconstruction
+of more difficult paralogous families.  This package provides the
+{\tt spimap-train-rates} program (\secref{sec:prog:spimap-train-rates}),
+which can estimate these parameters.
+
+The \figref{fig:pipeline} illustrates a computational pipeline for how
+the three programs ({\tt spimap}, {\tt spimap-train-duploss}, and 
+{\tt spimap-train-rates}) work together.  Additionally, this package also
+includes several other helper programs that can prepare data sets for 
+training (see {\tt spimap-prep-duploss} \secref{sec:prog:spimap-prep-duploss}
+and {\tt spimap-prep-rates} \secref{sec:prog:spimap-prep-rates}).
+
+
+\subsubsection{spimap arguments}
+
+{\bf Main arguments}
+
+{\tt -a,--align  <alignment fasta>}
+
+Use this argument to specify the DNA alignment that you would to use
+for reconstructing a gene tree.  The file should be in FASTA format
+(\secref{sec:file:align}).
+
+
+{\tt -S,--smap  <species map>}
+
+Use this argument to specify which species each gene belongs.  {\tt
+<species map>} should be a file in *.smap format
+(\secref{sec:file:smap}).
+
+{\tt -s,--stree  <species tree>}
+
+Use this argument to specify known species tree specified in a file
+{\tt <species tree>} written in newick format
+(\secref{sec:file:stree}).
+
+{\tt -p,--param  <params file>}
+
+Use this argument to specify the \spimap substitution rate parameters
+($\beta_G$, $\beta$, $\alpha)$ written in the *.param file format
+(\secref{sec:file:params}).  This file is generated by {\tt
+spimap-train-rates} (\secref{sec:prog:spimap-train-rates}).
+
+{\tt -o,--output  <output filename prefix>}
+
+Use this argument to specify a prefix for all of the output files.  By 
+default the prefix is ``spimap'' (e.g. ``spimap.tree'', ``spimap.recon'', 
+``spimap.log'').  The prefix can also specify a different output directory.
+
+{\tt -r,--recon}
+
+With this argument \spimap\ will output the reconciliation found to the 
+file ``<output filename prefix>.recon'' written in the *.recon format 
+(\secref{sec:file:recon}).
+
+
+{\bf Sequence evolution model arguments}
+
+{\tt -k,--kappa  <transition/transversion ratio>}
+
+Use this argument to specify the transition/transversion ratio $\kappa$
+for the HKY sequence model.  By default $\kappa$ will be estimated 
+from the alignment.
+
+{\tt -f,--bgfreq  <A freq>,<C ferq>,<G freq>,<T freq>}
+
+Use this argument to specify the background base frequency for the 
+HKY sequence model.  By default these frequencies are estimated from the
+alignment.
+
+
+{\bf Dup/loss evolution model arguments}
+
+{\tt -D,--duprate  <duplication rate>}
+
+This specifies the gene duplication rate.  Commonly, this should be 
+specified in units of duplications/gene/million years.  See 
+\secref{sec:file:stree} for a discussion of the unit of time.
+
+{\tt -L,--lossrate  <loss rate>}
+
+This specifies the gene loss rate.  Commonly, this should be 
+specified in units of loss/gene/million years.  See 
+\secref{sec:file:stree} for a discussion of the unit of time.
+
+
+{\bf Search arguments}
+
+{\tt -i,--niter  <number iterations>}
+
+This specifies the number of iterations \spimap\ should search for the 
+MAP gene tree.
+
+{\tt --quickiter  <quick iterations>}
+
+This specifies the number of subproposals (default=50) for each main 
+search iteration.  Choosing a number between 100-1000 usually increases
+search efficiency, therefore allowing one to use fewer main iterations 
+(``-i'').
+
+{\tt -b,--boot  <number bootstraps>}
+
+Use this argument to perform bootstrapping.  The alignment will be resampled
+with replacement {\tt <number bootstrap>} times and a gene tree will be 
+reconstructed for each sample.
+
+{\bf Information arguments}
+
+{\tt -V,--verbose  <verbosity level>}
+
+You can adjust the amount of logging/debugging information that \spimap\ 
+displays by adjusting this argument (0=quiet, 1=low, 2=medium, 3=high)
+
+
+{\tt --log  <log filename>}
+
+This specifies a different file for saving log information.
+Use ``-'' to display on stdout (standard output).
+
+{\tt -v,--version}
+
+When given, \spimap\ will display version information.
+
+{\tt -h,--help}
+
+When given, \spimap\ display help information.
+
+
+%=============================================================================
+\subsection{spimap-prep-duploss}
+\label{sec:prog:spimap-prep-duploss}
+
+XXX
+
+%=============================================================================
+\subsection{spimap-train-duploss}
+\label{sec:prog:spimap-train-duploss}
+
+XXX
+
+%=============================================================================
+\subsection{spimap-prep-rates}
+\label{sec:prog:spimap-prep-rates}
+
+XXX
+
+%=============================================================================
+\subsection{spimap-train-rates}
+\label{sec:prog:spimap-train-rates}
+
+XXX
+
+%=============================================================================
+\subsection{spimap-sim}
+\label{sec:prog:spimap-sim}
+
+XXX
+
+
+
 %=============================================================================
 \section{Preparing your data set}
+\label{sec:prepar}
 
 \paragraph{Restrictions on gene IDs and species IDs.}  Due to the
 file formats that \spimap\ uses, there as several restrictions on what IDs
@@ -156,6 +378,7 @@ file (*.smap) easier (see \secref{sec:file:smap}).
 
 %=============================================================================
 \subsection{Sequence alignment format (*.align)}
+\label{sec:file:align}
 
 \spimap\ uses the FASTA file format
 (\url{http://en.wikipedia.org/wiki/FASTA\_format}) for sequences
