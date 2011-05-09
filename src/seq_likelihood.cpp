@@ -676,7 +676,6 @@ public:
 	float logl = -INFINITY;
 	floatlk **lktable = table.lktable;
 
-
 	for (int i=0; i<rootingOrder.size(); i+=2) {
 	    // remembering old children of root
 	    Node *oldnode1 = tree->root->children[0];
@@ -870,6 +869,10 @@ double findMLKappaHky(Tree *tree, int nseqs, char **seqs,
     const int maxiter = 1;
     floatlk maxlk = -INFINITY;
     float maxk = minkappa;
+
+    // special case
+    if (nseqs < 2)
+        return 0.0;
 
     for (float k=minkappa; k<=maxkappa; k+=kappastep) {
         float l = findMLBranchLengthsHky(tree, nseqs, seqs, bgfreq, k, 

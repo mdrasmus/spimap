@@ -62,7 +62,6 @@ SpidirParams *readSpidirParams(const char* filename)
 
 
 
-// UNDER CONSTRUCTION
 bool SpidirParams::order(SpeciesTree *stree)
 {
     if (stree->nnodes != nsnodes) {
@@ -117,12 +116,10 @@ bool SpidirParams::order(SpeciesTree *stree)
             }
         }
     }
-    
 
     
-    ExtendArray<int> perm(stree->nnodes);
-    
     // apply permutation
+    ExtendArray<int> perm(stree->nnodes);
     invertPerm(invperm, perm, nsnodes);    
       
     permute(names, perm, nsnodes);

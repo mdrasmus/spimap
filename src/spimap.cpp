@@ -337,8 +337,13 @@ int main(int argc, char **argv)
     int ret = c.parseArgs(argc, argv);
     if (ret)
 	return ret;
+
+    //=======================================================
+    // setup gsl
+    gsl_set_error_handler_off();
+
     
-    //============================================================
+    //=======================================================
     // logging
     
     // use default log filename
@@ -349,6 +354,7 @@ int main(int argc, char **argv)
         // use standard out
         openLogFile(stdout);
     } else {
+        // use log file
         if (!openLogFile(c.logfile.c_str())) {
             printError("cannot open log file '%s'.", c.logfile.c_str());
             return 1;
@@ -357,6 +363,7 @@ int main(int argc, char **argv)
     
     setLogLevel(c.verbose);
     
+    // print command line options
     if (isLogLevel(LOG_LOW)) {
         printLog(LOG_LOW, "SPIDIR executed with the following arguments:\n");
         for (int i=0; i<argc; i++) {
@@ -367,10 +374,11 @@ int main(int argc, char **argv)
  
     
     // seed random number generator
-    if (c.seed != 0)
-        srand(c.seed);
-    else
-        srand(time(NULL));
+    if (c.seed == 0)
+        c.seed = time(NULL);
+    srand(c.seed);
+    printLog(LOG_LOW, "random seed: %d\n", c.seed);
+    
 
     
     //============================================================
@@ -392,14 +400,23 @@ int main(int argc, char **argv)
     }
     
     // check alignment
-    if (aln->nseqs < 3) {
-        printError("too few sequences");
+    if (aln->nseqs == 0) {
+        printError("no sequences");
         return 1;
     }
     
 
     // read SPIDIR parameters
-    SpidirParams *params = readSpidirParams(c.paramsfile.c_str());
+    SpidirParams *params = NULL;
+    if (c.paramsfile != "") {
+        params = readSpidirParams(c.paramsfile.c_str());
+    } else {
+        // use default params
+        printLog(LOG_LOW, 
+         "Note: Rate parameters (-p) were not specified. Using flat prior.\n");
+        params = new NullSpidirParams();
+    }
+
     auto_ptr<SpidirParams> params_ptr(params);
     if (params == NULL) {
         printError("error reading parameters file '%s'", c.paramsfile.c_str());
@@ -529,17 +546,11 @@ int main(int argc, char **argv)
         correctTree.reorderLeaves(genes);
         proposer->setCorrect(&correctTree);
     }
-       
     
-    time_t startTime = time(NULL);
-    
-    //=======================================================
-    // setup gsl
-    gsl_set_error_handler_off();
-
 
     //=======================================================
     // search
+    time_t startTime = time(NULL);
     Tree *toptree = search->search(tree, genes, 
                                    aln->nseqs, aln->seqlen, aln->seqs);
     auto_ptr<Tree> toptree_ptr(toptree);

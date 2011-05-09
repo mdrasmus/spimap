@@ -6,12 +6,12 @@ import pygsl.sf
 
 while "python" not in os.listdir("."):
     os.chdir("..")
-
 sys.path.append("python")
+
 import spidir
 
 from rasmus.common import *
-from rasmus.bio import phylo
+from compbio import phylo
 
 from test import *
 
@@ -78,6 +78,18 @@ class Prog (unittest.TestCase):
 
             self.run_spidir(alignfile, tree_correct, outdir+"/"+treeid)
 
+
+    def test_no_param(self):
+        """Test spimap without rate parameteres"""
+
+        cmd = ("spimap " +
+               "-S test/data/flies.smap -s test/data/flies.stree " +
+               "-D .4 -L .4 -i 10 --log - " +
+               "-a test/data/flies/0/0.nt.align")
+
+        self.assertEqual(os.system(cmd), 0)
+
+        
 
     def run_spidir(self, alignfile, tree_correct, outprefix, boot=1,
                    iter=50, valgrind=""):

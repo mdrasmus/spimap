@@ -521,6 +521,12 @@ Tree *getInitialTree(string *genes, int nseqs, int seqlen, char **seqs)
     ptree2tree(nnodes, ptree, tree);
     tree->setLeafNames(genes);
 
+    // special case
+    if (nseqs == 2) {
+        tree->nodes[0]->dist = dists[0];
+        tree->nodes[1]->dist = dists[1];
+    }
+
     return tree;
 }
 
@@ -661,6 +667,13 @@ Tree *TreeSearchClimb::search(Tree *initTree, string *genes,
         tree = getInitialTree(genes, nseqs, seqlen, seqs,
                               model->getSpeciesTree(), 
                               model->getGene2species());
+
+
+    // special cases (1 and 2 leaves)
+    if (nseqs < 3) {
+        return tree->copy();
+    }
+    
     
     ExtendArray<int> recon(tree->nnodes);
     ExtendArray<int> events(tree->nnodes);

@@ -75,8 +75,9 @@ double SpimapModel::likelihood()
 
 double SpimapModel::branchPrior()
 {
-    if (!useBranchPrior)
+    if (isNullParams(params) || !useBranchPrior) {
         return 0.0;
+    }
 
     Timer timer;
     const float generate = -99; // integrate over gene rate

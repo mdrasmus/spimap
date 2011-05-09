@@ -170,6 +170,8 @@ $(LIBSPIDIR_SHARED_INSTALL): $(LIBSPIDIR_SHARED)
 $(SPIDIR_OBJS): %.o: %.cpp
 	$(CXX) -c $(CFLAGS) -o $@ $<
 
+src/spimap.o: src/spimap.cpp
+	$(CXX) -c $(CFLAGS) -o $@ $<
 
 clean:
 	rm -f $(PROG_OBJS) $(SPIMAP_PROG) $(LIBSPIDIR) $(LIBSPIDIR_SHARED)

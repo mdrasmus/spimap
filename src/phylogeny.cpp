@@ -36,6 +36,10 @@ void getReconRootOrder(Node *node, ExtendArray<Edge> *edges)
 // NOTE: assumes binary tree
 void reconRoot(Tree *tree, SpeciesTree *stree, int *gene2species)
 {
+
+    // special cases
+    if (tree->nnodes < 3)
+        return;
     
     // determine rooting order
     ExtendArray<Edge> edges(0, tree->nnodes);
