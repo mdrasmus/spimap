@@ -516,7 +516,7 @@ def dup_consistency(tree, recon, events):
 def recon_root(gtree, stree, gene2species = gene2species, 
                rootby = "duploss", newCopy=True):
     """Reroot a tree by minimizing the number of duplications/losses/both"""
-    
+
     # make a consistent unrooted copy of gene tree
     if newCopy:
         gtree = gtree.copy()
@@ -1910,123 +1910,48 @@ def tree2distmat(tree, leaves):
 # branch splits
 #
 
-def find_all_branch_splits(network, leaves):
-    # find vertice and edge visit history
-    start = network.keys()[0]
+def find_splits(tree, rooted=False):
+    """
+    Find branch splits for a tree
 
-    openset = [start]
-    closedset = {}
+    If 'rooted' is True, then orient splits based on rooting
+    """
     
-    vhistory = []
-    ehistory = []
-    elookup = util.Dict(1, [])
-    
-    
-    while len(openset) > 0:
-        vertex = openset.pop()
-        
-        vhistory.append(vertex)
-        
-        if len(vhistory) > 1:
-            edge = tuple(util.sort(vhistory[-2:]))        
-            ehistory.append(edge)
-            elookup[edge].append(len(ehistory) - 1)
-        
-        # skip closed vertices
-        if vertex in closedset:
-            continue
-        
-        for v in network[vertex].keys():
-            if v not in closedset:
-                openset.append(vertex)            
-                openset.append(v)
-        
-
-        # close new vertex
-        closedset[vertex] = 1
-    
-    
-    # use histories to define half each split
-    splits = {}
-    for edge in elookup:
-        set1 = {}
-        
-        start, end = elookup[edge]
-        for i in range(start+1, end+1):
-            if vhistory[i] in leaves:
-                set1[vhistory[i]] = 1
-        
-        # fill in other half of splits using complement
-        set2 = {}
-        for v in leaves:
-            if v not in set1:
-                set2[v] = 1
-        
-        if edge[0] == vhistory[start]:
-            splits[edge] = [set2, set1]
-        else:
-            splits[edge] = [set1, set2]
-        
-    
-    return splits
-
-
-def find_branch_splits(tree):
-    splits = find_all_branch_splits(treelib.tree2graph(tree),
-                                    tree.leaf_names())
-    splits2 = {}
-    
-    for edge, sets in splits.iteritems():
-        # skip external edges
-        if len(sets[0]) == 1 or len(sets[1]) == 1:
-            continue
-        
-        s = tuple(sorted([tuple(sorted(i.keys())) for i in sets]))
-        splits2[edge] = s
-    
-    # if tree is rooted, remove duplicate edge
-    if treelib.is_rooted(tree):
-        edge1 = tuple(sorted([tree.root.name, tree.root.children[0].name]))
-        edge2 = tuple(sorted([tree.root.name, tree.root.children[1].name]))
-        if edge1 > edge2:
-            edge1, edge2 = edge2, edge1
-        if edge1 in splits2 and edge2 in splits2:
-            del splits2[edge1]
-    
-    return splits2
-
-
-def find_splits(tree):
-    """Find branch splits for a tree"""
-    
-    allLeaves = set(tree.leaf_names())
+    all_leaves = set(tree.leaf_names())
+    nall_leaves = len(all_leaves)
 
     # find descendants
-    descendants = []
+    descendants = {}
     def walk(node):
         if node.is_leaf():
-            descendants.append(set([node.name]))
+            s = descendants[node] = set([node.name])
         else:
             s = set()
             for child in node.children:
                 s.update(walk(child))
-            descendants.append(s)
-        return descendants[-1]
+            descendants[node] = s
+        return s
     for child in tree.root.children:
         walk(child)
 
     # left child's descendants immediately defines
     # right child's descendants (by complement)
     if len(tree.root.children) == 2:
-        descendants.pop()
+        # in order to work with rooted, be consistent about which descendents
+        # to keep
+        a, b = tree.root.children
+        if descendants[a] < descendants[b]:
+            del descendants[b]
+        else:
+            del descendants[a]
 
     # build splits list
     splits = []
-    for leaves in descendants:
-        if len(leaves) > 1:
+    for leaves in descendants.itervalues():
+        if 1 < len(leaves) and (rooted or len(leaves) < nall_leaves - 1):
             set1 = tuple(sorted(leaves))
-            set2 = tuple(sorted(allLeaves - leaves))
-            if len(set1) > len(set2):
+            set2 = tuple(sorted(all_leaves - leaves))
+            if not rooted and len(set1) > len(set2):
                 set1, set2 = set2, set1
                 
             splits.append((set1, set2))
@@ -2067,14 +1992,12 @@ def split_bit_string(split, leaves=None, char1="*", char2=".", nochar=" "):
 
     return "".join(chars)
     
-    
-
 
 def robinson_foulds_error(tree1, tree2):
-    splits1 = find_branch_splits(tree1)
-    splits2 = find_branch_splits(tree2)
+    splits1 = find_splits(tree1)
+    splits2 = find_splits(tree2)
 
-    overlap = set(splits1.values()) & set(splits2.values())
+    overlap = set(splits1) & set(splits2)
     
     #assert len(splits1) == len(splits2)
 
@@ -2087,10 +2010,226 @@ def robinson_foulds_error(tree1, tree2):
 
 
 #=============================================================================
+# consensus methods
+
+
+def consensus_majority_rule(trees, extended=True, rooted=False):
+    """
+    Performs majority rule on a set of trees
+
+    extended -- if True, performs the extended majority rule
+    rooted   -- if True, assumes trees are rooted
+    """
+
+    # consensus tree
+    contree = treelib.Tree()
+
+    nleaves = len(trees[0].leaves())
+    ntrees = len(trees)
+    split_counts = util.Dict(1, 0)
+
+    # handle special cases
+    if not rooted and nleaves == 3:
+        leaves = trees[0].leaf_names()
+        root = tree.make_root()
+        n = tree.add_child(root, treelib.TreeNode(tree.new_name()))
+        tree.add_child(n, treelib.TreeNode(leaves[0]))
+        tree.add_child(n, treelib.TreeNode(leaves[1]))
+        tree.add_child(root, treelib.TreeNode(leaves[2]))
+        return tree
+    
+    elif nleaves == 2:
+        leaves = trees[0].leaf_names()
+        root = tree.make_root()
+        tree.add_child(root, treelib.TreeNode(leaves[0]))
+        tree.add_child(root, treelib.TreeNode(leaves[1]))
+        return tree
+        
+
+    # count all splits
+    for tree in trees:
+        for split in find_splits(tree, rooted):
+            split_counts[split] += 1
+
+    #util.print_dict(split_counts)
+    
+    # choose splits
+    pick_splits = 0
+    rank_splits = split_counts.items()
+    rank_splits.sort(key=lambda x: x[1], reverse=True)
+
+    # add splits to the contree in increasing frequency
+    for split, count in rank_splits:
+        if not extended and count <= ntrees / 2.0:
+            continue
+        
+        # choose split if it is compatiable
+        if _add_split_to_tree(contree, split, count / float(ntrees), rooted):
+            pick_splits += 1
+
+        # stop if enough splits are choosen
+        if ((rooted and pick_splits >= nleaves - 2) or
+            (not rooted and pick_splits >= nleaves - 3)):
+            break
+
+    # add remaining leaves and remove clade data
+    _post_process_split_tree(contree)
+    
+    return contree
+
+
+
+def _add_split_to_tree(tree, split, count, rooted=False):
+
+    split = (set(split[0]), set(split[1]))
+
+    # init first split
+    if len(tree) == 0:
+        root = tree.make_root()
+        root.data["leaves"] = split[0] | split[1]
+
+        if len(split[0]) == 1:
+            print "HERE"
+            node = tree.add_child(root, treelib.TreeNode(list(split[0])[0]))
+            node.data["leaves"] = split[0]
+            node.data["boot"] = count
+        else:
+            node = tree.add_child(root, treelib.TreeNode(tree.new_name()))
+            node.data["leaves"] = split[0]
+            node.data["boot"] = count
+
+        if len(split[1]) == 1:
+            node = tree.add_child(root, treelib.TreeNode(list(split[1])[0]))
+            node.data["leaves"] = split[1]
+            node.data["boot"] = count
+        #else:
+        #    node = tree.add_child(root, treelib.TreeNode(tree.new_name()))
+        #    node.data["leaves"] = split[1]
+        #    node.data["boot"] = count
+            
+        return True
+
+    def walk(node, clade):
+        if node.is_leaf():
+            # make new child
+            child = tree.add_child(node, treelib.TreeNode(tree.new_name()))
+            child.data["leaves"] = clade
+            child.data["boot"] = count
+            return True
+        
+        # which children intersect this clade?
+        intersects = []
+        for child in node:
+            leaves = child.data["leaves"]
+            intersect = clade & leaves
+            
+            if len(clade) == len(intersect) < len(leaves) :
+                # subset, recurse
+                return walk(child, clade)
+
+            elif len(intersect) == 0:
+                continue
+            
+            elif len(intersect) == len(leaves):
+                # superset
+                intersects.append(child)
+            else:
+                # conflict
+                return False
+
+        # insert new node
+        new_node = tree.add_child(node, treelib.TreeNode(tree.new_name()))
+        new_node.data["leaves"] = clade
+        new_node.data["boot"] = count
+        for child in intersects:
+            tree.remove(child)
+            tree.add_child(new_node, child)
+
+        return True
+    
+    # try to place split into tree
+    '''
+    for child in tree.root.children:
+        if rooted:
+            if split[0] < child.data["leaves"]:
+                return walk(child, split[0])
+        else:
+            for i in range(2):
+                if split[i] < child.data["leaves"]:
+                    return walk(child, split[i])
+    '''
+
+    if rooted:
+        walk(tree.root, split[0])
+    else:
+        if walk(tree.root, split[0]):
+            return True
+        else:
+            return walk(tree.root, split[1])
+    
+    # split is in conflict
+    return False
+    
+
+def _post_process_split_tree(tree):
+    
+    for node in list(tree):
+        if len(node.data["leaves"]) > 1:
+            for leaf_name in node.data["leaves"]:
+                for child in node:
+                    if leaf_name in child.data.get("leaves", ()):
+                        break
+                else:
+                    child = tree.add_child(node, treelib.TreeNode(leaf_name))
+
+    # remove leaf data and set root
+    for node in tree:
+        if "leaves" in node.data:
+            del node.data["leaves"]
+    
+            
+
+def ensure_binary_tree(tree):
+    """
+    Arbitrarly expand multifurcating nodes
+    """
+
+    # first tree just rerooting root branch
+    if len(tree.root.children) > 2:
+        treelib.reroot(tree, tree.root.children[0].name, newCopy=False)
+    
+    multibranches = [node for node in tree
+                     if len(node.children) > 2]
+
+    for node in multibranches:
+        children = list(node.children)
+        
+        # remove children
+        for child in children:
+            tree.remove(child)
+        
+        # add back in binary
+        while len(children) > 2:
+            left = children.pop()
+            right = children.pop()
+            newnode = treelib.TreeNode(tree.new_name())
+            newnode.data['boot'] = 0
+            tree.add_child(newnode, left)
+            tree.add_child(newnode, right)
+            children.append(newnode)
+        
+        # add last two to original node
+        tree.add_child(node, children.pop())
+        tree.add_child(node, children.pop())
+
+
+
+#=============================================================================
 # file functions
 
 def phylofile(famdir, famid, ext):
-    """Creates a filename using my gene family format
+    """
+    Creates a filename using my gene family format
 
     famdir/famid/famid.ext
     """
@@ -2104,7 +2243,7 @@ def phylofile(famdir, famid, ext):
 def view_tree(tree, options = "-t 1"):
     tmpfile = util.tempfile(".", "vistree", ".tree")
     tree.write(tmpfile)
-    os.system("vistree.py -n %s %s" % (tmpfile, options))
+    os.system("vistree -n %s %s" % (tmpfile, options))
     os.remove(tmpfile)
 viewTree = view_tree
 
@@ -2315,5 +2454,96 @@ def getGaplessDistMatrix(aln):
     os.remove(outfile)
 
     return distmat
+
+
+#=============================================================================
+# old split code
+
+def find_all_branch_splits(network, leaves):
+    # find vertice and edge visit history
+    start = network.keys()[0]
+
+    openset = [start]
+    closedset = {}
+    
+    vhistory = []
+    ehistory = []
+    elookup = util.Dict(1, [])
+    
+    
+    while len(openset) > 0:
+        vertex = openset.pop()
+        
+        vhistory.append(vertex)
+        
+        if len(vhistory) > 1:
+            edge = tuple(util.sort(vhistory[-2:]))        
+            ehistory.append(edge)
+            elookup[edge].append(len(ehistory) - 1)
+        
+        # skip closed vertices
+        if vertex in closedset:
+            continue
+        
+        for v in network[vertex].keys():
+            if v not in closedset:
+                openset.append(vertex)            
+                openset.append(v)
+        
+
+        # close new vertex
+        closedset[vertex] = 1
+    
+    
+    # use histories to define half each split
+    splits = {}
+    for edge in elookup:
+        set1 = {}
+        
+        start, end = elookup[edge]
+        for i in range(start+1, end+1):
+            if vhistory[i] in leaves:
+                set1[vhistory[i]] = 1
+        
+        # fill in other half of splits using complement
+        set2 = {}
+        for v in leaves:
+            if v not in set1:
+                set2[v] = 1
+        
+        if edge[0] == vhistory[start]:
+            splits[edge] = [set2, set1]
+        else:
+            splits[edge] = [set1, set2]
+        
+    
+    return splits
+
+
+def find_branch_splits(tree):
+    splits = find_all_branch_splits(treelib.tree2graph(tree),
+                                    tree.leaf_names())
+    splits2 = {}
+    
+    for edge, sets in splits.iteritems():
+        # skip external edges
+        if len(sets[0]) == 1 or len(sets[1]) == 1:
+            continue
+        
+        s = tuple(sorted([tuple(sorted(i.keys())) for i in sets]))
+        splits2[edge] = s
+    
+    # if tree is rooted, remove duplicate edge
+    if treelib.is_rooted(tree):
+        edge1 = tuple(sorted([tree.root.name, tree.root.children[0].name]))
+        edge2 = tuple(sorted([tree.root.name, tree.root.children[1].name]))
+        if edge1 > edge2:
+            edge1, edge2 = edge2, edge1
+        if edge1 in splits2 and edge2 in splits2:
+            del splits2[edge1]
+    
+    return splits2
+
+
 
 '''
