@@ -58,7 +58,8 @@ SCRIPTS =  bin/spimap-prep-rates \
            bin/spimap-train-rates \
            bin/spimap-prep-duploss \
            bin/spimap-train-duploss \
-           bin/spimap-sim
+           bin/spimap-sim \
+           bin/viewtree
 BINARIES = $(SPIMAP_PROG) $(SCRIPTS)
 
 SPIDIR_SRC = \
