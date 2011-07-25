@@ -10,13 +10,13 @@
 #=============================================================================
 # python libs
 import sys, time, os, random, math, copy, optparse
-from os.path import realpath, dirname, join
+from os.path import realpath, abspath, dirname, join
 
 # spidir libs
 try:
     import spidir
 except:
-    sys.path.append(join(realpath(dirname(dirname(__file__))), "python"))
+    sys.path.append(join(realpath(dirname(dirname(abspath(__file__)))), "python"))
     import spidir
 
 # rasmus libs

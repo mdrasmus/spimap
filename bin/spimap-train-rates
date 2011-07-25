@@ -9,12 +9,12 @@
 #=============================================================================
 # imports
 import os, sys, optparse
-from os.path import realpath, dirname, join
+from os.path import realpath, abspath, dirname, join
 
 try:
     import spidir
 except:
-    sys.path.append(join(realpath(dirname(dirname(__file__))), "python"))
+    sys.path.append(join(realpath(dirname(dirname(abspath(__file__)))), "python"))
     import spidir
 
 from rasmus import treelib, util, stats
