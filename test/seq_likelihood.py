@@ -1,13 +1,12 @@
 """
 
-    SPIDIR
+    SPIMAP
 
     Test sequence likelihood functions
 
 """
 
 import sys, unittest, ctypes
-
 
 sys.path.append("python")
 import spidir
@@ -19,34 +18,51 @@ from rasmus.common import *
 rplot_set_viewer("display")
 
 
-class TestSeqLikelihood (unittest.TestCase):
+
+class Likelihood (unittest.TestCase):
 
     def setUp(self):
         pass        
+
+    def test1(self):
+
+        # (0, 1):2
+        # P(x_0,x_1|t) = \sum_{x_2} P(x_0|x_2,t_0) * P(x_1|x_2,t_1) * P(x_2)
+        # P(x_0|x_1,t) = P(x_0,x_1|t) / P(x_1|t) = P(x_0,x_1|t) / P(x_1)
+
+        for t in frange(.1, 2.0, .1):
+            bgfreq = [.25, .25, .25, .25]
+            kappa = 1.0
+            tree = treelib.parse_newick("(a:%f,b:%f)" % (t*.5, t*.5))
+            align = {"a": "C",
+                     "b": "T"}
+
+            l = spidir.calc_seq_likelihood_hky(tree, align, bgfreq, kappa) \
+                - log(.25)
+            mat = spidir.make_hky_matrix(bgfreq, kappa, t)
+            l2 = log(mat[0][1])
+
+            print l, l2
+            fequal(l, l2)
         
 
     def test_calc_hky_seq_likelihood(self):
 
         bgfreq = [.258,.267,.266,.209]
         kappa = 1.59
-        tree = treelib.parseNewick("((A:.1,B:.1):.1,((C:.1,D:.1):.2,E:.3):.1);")
+        tree = treelib.parse_newick("((A:.1,B:.1):.1,((C:.1,D:.1):.2,E:.3):.1);")
         align = {"A": "CGCAGACAACTCCCCCGACCACACATAGTACGAAATCCTCAGCCGCTGCCGACTCCGACGCGCGGACTGTCCGGGTTCAGCGAGGCTTAAGAGAACGGCC",
                  "B": "CCCAAACAACTCCCCCGACCAGACATAGTACGAGATCCTCAGCCACTGGCGACTCGGACGCGCAGAGTGTCCCGCTTAAGCGAGGCTGCAGAGAACGGCC",
                  "C": "GGCCAGCAATTCCTCCGACCACGCATAGTACGAGATCGTCTGCCTCCTGCGAATCGGACGCGCAGAGTGTTCCGGTTAAGGGAGACTTCAGAGACCTGGC",
                  "D": "CGCTAACAATTCCCCCGACCACACTGAGTACGAGATACTCGGACTCCGGCGATCTCTACTCGCAGAGAGTCCCACTTAAGCGAGACTGACGAGCACGGGC",
                  "E": "ATTCTTCCACACCTGCGTGTTCGTCACGTATCAAATGCGGAGCCCACGTCCAATGGCACACGAACAGTCGGCCACGGAATCGCAGACTCGTTGACCAACG"}
 
-        drawTree(tree)
+        draw_tree(tree)
 
-        l = spidir.calc_seq_likelihood_hky(tree,
-                                           mget(align, tree.leafNames()),
-                                           bgfreq, kappa)
+        l = spidir.calc_seq_likelihood_hky(tree, align, bgfreq, kappa)
+        l2 = spidir.find_ml_branch_lengths_hky(tree, align, bgfreq, kappa)
 
-        l2 = spidir.find_ml_branch_lengths_hky(tree,
-                                              mget(align, tree.leafNames()),
-                                              bgfreq, kappa)
-
-        drawTree(tree)
+        draw_tree(tree)
         
         print "log lk", l, l2
         self.assert_(l2 > l)
@@ -323,7 +339,10 @@ class TestSeqLikelihood (unittest.TestCase):
         rp.lines(x, y2, t="l", col="red")
         rplot_end(True)
 
+
+
+
 if __name__ == "__main__":
-    unittest.main(testRunner=TestRunner())
+    unittest.main()
 
 

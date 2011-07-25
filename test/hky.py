@@ -19,7 +19,7 @@ from rasmus.common import *
 rplot_set_viewer("display")
 
 
-class TestHKY (unittest.TestCase):
+class HKY (unittest.TestCase):
     
     def test_hky(self):
         """general test"""
@@ -82,7 +82,7 @@ class TestHKY (unittest.TestCase):
         rplot_end(True)
 
 
-    def test_JC(self):
+    def test_jc(self):
         """test equivalence to JC"""
         
         bgfreq = [.25, .25, .25, .25]
@@ -108,4 +108,4 @@ class TestHKY (unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main(testRunner=TestRunner())
+    unittest.main()
