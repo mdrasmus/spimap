@@ -54,7 +54,7 @@ h3, h4, h5 {
 
 .code
 {
-  font-family: "Courier New", Courier, monospace;
+  font-family: monospace;
   border: #ccc solid 1px;
   background-color: #eef;
   padding:5px;

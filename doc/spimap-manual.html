@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>SPIMAP documentation</title>
-  <link rel="stylesheet" href="spimap-manual.css">
+  <link type="text/css" rel="stylesheet" href="spimap-manual.css">
   <script type="text/javascript" src="jquery.js"></script>
   <script type="text/javascript" src="ref.js"></script>
 </head>
@@ -24,7 +24,7 @@ Documentation for the SPIMAP software package
 Updated: Dec 14, 2011
 </h2>
 
-<b>Author:</b> Matthew D. Rasmussen (<a href="http://mattrasmus.com">mattrasmus.com</a>, <a href="mailto:rasmus@alum.mit.edu">rasmus@alum.mit.edu</a>, <a href="mailto:matt.rasmus@gmail.com">matt.rasmus@gmail.com</a>)<br/>
+<b>Author:</b> Matthew D. Rasmussen (<a href="http://mattrasmus.com">mattrasmus.com</a>, <a href="mailto:rasmus@alum.mit.edu">rasmus@alum.mit.edu</a>, <a href="mailto:matt.rasmus@gmail.com">matt.rasmus@gmail.com</a>)<br>
 <b>Software website:</b> <a href="http://compbio.mit.edu/spimap">http://compbio.mit.edu/spimap</a>
 
 <br><br>
@@ -56,9 +56,9 @@ updated with more information about the SPIMAP software package.
 <h2>Programs</h2>
 
 
-<a name="sec-prog-spimap" href="#sec-prog-spimap">
+<a name="sec-prog-spimap" href="#sec-prog-spimap"></a>
 <h3>spimap</h3>
-</a>
+
 
 <p>
 The main SPIMAP algorithm is implemented in the <tt>spimap</tt> program.
@@ -90,10 +90,11 @@ program, which can estimate these parameters.
 
 <p>
 The <a href="#fig-pipeline">figure below</a> illustrates a
-computational pipeline for how the three programs <tt>spimap</tt>, <tt>
-spimap-train-duploss</tt>, and <tt>spimap-train-rates</tt> work together.
-Additionally, this package also includes several other helper programs
-that can prepare data sets for training (see 
+computational pipeline for how the three programs <tt>spimap</tt>, 
+<a href="#sec-prog-spimap-train-duploss"><tt>spimap-train-duploss</tt></a>,
+and <a href="#sec-prog-spimap-train-rates"><tt>spimap-train-rates</tt></a>
+work together.  Additionally, this package also includes several other
+helper programs that can prepare data sets for training (see
 <a href="#sec-prog-spimap-prep-duploss"><tt>spimap-prep-duploss</tt></a>
  and <a href="#sec-prog-spimap-prep-rates"><tt>spimap-prep-rates</tt></a>).
 </p>
@@ -117,7 +118,7 @@ that can prepare data sets for training (see
  the known species tree in order to infer orthologs, paralogs, and
  gene duplications and loss events, which are the pipeline outputs
  (orange box).
-<br>(b) Our phylogenomic pipeline follows similar steps, except that
+<br><br>(b) Our phylogenomic pipeline follows similar steps, except that
  SPIMAP includes a model parameter estimation step (dashed light green
  box).  Using per-species gene counts in the gene clusters,
  the <a href="#sec-prog-spimap-train-duploss"><tt>spimap-train-duploss</tt></a>
@@ -206,8 +207,8 @@ file "&lt;output filename prefix&gt;.recon" written in the
 </div>
 
 <p>
-Use this argument to specify the transition/transversion ratio $\kappa$
-for the HKY sequence model.  By default <tt>kappa</tt> will be estimated 
+Use this argument to specify the transition/transversion ratio &kappa;
+for the HKY sequence model.  By default &kappa; will be estimated 
 from the alignment.
 </p>
 
@@ -317,45 +318,45 @@ When given, SPIMAP will display help information.
 
 
 <!-- ====================================================================== -->
-<a name="sec-prog-spimap-prep-duploss">
+<a name="sec-prog-spimap-prep-duploss"></a>
 <h3>spimap-prep-duploss</h3>
-</a>
+
 
 XXX
 
 <!-- ====================================================================== -->
-<a name="sec-prog-spimap-train-duploss">
+<a name="sec-prog-spimap-train-duploss"></a>
 <h3>spimap-train-duploss</h3>
-</a>
+
 
 XXX
 
 <!-- ====================================================================== -->
-<a name="sec-prog-spimap-prep-rates">
+<a name="sec-prog-spimap-prep-rates"></a>
 <h3>spimap-prep-rates</h3>
-</a>
+
 
 XXX
 
 <!-- ====================================================================== -->
-<a name="sec-prog-spimap-train-rates">
+<a name="sec-prog-spimap-train-rates"></a>
 <h3>spimap-train-rates</h3>
-</a>
+
 
 XXX
 
 <!-- ====================================================================== -->
-<a name="sec-prog-spimap-sim">
+<a name="sec-prog-spimap-sim"></a>
 <h3>spimap-sim</h3>
-</a>
+
 
 XXX
 
 
 <!-- ====================================================================== -->
-<a name="sec:prepare">
+<a name="sec:prepare"></a>
 <h2>Preparing your data set</h2>
-</a>
+
 
 <p>
 <b>Restrictions on gene IDs and species IDs.</b>  Due to the
@@ -394,9 +395,9 @@ species mapping file (*.smap)</a> easier.
 <h2>File formats</h2>
 
 <!-- ====================================================================== -->
-<a name="sec-file-align">
+<a name="sec-file-align"></a>
 <h3>Sequence alignment format (*.align)</h3>
-</a>
+
 
 <p>
 SPIMAP uses the <a href="http://en.wikipedia.org/wiki/FASTA_format">
@@ -441,9 +442,9 @@ GACACTGTCCTGCATCTGTTGCCGTTGCAGACATTCCTGATTTC------------GATCCA------------------
 </div>
 
 <!-- ====================================================================== -->
-<a name="sec-file-stree">
+<a name="sec-file-stree"></a>
 <h3>Species tree file format (*.stree)</h3>
-</a>
+
 
 <p>
 Species trees should be specified using the 
@@ -538,9 +539,9 @@ If ancestral nodes are named, they will be used in the output of the
 
 
 <!-- ====================================================================== -->
-<a name="sec-file-smap">
+<a name="sec-file-smap"></a>
 <h3>Gene to species name mapping file format (*.smap)</h3>
-</a>
+
 
 <p>
 SPIMAP uses a special file format (*.smap) to specify which
@@ -606,9 +607,9 @@ above</a>.
 </div>
 
 <!-- ====================================================================== -->
-<a name="sec-file-recon">
+<a name="sec-file-recon"></a>
 <h3>Reconciliation file format (*.recon)</h3>
-</a>
+
 
 <p>
 When SPIMAP's "-r" option is used, the reconciliation found for the
@@ -692,9 +693,9 @@ tree).
 
 
 <!-- ====================================================================== -->
-<a name="sec-file-params">
+<a name="sec-file-params"></a>
 <h3>SPIMAP model parameters file format (*.params)</h3>
-</a>
+
 
 <p>
 SPIMAP has several parameters for its substitution rates model.
