@@ -46,7 +46,7 @@ Molecular Biology and Evolution. 2010. doi: 10.1093/molbev/msq189</a>.
 <h2>Introduction</h2>
 
 <p>
-This documention is currently under development and will be regularly 
+This documentation is currently under development and will be regularly 
 updated with more information about the SPIMAP software package.
 </p>
 
@@ -132,9 +132,6 @@ helper programs that can prepare data sets for training (see
 </div>
 </div>
 
-
-
-<h3>spimap arguments</h3>
 
 <h4>Main arguments</h4>
 
@@ -372,7 +369,7 @@ phylogenetic software.  The safest IDs follow these restrictions:
 
 <p>
 Space characters are discouraged from gene IDs and species IDs since
-they will probably cause problems with other bioinfomatic software
+they will probably cause problems with other bioinformatic software
 that you may use (although SPIMAP can handle spaces).  Characters
 such as parentheses "(" ")" and colons ":" are not allowed
 because the <a href="#sec-file-stree">newick file format</a> uses these
@@ -724,8 +721,7 @@ two fields are interpreted as floating point values
 &alpha;<sub>i</sub> and &beta;<sub>i</sub>, which are the two
 parameters, shape and scale, of the gamma distributed species-specific
 rate.  Each branch is indicated by its more recent node.  Ancestral
-nodes are indicated by an integer, where are assigned in pretraversal
-order.
+nodes are indicated by integers according to preorder traversal.
 </p>
 
 <a name="fig-params"></a>
