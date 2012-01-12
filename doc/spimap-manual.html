@@ -19,7 +19,7 @@ Documentation for the SPIMAP software package
 </h2>
 
 <h3>
-Updated: Dec 14, 2011
+Updated: Dec 22, 2011
 </h2>
 
 <b>Author:</b> Matthew D. Rasmussen (<a href="http://mattrasmus.com">mattrasmus.com</a>, <a href="mailto:rasmus@alum.mit.edu">rasmus@alum.mit.edu</a>, <a href="mailto:matt.rasmus@gmail.com">matt.rasmus@gmail.com</a>)<br>
@@ -46,8 +46,55 @@ Molecular Biology and Evolution. 2010. doi: 10.1093/molbev/msq189</a>.
 <h2>Introduction</h2>
 
 <p>
-This documention is currently under development and will be regularly 
-updated with more information about the SPIMAP software package.
+The SPIMAP software package contains several programs reconstructing gene
+trees and inferring their gene duplications and losses.  The concepts
+and algorithms behind the main
+program, <a href="#sec-prog-spimap"><tt>spimap</tt></a>,
+are presented in our <a href="#cite-Rasmussen2010">SPIMAP paper</a>.
+This documentation describes how to use each of
+the <a href="#sec-prog">programs</a> in the software package and defines
+the various <a href="#sec-file">file formats</a> that are used.
+</p>
+
+<p>
+For an example of how to run these programs see
+the <a href="../examples/">examples</a> directory
+(e.g. <a href="../examples/analyze-fungi.sh">examples/analyze-fungi.sh</a>).
+</p>
+
+
+<h3>Definitions</h3>
+
+<a name="fig-family"></a>
+<div class="figure">
+<img src="figures/family.png">
+
+<div class="figcaption">
+<span class="figtitle">Figure: Example gene family with a gene duplication
+(star) and a gene loss (red "X").</span>  The gene tree (black tree) can be
+thought of as evolving "inside" of the specie stree (blue tree).
+</div>
+</div>
+
+
+<ul>
+  <li>A <b>gene family</b> consists of all the genes that descend from
+    a single gene in the common ancestor of the species under
+    consideration. That is, all the genes in a single gene tree
+    (e.g. d1, m1, m2, r1, r2).</li>
+
+  <li>Two genes are <b>orthologs</b> if their most recent common
+    ancestor (MRCA) is a speciation node (white circle). For example,
+    m1 and r1 are orthologs.</li>
+
+  <li>Two genes are <b>paralogs</b> if their MRCA is a duplication
+  node (star). For example, m1 and m2 are paralogs.</li>
+</ul>
+
+<p>
+<em>Note: This documentation is currently under development and will
+be regularly updated with more information about the SPIMAP software
+package.</em>
 </p>
 
 <!-- ===================================================================== -->
@@ -77,7 +124,7 @@ program to learn them from gene counts.
 
 <p>
 The second set of parameters needed by <tt>spimap</tt> are substitution
-rate parameters (&beta<sub>G</sub>, <b>&alpha;</b>, <b>&beta;</b>.
+rate parameters (&beta;<sub>G</sub>, <b>&alpha;</b>, <b>&beta;</b>.
 These are estimated from a small subset of trusted purely orthologous
 gene trees.  Once these parameters are learned, they can be used to
 aid in the reconstruction of more difficult paralogous families.  This
@@ -97,9 +144,8 @@ helper programs that can prepare data sets for training (see
  and <a href="#sec-prog-spimap-prep-rates"><tt>spimap-prep-rates</tt></a>).
 </p>
 
-
-<div class="figure">
 <a name="fig-pipeline"></a>
+<div class="figure">
 <img src="figures/pipeline.png">
 
 <div class="figcaption">
@@ -128,13 +174,10 @@ helper programs that can prepare data sets for training (see
  <b>&alpha;</b>, <b>&beta;</b>). These learned evolutionary parameters are
  then used by the <a href="#sec-prog-spimap"><tt>spimap</tt></a> program  to
  perform gene tree building and reconciliation simultaneously (dark
- green box). </span>
+ green box).
 </div>
 </div>
 
-
-
-<h3>spimap arguments</h3>
 
 <h4>Main arguments</h4>
 
@@ -372,7 +415,7 @@ phylogenetic software.  The safest IDs follow these restrictions:
 
 <p>
 Space characters are discouraged from gene IDs and species IDs since
-they will probably cause problems with other bioinfomatic software
+they will probably cause problems with other bioinformatic software
 that you may use (although SPIMAP can handle spaces).  Characters
 such as parentheses "(" ")" and colons ":" are not allowed
 because the <a href="#sec-file-stree">newick file format</a> uses these
@@ -477,9 +520,9 @@ If ancestral nodes are named, they will be used in the output of the
 <a href="#sec-file-recon">reconciliation mapping</a>.
 </p>
 
+<a name="fig-stree"></a>
 <div class="figure">
 
-<a name="fig-stree"></a>
 <div class="code"><pre>
 (((((((scer:7.061760,
        spar:7.061760
@@ -724,8 +767,7 @@ two fields are interpreted as floating point values
 &alpha;<sub>i</sub> and &beta;<sub>i</sub>, which are the two
 parameters, shape and scale, of the gamma distributed species-specific
 rate.  Each branch is indicated by its more recent node.  Ancestral
-nodes are indicated by an integer, where are assigned in pretraversal
-order.
+nodes are indicated by integers according to preorder traversal.
 </p>
 
 <a name="fig-params"></a>
@@ -773,6 +815,16 @@ substitution rate model.
 </div>
 </div>
 
+
+<!-- ====================================================================== -->
+<h2>References</h2>
+
+<ul>
+  <li><a name="cite-Rasmussen2010"></a>Matthew D. Rasmussen, Manolis
+  Kellis. A Bayesian approach for fast and accurate gene tree
+  reconstruction.  Molecular Biology and Evolution. 2010.
+</li>
+</ul>
 
 
 </body>
