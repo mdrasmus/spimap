@@ -1,6 +1,6 @@
-SPIMAP (Spieces informed max a poseriori)
+SPIMAP (Species informed max a posteriori)
 http://compbio.mit.edu/spimap/
-Matthew Rasmussen
+Matthew D. Rasmussen
 
 =============================================================================
 ABOUT
