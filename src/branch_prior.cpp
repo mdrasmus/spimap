@@ -307,11 +307,11 @@ void getReconParams(Tree *tree, Node *node,
 	gs_beta[j] = (params->sp_beta[snode] / (generate * times[j]));
 
         // DEBUG
-        if (isinf(gs_beta[j])) {
-            printf("> %f %f %f\n", params->sp_beta[snode], 
-                   generate, times[j]);
-            assert(0);
-        }
+        //if (isinf(gs_beta[j])) {
+        //    printf("> %f %f %f\n", params->sp_beta[snode], 
+        //           generate, times[j]);
+        //    assert(0);
+        //}
     }
 }
 
