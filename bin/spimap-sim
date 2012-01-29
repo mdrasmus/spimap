@@ -46,7 +46,7 @@ o.add_option("-l", "--genelen", dest="genelen",
              metavar="<gene length in base pairs>",
              default=1000,
              type="int")
-o.add_option("--genelenprobs=", dest="genelenprobs",
+o.add_option("--genelenprobs", dest="genelenprobs",
              metavar="<gene length distribution>")
 
 o.add_option("-r", "--tsvratio", dest="tsvratio",
@@ -65,7 +65,7 @@ o.add_option("-M", "--maxsize", dest="maxsize",
 o.add_option("-D", "--duprate", dest="duprate", metavar="<duplication rate>",
              default=0.0000002,
              type="float")
-o.add_option("-L", "--lossrate=", dest="lossrate", metavar="<loss rate>",
+o.add_option("-L", "--lossrate", dest="lossrate", metavar="<loss rate>",
              default=0.0000001,
              type="float")
 
@@ -97,7 +97,7 @@ o.add_option("-F", "--outseqext", dest="outseqext",
              metavar="<output sequence FASTA extension>",
              default=".fasta")
 o.add_option("-I", "--outinfoext", dest="outinfoext",
-             metavar="<output information extenstion>",
+             metavar="<output information extension>",
              default=".info.txt")
 o.add_option("--nodir", dest="nodir",
              action="store_true",
