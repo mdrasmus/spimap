@@ -1,0 +1,1305 @@
+<!doctype html> 
+<html>
+<head>
+  <title>SPIMAP documentation</title>
+  <link type="text/css" rel="stylesheet" href="manual.css">
+</head>
+
+<body>
+
+<!-- ====================================================================== -->
+<div class="titlepage">
+
+<h1>
+SPIMAP: Species Informed Maximum A Posteriori Gene Tree Reconstruction
+</h1>
+
+<h2>
+Documentation for the SPIMAP software package
+</h2>
+
+<h3>
+Updated: Dec 22, 2011
+</h2>
+
+<b>Author:</b> Matthew D. Rasmussen (<a href="http://mattrasmus.com">mattrasmus.com</a>, <a href="mailto:rasmus@alum.mit.edu">rasmus@alum.mit.edu</a>, <a href="mailto:matt.rasmus@gmail.com">matt.rasmus@gmail.com</a>)<br>
+<b>Software website:</b> <a href="http://compbio.mit.edu/spimap">http://compbio.mit.edu/spimap</a>
+
+<br><br>
+
+<b>citation:</b>
+<a href="http://dx.doi.org/10.1093/molbev/msq189">
+Matthew D. Rasmussen and Manolis Kellis.
+<i>A Bayesian Approach for Fast and Accurate Gene Tree Reconstruction</i>.
+Molecular Biology and Evolution. 2010. doi: 10.1093/molbev/msq189</a>.
+
+<br><br>
+
+<hr>
+
+<br><br>
+
+</div>
+
+
+<!-- ====================================================================== -->
+<h2>Introduction</h2>
+
+<p>
+The SPIMAP software package contains several programs reconstructing gene
+trees and inferring their gene duplications and losses.  The concepts
+and algorithms behind the main
+program, <a href="#sec-prog-spimap"><tt>spimap</tt></a>,
+are presented in our <a href="#cite-Rasmussen2010">SPIMAP paper</a>.
+This documentation describes how to use each of
+the <a href="#sec-prog">programs</a> in the software package and defines
+the various <a href="#sec-file">file formats</a> that are used.
+</p>
+
+<p>
+For an example of how to run these programs see
+the <a href="../examples/">examples</a> directory
+(e.g. <a href="../examples/analyze-fungi.sh">examples/analyze-fungi.sh</a>).
+</p>
+
+
+<h3>Definitions</h3>
+
+<a name="fig-family"></a>
+<div class="figure">
+<img src="figures/family.png">
+
+<div class="figcaption">
+<span class="figtitle">Figure: Example gene family with a gene duplication
+(star) and a gene loss (red "X").</span>  The gene tree (black tree) can be
+thought of as evolving "inside" of the specie stree (blue tree).
+</div>
+</div>
+
+
+<ul>
+  <li>A <b>gene family</b> consists of all the genes that descend from
+    a single gene in the common ancestor of the species under
+    consideration. That is, all the genes in a single gene tree
+    (e.g. d1, m1, m2, r1, r2).</li>
+
+  <li>Two genes are <b>orthologs</b> if their most recent common
+    ancestor (MRCA) is a speciation node (white circle). For example,
+    m1 and r1 are orthologs.</li>
+
+  <li>Two genes are <b>paralogs</b> if their MRCA is a duplication
+  node (star). For example, m1 and m2 are paralogs.</li>
+</ul>
+
+<p>
+<em>Note: This documentation is currently under development and will
+be regularly updated with more information about the SPIMAP software
+package.</em>
+</p>
+
+<!-- ===================================================================== -->
+<h2>Programs</h2>
+
+
+<a name="sec-prog-spimap" href="#sec-prog-spimap"></a>
+<h3>spimap</h3>
+
+
+<p>
+The main SPIMAP algorithm is implemented in the <tt>spimap</tt> program.
+The purpose of this program is reconstruct gene trees from DNA alignments.
+Accurately reconstructing gene trees is a challenging problem.  SPIMAP's
+strategy is to more accurately reconstruct gene trees by using additional 
+information learned from the species tree and the genome.  
+</p>
+
+<p>
+This genome-wide information is captured in two sets of parameters 
+that the <tt>spimap</tt> program needs.  The first set are gene duplication and
+loss rates (&lambda; and &mu;).  You can either specify these rates 
+based on previously performed studies, or you can use the
+<a href="#sec-prog-spimap-train-duploss"><tt>spimap-train-duploss</tt></a>
+program to learn them from gene counts.
+</p>
+
+<p>
+The second set of parameters needed by <tt>spimap</tt> are substitution
+rate parameters (&beta;<sub>G</sub>, <b>&alpha;</b>, <b>&beta;</b>).
+These are estimated from a small subset of trusted purely orthologous
+gene trees.  Once these parameters are learned, they can be used to
+aid in the reconstruction of more difficult paralogous families.  Tthe 
+<a href="#sec-prog-spimap-train-rates"><tt>spimap-train-rates</tt></a>
+program can be used to estimate these parameters.
+</p>
+
+<p>
+The <a href="#fig-pipeline">figure below</a> illustrates a
+computational pipeline for how the three programs <tt>spimap</tt>, 
+<a href="#sec-prog-spimap-train-duploss"><tt>spimap-train-duploss</tt></a>,
+and <a href="#sec-prog-spimap-train-rates"><tt>spimap-train-rates</tt></a>
+work together.  Additionally, this package also includes several other
+helper programs that can prepare data sets for training (see
+<a href="#sec-prog-spimap-prep-duploss"><tt>spimap-prep-duploss</tt></a>
+ and <a href="#sec-prog-spimap-prep-rates"><tt>spimap-prep-rates</tt></a>).
+</p>
+
+<a name="fig-pipeline"></a>
+<div class="figure">
+<img src="figures/pipeline.png">
+
+<div class="figcaption">
+<span class="figtitle">Figure: Computational pipeline for the SPIMAP software package.</span>
+ (a) The typical phylogenomic pipeline consists of several common
+ steps, although particular implementations may vary.  The pipeline
+ input is the set of all gene sequences across several species and the
+ known species tree relating the species (blue boxes).  Gene sequences
+ are then compared across species and clustered according to their
+ sequence similarity, resulting in a set of homologous gene families.
+ A multiple sequence alignment is then constructed for each gene
+ family, followed by phylogenetic reconstruction of each aligned
+ family to produce gene trees.  Each gene tree is then reconciled to
+ the known species tree in order to infer orthologs, paralogs, and
+ gene duplications and loss events, which are the pipeline outputs
+ (orange box).
+<br><br>(b) Our phylogenomic pipeline follows similar steps, except that
+ SPIMAP includes a model parameter estimation step (dashed light green
+ box).  Using per-species gene counts in the gene clusters,
+ the <a href="#sec-prog-spimap-train-duploss"><tt>spimap-train-duploss</tt></a>
+ program learns duplication and loss rates (&lambda; and &mu;).
+ Using a subset of trusted orthologous alignments supported by synteny
+ or other information and congruent to the species tree, the 
+ <a href="#sec-prog-spimap-train-rates"><tt>spimap-train-rates</tt></a> program 
+ learns gene- and species-specific substitution rates (&beta;<sub>G</sub>,
+ <b>&alpha;</b>, <b>&beta;</b>). These learned evolutionary parameters are
+ then used by the <a href="#sec-prog-spimap"><tt>spimap</tt></a> program  to
+ perform gene tree building and reconciliation simultaneously (dark
+ green box).
+</div>
+</div>
+
+
+<h4>Main arguments</h4>
+
+<div class="code">
+-a,--align  &lt;alignment fasta&gt;
+</div>
+
+<p>
+This specifies the DNA alignment to use
+for reconstructing a gene tree.  The file should be in 
+<a href="#sec-file-align">FASTA format</a>.
+</p>
+
+<div class="code">
+-S,--smap  &lt;species map&gt;
+</div>
+
+<p>
+This specifies which species each gene belongs using the file  
+<tt>species map</tt> written in
+in <a href="#sec-file-smap">*.smap format</a>.
+</p>
+
+<div class="code">
+ -s,--stree  &lt;species tree&gt;
+</div>
+
+<p>
+This specifies a known species tree with the file
+<tt>species tree</tt> written
+in <a href="#sec-file-stree">newick format</a>.
+</p>
+
+<div class="code">
+-p,--param  &lt;params file&gt;
+</div>
+
+<p>
+This specifies the SPIMAP substitution rate parameters
+(&beta;<sub>G</sub>, <b>&alpha;</b>, <b>&beta;</b>) written in the 
+<a href="#sec-file-params">*.param file format</a>.  
+This file is generated by 
+<a href="#sec-prog-spimap-train-rates"><tt>spimap-train-rates</tt></a>.
+Optionally, this argument can be skipped, in which case a gene- and 
+species-specific rates model will not be used to reconstruct the gene tree.
+</p>
+
+<div class="code">
+-o,--output &lt;output filename prefix&gt;
+</div>
+
+<p>
+This specifies a prefix for all of the output files.  By 
+default the prefix is "spimap" (e.g. "spimap.tree", "spimap.recon", 
+"spimap.log").  The prefix can also include a different output directory.
+</p>
+
+<div class="code">
+ -r,--recon
+</div>
+
+<p>
+With this argument SPIMAP will output the reconciliation found to the 
+file "&lt;output filename prefix&gt;.recon" written in the 
+<a href="#sec-file-recon">*.recon format</a>.
+</p>
+
+
+<h4>Sequence evolution model arguments</h4>
+
+<div class="code">
+ -k,--kappa  &lt;transition/transversion ratio&gt;
+</div>
+
+<p>
+This specifies the transition/transversion ratio &kappa;
+for the HKY sequence model.  By default &kappa; will be estimated 
+from the alignment.
+</p>
+
+<div class="code">
+ -f,--bgfreq  &lt;A freq&gt;,&lt;C ferq&gt;,&lt;G freq&gt;,&lt;T freq&gt;
+</div>
+
+<p>
+This specifies the background base frequency for the 
+HKY sequence model.  By default these frequencies are estimated from the
+alignment.
+</p>
+
+
+<h4>Dup/loss evolution model arguments</h4>
+
+<div class="code">
+ -D,--duprate  &lt;duplication rate&gt;
+</div>
+
+<p>
+This specifies the gene duplication rate.  Commonly, this should be 
+specified in units of duplications/gene/million years.  See 
+<a href="#sec-file-stree">species tree section</a> for a discussion of
+the unit of time.
+See <a href="#sec-prog-spimap-train-duploss">spimap-train-duploss</a> 
+for a way to estimate this parameter from data.
+</p>
+
+<div class="code">
+ -L,--lossrate  &lt;loss rate&gt;
+</div>
+
+<p>
+This specifies the gene loss rate.  Commonly, this should be 
+specified in units of loss/gene/million years.  See 
+<a href="#sec-file-stree">species tree section</a> for a discussion of
+the unit of time.
+See <a href="#sec-prog-spimap-train-duploss">spimap-train-duploss</a> 
+for a way to estimate this parameter from data.
+</p>
+
+
+<h4>Search arguments</h4>
+
+<div class="code">
+ -i,--niter  &lt;number iterations&gt;
+</div>
+
+<p>
+This specifies the number of iterations SPIMAP should search for the 
+gene tree.
+</p>
+
+<div class="code">
+ --quickiter  &lt;quick iterations&gt;
+</div>
+
+<p>
+This specifies the number of subproposals (default=50) for each main 
+search iteration.  Choosing a number between 100-1000 usually increases
+search efficiency, therefore allowing one to use fewer main iterations 
+("-i").
+</p>
+
+<div class="code">
+ -b,--boot  &lt;number bootstraps&gt;
+</div>
+
+<p>
+Use this argument to perform bootstrapping.  The alignment will be resampled
+with replacement <tt>number bootstrap</tt> times and a gene tree will be 
+reconstructed for each sample.
+</p>
+
+<h4>Information arguments</h4>
+
+<div class="code">
+ -V,--verbose  &lt;verbosity level&gt;
+</div>
+
+<p>
+You can adjust the amount of logging/debugging information that SPIMAP
+displays by adjusting this argument (0=quiet, 1=low, 2=medium, 3=high)
+</p>
+
+<div class="code">
+ --log  &lt;log filename&gt;
+</div>
+
+<p>
+This specifies a different file for saving log information.
+Use "-" to display on stdout (standard output).
+</p>
+
+<div class="code">
+ -v,--version
+</div>
+
+<p>
+When given, SPIMAP will display version information.
+</p>
+
+<div class="code">
+ -h,--help
+</div>
+
+<p>
+When given, SPIMAP will display help information.
+</p>
+
+
+
+<!-- ====================================================================== -->
+<a name="sec-prog-spimap-prep-duploss"></a>
+<h3>spimap-prep-duploss</h3>
+
+<p>
+This program prepares a gene count matrix file for learning 
+gene duplication-loss rates.  It can produce this file using one of two
+methods:
+</p>
+
+<ol>
+  <li>If you have a series of FASTA files (one for each gene family),
+    you can pass their filenames one per line to the standard input
+    of <tt>spimap-prep-duploss</tt>.</li>
+
+  <li>If you have a gene partition file, you can
+    tell <tt>spimap-prep-duploss</tt> to count these genes
+    using <tt>--part</tt> option.</li>
+</ol>
+
+
+<div class="code">
+  -s,--stree=&lt;species tree newick file&gt;
+</div>
+
+<p>
+This specifies a known species tree with the file
+<tt>species tree</tt> written
+in <a href="#sec-file-stree">newick format</a>.
+</p>
+
+<div class="code">
+  -S,--smap=&lt;gene to species file&gt;
+</div>
+
+<p>
+This specifies which species each gene belongs using the file  
+<tt>species map</tt> written in
+in <a href="#sec-file-smap">*.smap format</a>.
+</p>
+
+<div class="code">
+  -c,--countmatrix=&lt;gene count matrix output file&gt;
+</div>
+
+<p>
+This specifies the output filename for the total gene counts per
+species.  The format is a tab delimited matrix, where each row
+represents a gene family and each column represents a species.  Each
+cell indicates the number of genes in that family and species.
+</p>
+
+<div class="code">
+  -p,--part=&lt;gene partition file&gt;
+</div>
+
+<p>
+If input method 2 is used (see above), this specifies a gene partition file.
+The format is a tab delimited.  Each line represents a single family, and 
+the line should contain each gene that appears in that family.  Genes
+can be listed in any order.  
+</p>
+
+<div class="code">
+  -h, --help
+</div>
+
+<p>
+When given, shows this help message.
+</p>
+
+
+
+<!-- ====================================================================== -->
+<a name="sec-prog-spimap-train-duploss"></a>
+<h3>spimap-train-duploss</h3>
+
+<p>
+This program learns gene duplication-loss rates from a gene counts matrix 
+file.
+</p>
+
+<div class="code">
+  -s,--stree=&lt;species tree newick file&gt;
+</div>
+
+<p>
+This specifies a known species tree with the file
+<tt>species tree</tt> written
+in <a href="#sec-file-stree">newick format</a>.
+</p>
+
+<div class="code">
+  -S,--smap=&lt;gene to species file&gt;
+</div>
+
+<p>
+This specifies which species each gene belongs using the file  
+<tt>species map</tt> written in
+in <a href="#sec-file-smap">*.smap format</a>.
+</p>
+
+<div class="code">
+  -c,--countmatrix=&lt;gene count matrix output file&gt;
+</div>
+
+<p>
+This specifies the gene counts matrix file.
+See <a href="#sec-prog-spimap-prep-duploss">spimap-prep-duploss</a> 
+for details about this file format and how to generate it.
+</p>
+
+<div class="code">
+  --maxgene=&lt;maximum number of genes in ancestor&gt;
+</div>
+
+<p>
+This argument is optional and can be used to limit the amount of computation 
+performed.  Specifically, it specifies an upper bound on the number of 
+gene copies that could occur in any species and family.
+</p>
+
+<div class="code">
+  --maxiter=&lt;maximum number of ML iterations&gt;
+</div>
+
+<p>
+This argument is optional and can be used to limit the number of
+iterations used to find the duplication-loss rates.
+</p>
+
+<div class="code">
+  --dup=&lt;initial birth rate&gt;
+</div>
+
+<p>
+This argument is optional and can be used to specify an initial
+estimate of the duplication rate.
+</p>
+
+<div class="code">
+  --loss=&lt;initial death rate&gt;
+</div>
+
+<p>
+This argument is optional and can be used to specify an initial
+estimate of the loss rate.
+</p>
+
+<div class="code">
+  -h,--help
+</div>
+
+<p>
+When given, shows this help message.
+</p>
+
+
+<!-- ====================================================================== -->
+<a name="sec-prog-spimap-prep-rates"></a>
+<h3>spimap-prep-rates</h3>
+
+<p>
+This program is used to prepare a data set for learning gene and
+species substitution rate parameters.  It takes as input a series of
+trusted gene trees from one-to-one orthologous gene families.  The branch
+lengths of the gene trees should have units of substitution/site.  The
+gene tree filenames should be given one per line on the standard input
+of this program.   
+</p>
+
+
+<div class="code">
+  -T,--tree=&lt;tree file extension&gt;
+</div>
+
+<p>
+This specifies the file extension of the input gene tree files.
+</p>
+
+<div class="code">
+  -A,--align=&lt;alignment file extension&gt;
+</div>
+
+<p>
+This specifies the file extension of the input alignment files.
+</p>
+
+<div class="code">
+  -s,--stree=&lt;species tree newick file&gt;
+</div>
+
+<p>
+This specifies a known species tree with the file
+<tt>species tree</tt> written
+in <a href="#sec-file-stree">newick format</a>.
+</p>
+
+<div class="code">
+  -S,--smap=&lt;gene to species file&gt;
+</div>
+
+<p>
+This specifies which species each gene belongs using the file  
+<tt>species map</tt> written in
+in <a href="#sec-file-smap">*.smap format</a>.
+</p>
+
+<div class="code">
+  -l,--lenmatrix=&lt;branch length matrix output file&gt;
+</div>
+
+<p>
+This specifies the output file for the branch length matrix.  This file
+is a tab delimited matrix.  Each row represents one family and each column
+represents one branch in the species tree.  Each cell represents the
+branch length for that family and species branch.
+</p>
+
+<div class="code">
+  -r,--reroot 
+</div>
+
+<p>
+If given, this specifies that gene trees need to be rooted to match the
+species tree before processing.
+</p>
+
+<div class="code">
+  -h,--help
+</div>
+
+<p>
+When given, shows this help message.
+</p>
+
+
+<!-- ====================================================================== -->
+<a name="sec-prog-spimap-train-rates"></a>
+<h3>spimap-train-rates</h3>
+
+<div class="code">
+  -s,--stree=&lt;species tree newick file&gt;
+</div>
+
+<p>
+This specifies a known species tree with the file
+<tt>species tree</tt> written
+in <a href="#sec-file-stree">newick format</a>.
+</p>
+
+<div class="code">
+  -l,--lenmatrix=&lt;branch length matrix output file&gt;
+</div>
+
+<p>
+This specifies the input branch length matrix.  See <a href="#sec-prog-spimap-prep-rates">spimap-prep-rates</a> for details about this file format and how to
+generate it.
+</p>
+
+<div class="code">
+  -p,--params=&lt;output parameters file&gt;
+</div>
+
+<p>
+This specifies the output file for writing the substitution rate parameters.
+</p>
+
+<div class="code">
+  -n,--niter=&lt;number of iterations&gt;
+</div>
+
+<p>
+This specifies the maximum number of iterations to run to find the
+substitution rate parameters.
+</p>
+
+<div class="code">
+  -r,--nrates=&lt;number of rate categories&gt;
+</div>
+
+<p>
+This optional parameter can be used to specify how many discrete segments to
+use when approximating the gene rate distribution (default: 20).
+</p>
+
+<div class="code">
+  -f,--filter=&lt;treelen percentile&gt;
+</div>
+
+<p>
+This optional parameter can be used to discard outlier trees with very 
+large branch lengths.
+</p>
+
+<div class="code">
+  -m,--mincount=&lt;minimum subst. count on a branch&gt;
+</div>
+
+<p>
+This optional parameter can be used to discard branches that have too few 
+substitutions.
+</p>
+
+<div class="code">
+  -h,--help
+</div>
+
+<p>
+When given, shows this help message.
+</p>
+
+
+<!-- ====================================================================== -->
+<a name="sec-prog-spimap-sim"></a>
+<h3>spimap-sim</h3>
+
+<p>
+This program implements SPIMAP's gene family model for simulating gene trees
+and DNA alignments.  This program is particular useful for creating data sets
+for evaluating gene tree reconstruction programs.
+</p>
+
+
+<div class="code">
+  -s,--stree=&lt;species tree newick file&gt;
+</div>
+
+<p>
+This specifies a known species tree with the file
+<tt>species tree</tt> written
+in <a href="#sec-file-stree">newick format</a>.
+</p>
+
+<div class="code">
+  -p,--params=&lt;params&gt;
+</div>
+
+<p>
+This specifies the substitution rate parameters that should be used for 
+simulation.
+</p>
+
+<div class="code">
+  -l,--genelen=&lt;gene length in base pairs&gt;
+</div>
+
+<p>
+This specifies the gene length to simulate.
+</p>
+
+<div class="code">
+  -r,--tsvratio=&lt;transition/transversion ratio&gt;
+</div>
+
+<p>
+This specifies the transition/transversion rate to use for sequence simulation.
+</p>
+
+<div class="code">
+  -b,--bgfreq=&lt;A&gt;,&lt;C&gt;,&lt;G&gt;,&lt;T&gt;
+</div>
+
+<p>
+This specifies the background base frequency to use for sequence simulation.
+</p>
+
+<div class="code">
+  -m,--minsize=&lt;min # of genes per tree&gt;
+</div>
+
+<p>
+If given, this specifies the minimum number of genes required for each 
+simulated gene family.
+</p>
+
+<div class="code">
+  -M,--maxsize=&lt;max # of genes per tree&gt;
+</div>
+
+<p>
+If given, this specifies the maximum number of genes required for each 
+simulated gene family.
+</p>
+
+<div class="code">
+  -D,--duprate=&lt;duplication rate&gt;
+</div>
+
+<p>
+This specifies the gene duplication rate to use for simulating each gene tree.
+</p>
+
+<div class="code">
+  -L,--lossrate=&lt;loss rate&gt;
+</div>
+
+<p>
+This specifies the gene loss rate to use for simulating each gene tree.
+</p>
+
+<div class="code">
+  -n,--ntrees=&lt;number of trees to produce&gt;
+</div>
+
+<p>
+This specifies how many gene trees and alignments to simulate.
+</p>
+
+<div class="code">
+  --start=&lt;starting number&gt;
+</div>
+
+<p>
+This option allows you to start simulating the Nth gene family where
+N=&lt;starting number&gt;.  
+</p>
+
+<div class="code">
+  --nospecrates         
+</div>
+
+<p>
+If given, species rates are not used.
+</p>
+
+<div class="code">
+  -O,--outtree=&lt;output directory&gt;
+</div>
+
+<p>
+This specifies the output directory for simulations.
+</p>
+
+<div class="code">
+  -T,--outtreeext=&lt;output tree extension&gt;
+</div>
+
+<p>
+This specifies the output file extension for gene tree files.
+</p>
+
+<div class="code">
+  -R,--outreconext=&lt;output recon extension&gt;
+</div>
+
+<p>
+This specifies the output file extension for reconciliation files.
+</p>
+
+<div class="code">
+  -A,--outalignext=&lt;output align extension&gt;
+</div>
+
+<p>
+This specifies the output file extension for alignment files.
+</p>
+
+<div class="code">
+  -F,--outseqext=&lt;output sequence FASTA extension&gt;
+</div>
+
+<p>
+This specifies the output file extension for FASTA files.
+</p>
+
+<div class="code">
+  -I,--outinfoext=&lt;output information extension&gt;
+</div>
+
+<p>
+This specifies the output file extension for simulation information files.
+</p>
+
+<div class="code">
+  --nodir               
+</div>
+
+<p>
+If given, gene family sub-directories are not created.
+</p>
+
+<div class="code">
+  --resume 
+</div>
+
+<p>
+If given, the simulation program will try to resume where it left off
+in simulating gene families.
+</p>
+
+<div class="code">
+  -h,--help
+</div>
+
+<p>
+When given, shows this help message.
+</p>
+
+
+
+<!-- ====================================================================== -->
+<a name="sec:prepare"></a>
+<h2>Preparing your data set</h2>
+
+
+<p>
+<b>Restrictions on gene IDs and species IDs.</b>  Due to the
+file formats that SPIMAP uses, there as several restrictions on what IDs
+are allowed.  Many of these restrictions are common for other similar
+phylogenetic software.  The safest IDs follow these restrictions:
+</p>
+
+<ol>
+<li>the first and last characters of the ID are <tt>a-z A-Z 0-9 _ - .</tt></li>
+<li>the middle characters can be <tt>a-z A-Z 0-9 _ - .</tt> or the space character <tt>' '</tt>.</li>
+<li>the ID should not be purely numerical characters 0-9</li>
+<li>the ID should be unique within a gene tree or within a species tree</li>
+</ol>
+
+<p>
+Space characters are discouraged from gene IDs and species IDs since
+they will probably cause problems with other bioinformatic software
+that you may use (although SPIMAP can handle spaces).  Characters
+such as parentheses "(" ")" and colons ":" are not allowed
+because the <a href="#sec-file-stree">newick file format</a> uses these
+characters for describing the structure of the tree.
+</p>
+
+<p>
+It is also easier to use gene IDs that have a prefix or suffix that indicates
+the species ID.  For example "human_HOXC5" is a human gene.  This is not
+a requirement, but it does make preparing a <a href="#sec-file-smap">gene to 
+species mapping file (*.smap)</a> easier.
+</p>
+
+
+
+
+<!-- ====================================================================== -->
+<h2>File formats</h2>
+
+<!-- ====================================================================== -->
+<a name="sec-file-align"></a>
+<h3>Sequence alignment format (*.align)</h3>
+
+
+<p>
+SPIMAP uses the <a href="http://en.wikipedia.org/wiki/FASTA_format">
+FASTA file format</a> for sequences
+alignments.  The file extension is not important and many different 
+extensions are in common use (*.fa, *.mfa, *.fasta, *.align).
+</p>
+
+<p>
+Each line starting with "&gt;" indicates a gene name
+(<a href="#code-align">see below</a>).  Note, the entire line after
+the "&gt;" is used as the gene name.  The gene's sequence is given on
+the following lines and it may be wrapped to any number of columns (or
+not wrapped at all).  Gaps in the alignment are represented with the
+"-" character.
+</p>
+
+<p>
+At this time (version 1.1), SPIMAP can only use DNA sequences.  The
+sequence can be in both upper case and lower case (SPIMAP ignores
+case) and degeneracy codes can be used ("NnRrYyWwSsKkMmBbDdHhVv"),
+however at this time SPIMAP treats all degeneracies as completely
+missing data ("N").  Gaps "-" are also treated as missing data.
+</p>
+
+<a name="code-align"></a>
+<div class="code">
+<pre>
+&gt;KLLA0C08239g
+ATGAGTCTCAAACGTGTAGTTGTCACTGGTCTTGGGGCCTACACGCCCCTTGGTTCTACAGTTTCAAAGTCTTGGGCAGG
+TTTGCTT---GCTGCTAAGCAATCACTAATACCCTTAGATGCTTTCTACAACAGAGAA---GACTTTGCAAAAGTGAAAA
+AGTTGGTCCCACTAGATACAGCAGTGAGTAGGTTACAT------------------------------------------
+&gt;ADL072C
+---ATGCATCCCCGAGTGGTCGTGACCGGCATTGGGTGCTATACTCCTCTGGGGCCGTCGCTAGCCCAGTCTTGGAAGGA
+GCTGTTG---CGAGGGACGAGCGGCCTTGTCAGGCTGCAAGATCTGGCAGAGTACGAGGGCGATTACAAACCACTGTCGA
+GGCTTATATCCGGTGATCTTCGAGTCGGGAAAGTTGGATTTGAG------------------------------------
+&gt;kwal_5828
+---ATGACTTCCAGAGTCGTTGTTACTGGGCTTGGTGCTATCACTCCACTTGGGAGGACTGTTTCCGAGTCATGGAGAGC
+TTTATTG---GCAGGCAAGTCCGGAATTCGTCCCATTCGCGATCTTCCC------------AATGCTAAAAGCTACGAAG
+GACACTGTCCTGCATCTGTTGCCGTTGCAGACATTCCTGATTTC------------GATCCA------------------
+</pre>
+</div>
+
+<!-- ====================================================================== -->
+<a name="sec-file-stree"></a>
+<h3>Species tree file format (*.stree)</h3>
+
+
+<p>
+Species trees should be specified using the 
+<a href="http://en.wikipedia.org/wiki/Newick_format">Newick file
+format</a>.  Beyond the newick format, SPIMAP has only a few
+additional requirements.  First, the species names given in the
+species tree should match those given in
+the <a href="#sec-file-smap">SMAP file</a>.  Second, the branch
+lengths of the species tree should be expressed in units of time
+(see <a href="#fig-stree">figure</a>).  Any unit of time can be used
+(e.g. millions of years, generations, relative units, etc).  The only
+requirement is that the duplication and loss rates are also expressed
+in compatible units.  Therefore, if branch lengths are in <em>
+millions of years</em>, the duplication rate (specified by <tt>spimap</tt>'s
+"-D" option) should be in units of duplications/gene/<em>million
+years</em>.
+</p>
+
+<p>
+<b>Naming ancestral nodes.</b>
+SPIMAP also supports naming ancestral nodes in the species tree using
+the newick format.  For example, the parental node of <tt>human</tt> and 
+<tt>chimp</tt> can be named <tt>primate</tt> using the following syntax:
+</p>
+
+<div class="code">
+((human:5,chimp:5)primate:70,mouse:75)mammal;
+</div>
+
+<p>
+If ancestral nodes are named, they will be used in the output of the 
+<a href="#sec-file-recon">reconciliation mapping</a>.
+</p>
+
+<a name="fig-stree"></a>
+<div class="figure">
+
+<div class="code"><pre>
+(((((((scer:7.061760,
+       spar:7.061760
+      )n7:4.999680,
+      smik:12.061440
+     )n6:5.970600,
+     sbay:18.032040
+    )n5:52.682400,
+    cgla:70.714260
+   )n4:7.220700,
+   scas:77.934960
+  )n3:23.181480,
+  (
+   (
+    agos:78.553260,
+    klac:78.553260
+   )n9:10.434960,
+   kwal:88.988220
+  )n8:12.128400
+ )n2:78.883560,
+ (
+  (
+   (
+    calb:41.275620,
+    ctro:41.275980
+   )n12:29.632860,
+   (
+    cpar:52.323120,
+    lelo:52.323120
+   )n13:18.585720
+  )n11:31.149540,
+  (
+   (
+    cgui:75.615840,
+    dhan:75.615840
+   )n15:14.006880,
+   clus:89.622720
+  )n14:12.435660
+ )n10:77.941620
+)n1;
+</pre>
+</div>
+
+<img src="figures/fungi-stree.png">
+
+<div class="figcaption">
+<span class="figtitle">Figure: Example *.stree file and corresponding
+ tree.</span>  This file (top) specifies the species tree (bottom)
+ using the newick file format.  Branch lengths should be expressed in
+ units of time (e.g. millions of years).  Ancestral nodes can also
+ optionally be named (the names "n1", "n2", etc are used in this
+ example).
+</div>
+</div>
+
+
+<!-- ====================================================================== -->
+<a name="sec-file-smap"></a>
+<h3>Gene to species name mapping file format (*.smap)</h3>
+
+
+<p>
+SPIMAP uses a special file format (*.smap) to specify which
+genes belong to which species. Each line contains two tab-delimited
+fields: 
+</p>
+
+<ol>
+  <li> pattern matching a gene ID</li>
+  <li> species ID</li>
+</ol>
+
+<p>
+Only 3 types of gene ID patterns are supported.  The pattern can
+either be an exact matching string, a prefix (denoted <tt>"text*"</tt>),
+or a suffix (denoted <tt>"*text"</tt>).  The <tt>"*"</tt> is the only special
+wildcard character.
+</p>
+
+<p>
+The species ID should be the same as those used in the species tree.
+All patterns and IDs are case-sensitive.
+</p>
+
+<p>
+When mapping a gene ID to a species ID all exact matches are processed
+first.  If no exact match is found, the patterns are then processed in
+the same order as they appear in the file until a match is found. For
+example in the SMAP file given <a href="#fig-smap">below</a>, the gene
+ID <tt>"YALI123"</tt> should match the species <tt>"ylip"</tt>,
+instead of <tt>"scer"</tt>, because the pattern <tt>"YALI*"</tt> occurs before 
+<tt>"Y*"</tt>.
+</p>
+
+<a name="fig-smap"></a>
+<div class="figure">
+
+<div class="code"><pre>
+A*      agos
+orf19*  calb
+CDUG_*  cdub
+CAGL*   cgla
+IPF_*   cgla
+CGUG_*  cgui
+sbay_*  sbay
+scas_*  scas
+smik_*  smik
+spar_*  spar
+SCP*    spom
+YALI*   ylip
+Y*      scer
+Q*      scer
+</pre></div>
+
+<div class="figcaption">
+<span class="figtitle">Example *.smap file.</span> This file specifies
+how to map gene names to their corresponding species.  The first
+column indicates a gene name pattern (in this case a prefix) and the
+second column specifies a species name.  Note: this example only gives
+a partial list of the species in the <a href="#fig-stree">species tree
+above</a>.
+</div>
+</div>
+
+<!-- ====================================================================== -->
+<a name="sec-file-recon"></a>
+<h3>Reconciliation file format (*.recon)</h3>
+
+
+<p>
+When SPIMAP's "-r" option is used, the reconciliation found for the
+gene tree and species is saved to a file <tt>"OUTPUT_PREFIX.recon"</tt> 
+(see <a href="#fig-recon">reconcile example</a>).  The reconciliation file
+format is tab-delimited, where each line has three fields:
+</p>
+
+<ol>
+  <li>gene node ID.</li>
+  <li>species node ID.</li>
+  <li>event (one of the following: <tt>"gene"</tt>, <tt>"spec"</tt>, <tt>"dup"</tt>)</li>
+</ol>
+
+<p>
+Each line specifies the mapping of one node in the gene tree (field 1) to one 
+node or branch in the species tree (field 2).  Branches are indicate using
+the node ID directly below it (i.e. the younger of the two incident nodes).
+The lines can be given in any order.
+</p>
+
+<p>
+If the gene node is a leaf, it will map to a leaf in the species tree
+and the event field will contain the event <tt>"gene"</tt>.  All
+internal nodes of the gene tree are marked either as speciations
+(event <tt>"spec"</tt>) or duplications (event <tt>"dup"</tt>).
+Specaition nodes map directly to the indicated species node, and
+duplication nodes map to the indication species branch.  The time of
+the duplication along the species branch is not indicated in this file
+format nor is it inferred by SPIMAP.
+</p>
+
+<p>
+If gene IDs are not given to the ancestral nodes of a gene tree or
+species tree, SPIMAP will by default name them with <tt>"nXXX"</tt>
+where <tt>XXX</tt> is the preorder traversal of the internal nodes.
+</p>
+
+
+<a name="fig-recon"></a>
+<div class="figure">
+
+<div class="code"><pre>
+KLLA0C08239g  klac  gene  
+ADL072C       agos  gene  
+kwal_5828     kwal  gene  
+CAGL0J02970g  cgla  gene  
+scas_g715.48  scas  gene  
+smik_6662     smik  gene  
+sbay_7039     sbay  gene  
+smik_6659     smik  gene  
+sbay_7037     sbay  gene  
+YER061C       scer  gene  
+spar_6281     spar  gene  
+n10           n5    spec  
+n9            n7    spec  
+n8            n6    spec  
+n7            n5    spec  
+n6            n5    dup   
+n5            n3    spec  
+n4            n3    spec   
+n3            n9    spec  
+n2            n8    spec  
+n1            n2    spec  
+</pre></div>
+
+<img src="figures/gene-tree.png">
+
+<div class="figcaption">
+<span class="figtitle">Figure: Example *.recon file.</span> The
+reconciliation file format (top) specifies how all the nodes in a
+gene tree (bottom) map to the nodes and branches in the species tree
+(see <a href="#fig-stree">species tree example</a>).  Notice that gene
+node "n6" (red dot) represents a duplication event along species
+branch "n5" (shown in the <a href="#fig-stree">species tree
+example</a>).  The gene tree and species tree have their own name
+space (e.g. "n5" in the gene tree is not the same as "n5" in the species
+tree).
+</div>
+</div>
+
+
+<!-- ====================================================================== -->
+<a name="sec-file-params"></a>
+<h3>SPIMAP model parameters file format (*.params)</h3>
+
+
+<p>
+SPIMAP has several parameters for its substitution rates model.
+These parameters are learned by the <tt>spimap-train-rates</tt> program,
+which saves the parameters in a custom <tt>*.params</tt> file format (see 
+<a href="#fig-param">example below</a>).  The <tt>spimap</tt> program
+reads these parameters using the "-p" option.  Most uses of SPIMAP
+do not require understanding the contents of a <tt>*.params</tt> file.
+</p>
+
+<p>
+The <tt>*.params</tt> file format is tab-delimited and each line is
+processed one at a time.
+</p>
+
+<p>
+If the first field of a line is the word <tt>"baserate"</tt>, then the
+remaining two fields are interpreted as floating point values
+&alpha;<sub>G</sub> and &beta;<sub>G</sub>, which are the two
+parameters, shape and scale, of the inverse-gamma distributed
+gene-specific rate.
+</p>
+
+<p>
+If the first field of the line does not match <tt>"baserate"</tt>,
+then the first field indicates a species tree branch and the remaining
+two fields are interpreted as floating point values
+&alpha;<sub>i</sub> and &beta;<sub>i</sub>, which are the two
+parameters, shape and scale, of the gamma distributed species-specific
+rate.  Each branch is indicated by its more recent node.  Ancestral
+nodes are indicated by integers according to preorder traversal.
+</p>
+
+<a name="fig-params"></a>
+<div class="figure">
+
+<div class="code"><pre>
+baserate  6.98457288742   5.98457288742
+1         3.28887700831   394.209221588
+2         4.64684152603   551.109741211
+3         1.13027572632   164.191940308
+4         0.610769152641  75.0393371582
+5         7.14405012131   927.631103516
+6         2.96983885765   238.195861816
+7         5.63683271408   632.264831543
+8         0.974860072136  94.9837493896
+9         0.856632292271  78.6899032593
+10        4.64683914185   544.528686523
+11        1.92581880093   271.891052246
+12        3.84569692612   624.703308105
+13        3.14617466927   335.446655273
+14        0.699178874493  84.1814575195
+15        0.746283352375  137.345901489
+scer      8.42576217651   763.305847168
+ctro      6.70220327377   999.845153809
+scas      9.14448356628   1253.45031738
+agos      8.84074497223   801.648925781
+sbay      6.95680332184   1048.7590332
+kwal      14.3321857452   1962.9083252
+dhan      15.7483224869   2699.00878906
+smik      10.2562847137   1143.78076172
+cgla      9.81903266907   1015.43951416
+spar      5.80616807938   799.18963623
+calb      8.38038921356   1233.68322754
+lelo      9.40990924835   973.772583008
+cpar      9.43262672424   1184.28100586
+klac      6.6709280014    767.418823242
+clus      8.37989234924   881.762878418
+cgui      11.9692239761   1187.47314453
+</pre></div>
+
+<div class="figcaption">
+<span class="figtitle">Example *.params file.</span>
+The <tt>*.params</tt> file contains the parameters for SPIMAP's
+substitution rate model.
+</div>
+</div>
+
+
+<!-- ====================================================================== -->
+<h2>References</h2>
+
+<ul>
+  <li><a name="cite-Rasmussen2010"></a>Matthew D. Rasmussen, Manolis
+  Kellis. A Bayesian approach for fast and accurate gene tree
+  reconstruction.  Molecular Biology and Evolution. 2010.
+</li>
+</ul>
+
+
+</body>
+</html>

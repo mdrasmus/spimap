@@ -15,7 +15,8 @@ CXX = g++
 
 CFLAGS := $(CFLAGS) \
     -Wall -fPIC \
-    -Isrc
+    -Isrc \
+    `gsl-config --cflags`
 
 # GSL is the only third party dependency of the SPIMAP C++
 # If GSL is not automatically detected you can manually specify its location
@@ -41,6 +42,11 @@ else
 	CFLAGS := $(CFLAGS) -O3
 endif
 
+ifeq ($(shell uname),Darwin)
+	SHARED_FLAG=-dynamiclib
+else
+	SHARED_FLAG=-shared
+endif
 
 #=============================================================================
 # SPIMAP program files
@@ -137,7 +143,7 @@ $(LIBSPIDIR): $(LIBSPIDIR_OBJS)
 
 $(LIBSPIDIR_SHARED): $(LIBSPIDIR_OBJS) 
 	mkdir -p lib
-	$(CXX) -o $(LIBSPIDIR_SHARED) -shared $(LIBSPIDIR_OBJS) $(PROG_LIBS)
+	$(CXX) -o $(LIBSPIDIR_SHARED) $(SHARED_FLAG) $(LIBSPIDIR_OBJS) $(PROG_LIBS)
 
 
 #-----------------------------
