@@ -8,11 +8,11 @@
 =============================================================================*/
 
 // c/c++ includes
-#include <common.h>
 #include <math.h>
 
 // spidir includes
 #include "birthdeath.h"
+#include "common.h"
 
 
 namespace spidir

@@ -20,7 +20,7 @@ cd examples
 # variables:
 cd ..
 make
-export PYTHONPATH=$PYTHONOATH:../python
+export PYTHONPATH=$PYTHONPATH:../python
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../lib
 cd examples
 

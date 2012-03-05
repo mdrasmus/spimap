@@ -297,7 +297,7 @@ def rename_nodes_preorder(tree):
 
 def main(conf):
     # read configuration    
-    stree = treelib.readTree(conf.stree)
+    stree = treelib.read_tree(conf.stree)
     
     if conf.params:
         params = spidir.read_params(conf.params)                

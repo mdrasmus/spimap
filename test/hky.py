@@ -30,6 +30,9 @@ class HKY (unittest.TestCase):
 
         pprint(spidir.make_hky_matrix(bgfreq, kappa, t))
 
+        pprint(phylo.make_hky_matrix(t, bgfreq, kappa))
+        
+
     def test_hky_deriv(self):
         """general test"""
         
