@@ -26,8 +26,10 @@ bool inChars(char c, const char *chars)
 bool chomp(char *str)
 {
    int len = strlen(str);
-   if (str[len-1] == '\n') {
+   if (len > 0 && str[len-1] == '\n') {
       str[len-1] = '\0';
+      if (len > 1 && str[len-2] == '\r')
+          str[len-2] = '\0';
       return true;
    } else
       return false;

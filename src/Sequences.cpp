@@ -11,8 +11,21 @@
 #include "seq.h"
 #include "Sequences.h"
 #include "parsing.h"
+#include "logging.h"
 
 namespace spidir {
+
+
+// TODO: expand
+bool checkSeqName(string key)
+{
+    for (int i=0; i<key.size(); i++) {
+        if (key[i] == ' ') {
+            return false;
+        }
+    }
+    return true;
+}
 
 
 Sequences *readFasta(const char *filename)
@@ -20,7 +33,7 @@ Sequences *readFasta(const char *filename)
     FILE *infile = NULL;
     
     if ((infile = fopen(filename, "r")) == NULL) {
-        fprintf(stderr, "cannot read file '%s'\n", filename);
+        printError("cannot read file '%s'", filename);
         return NULL;
     }
     
@@ -44,6 +57,11 @@ Sequences *readFasta(const char *filename)
         
             // new key found
             key = string(&line[1]);
+            if (!checkSeqName(key)) {
+                printError("sequence name has illegal characters '%s'",
+                           key.c_str());
+                return NULL;
+            }
         } else {
             seq.extend(line, strlen(line));
         }
@@ -111,6 +129,7 @@ bool checkSequences(int nseqs, int seqlen, char **seqs)
                 dna2int[(int) (unsigned char) x] == -1)
             {
                 // an unknown character is in the alignment
+                printError("unknown char '%c' (char code %d)\n", x, x);
                 return false;
             }
         }

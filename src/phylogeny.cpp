@@ -463,8 +463,11 @@ bool Gene2species::read(const char *filename)
     string expr, species;
     char *ptr;
     
-    // process each line of the file    
+    // process each line of the file
+    int lineno = 0;
     while ((line = reader.readLine())) {
+        lineno++;
+        
         // skip blank lines
         if (strlen(line) < 2)
             continue;
@@ -473,14 +476,18 @@ bool Gene2species::read(const char *filename)
         char *s = strtok_r(NULL, "\n", &ptr);
         
         // if bad format, quit
-        if (e == NULL || s == NULL)
+        if (e == NULL || s == NULL) {
+            printError("line %d: expected GENE_PATTERN TAB SPECIES_NAME", 
+                       lineno);
             return false;
+        }
         
         expr = e;
         species = s;
         
         if (expr.size() == 0) {
             // bad gene name expression
+            printError("line %d: no gene expression is given.", lineno);
             return false;
         } else if (expr[0] == '*') {
             // suffix
