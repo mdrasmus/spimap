@@ -58,6 +58,7 @@ public:
     
     char *readLine()
     {
+        m_line.setSize(0);
         while (!feof(m_stream)) {
             int pos = m_line.size();
             char *ret = fgets(&(m_line.get()[pos]), 
