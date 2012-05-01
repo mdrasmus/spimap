@@ -207,8 +207,8 @@ public:
             
             for (unsigned int j=0; j<rules.size(); j++) {
                 if (strcmp(argv[i], "") &&
-                    argv[i] == rules[j]->shortarg ||
-                    argv[i] == rules[j]->longarg)
+                    (argv[i] == rules[j]->shortarg ||
+                     argv[i] == rules[j]->longarg))
                 {
                     int consume = rules[j]->parse(argc - i-1, &argv[i+1]);
                     if (consume == -1)

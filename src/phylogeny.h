@@ -104,6 +104,8 @@ protected:
 };
 
 
+bool checkTreeNames(Tree *tree);
+
 
 //=============================================================================
 // reconciliation functions

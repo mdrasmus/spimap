@@ -16,17 +16,6 @@
 namespace spidir {
 
 
-// TODO: expand
-bool checkSeqName(string key)
-{
-    for (int i=0; i<key.size(); i++) {
-        if (key[i] == ' ') {
-            return false;
-        }
-    }
-    return true;
-}
-
 
 Sequences *readFasta(const char *filename)
 {
@@ -57,11 +46,6 @@ Sequences *readFasta(const char *filename)
         
             // new key found
             key = string(&line[1]);
-            if (!checkSeqName(key)) {
-                printError("sequence name has illegal characters '%s'",
-                           key.c_str());
-                return NULL;
-            }
         } else {
             seq.extend(line, strlen(line));
         }
@@ -112,6 +96,11 @@ void writeFasta(FILE *stream, Sequences *seqs)
 }
 
 
+bool checkSequences(Sequences *seqs)
+{
+    return checkSequences(seqs->nseqs, seqs->seqlen, seqs->seqs) &&
+        checkSeqNames(seqs);
+}
 
 // ensures that all characters in the alignment are sensible
 // TODO: do not change alignment (keep Ns)
@@ -135,6 +124,73 @@ bool checkSequences(int nseqs, int seqlen, char **seqs)
         }
     }
     
+    return true;
+}
+
+
+bool checkSeqNames(Sequences *seqs)
+{
+    for (int i=0; i<seqs->names.size(); i++) {
+        if (!checkSeqName(seqs->names[i].c_str())) {
+            printError("sequence name has illegal characters '%s'",
+                       seqs->names[i].c_str());
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
+//
+// A valid gene name and species name follows these rules:
+//
+// 1. the first and last characters of the ID are a-z A-Z 0-9 _ - .
+// 2. the middle characters can be a-z A-Z 0-9 _ - . or the space character ' '.
+// 3. the ID should not be purely numerical characters 0-9
+// 4. the ID should be unique within a gene tree or within a species tree
+//
+
+bool checkSeqName(const char *name)
+{
+    int len = strlen(name);
+    
+    if (len == 0) {
+        printError("name is zero length");
+        return false;
+    }
+
+    // check rule 1
+    if (name[0] == ' ' || name[len-1] == ' ') {
+        printError("name starts or ends with a space '%c'");
+        return false;
+    }
+
+    // check rule 2
+    for (int i=0; i<len; i++) {
+        char c = name[i];
+        if (!((c >= 'a' && c <= 'z') ||
+              (c >= 'A' && c <= 'Z') ||
+              (c >= '0' && c <= '9') ||
+              c == '_' || c == '-' || c == '.' || c == ' ')) {
+            printError("name contains illegal character '%c'", c);
+            return false;
+        }
+    }
+
+    // check rule 3
+    int containsAlpha = false;
+    for (int i=0; i<len; i++) {
+        if (name[i] < '0' || name[i] > '9') {
+            containsAlpha = true;
+            break;
+        }
+    }
+    if (!containsAlpha) {
+        printError("name is purely numeric '%s'", name);
+        return false;
+    }
+
     return true;
 }
 

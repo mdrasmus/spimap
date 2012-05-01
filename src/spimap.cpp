@@ -384,7 +384,8 @@ int main(int argc, char **argv)
     //============================================================
     // read species tree
     SpeciesTree stree;
-    if (!readNewickTree(c.streefile.c_str(), &stree)) {
+    if (!readNewickTree(c.streefile.c_str(), &stree) ||
+        !checkTreeNames(&stree)) {
         printError("error reading species tree '%s'", c.streefile.c_str());
         return 1;
     }
@@ -394,7 +395,7 @@ int main(int argc, char **argv)
     // read sequences 
     Sequences *aln = readAlignFasta(c.alignfile.c_str());
     auto_ptr<Sequences> aln_ptr(aln);
-    if (aln == NULL || !checkSequences(aln->nseqs, aln->seqlen, aln->seqs)) {
+    if (aln == NULL || !checkSequences(aln)) {
         printError("bad alignment file");
         return 1;
     }
@@ -471,7 +472,11 @@ int main(int argc, char **argv)
     // make gene to species mapping
     int nnodes = aln->nseqs * 2 - 1;
     ExtendArray<int> gene2species(nnodes);
-    mapping.getMap(genes, aln->nseqs, species, stree.nnodes, gene2species);
+    if (!mapping.getMap(genes, aln->nseqs, species, 
+                        stree.nnodes, gene2species)) {
+        printError("error mapping gene names to species");
+        return 1;
+    }
     
     // get initial gene tree
     Tree *tree = getInitialTree(genes, aln->nseqs, aln->seqlen, aln->seqs,
@@ -538,7 +543,8 @@ int main(int argc, char **argv)
     // load correct tree
     Tree correctTree;    
     if (c.correctFile != "") {
-        if (!readNewickTree(c.correctFile.c_str(), &correctTree)) {
+        if (!readNewickTree(c.correctFile.c_str(), &correctTree) ||
+            !checkTreeNames(&correctTree)) {
             printError("cannot read correct tree '%s'", c.correctFile.c_str());
             return 1;
         }

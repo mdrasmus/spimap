@@ -1,9 +1,6 @@
 
 import sys, os
 
-import pygsl
-import pygsl.sf
-
 while "python" not in os.listdir("."):
     os.chdir("..")
 sys.path.append("python")
@@ -18,6 +15,8 @@ from test import *
 if os.system("which xpdf 2>/dev/null") != 0:
     rplot_set_viewer("display")
 
+
+#=============================================================================
 
 def exc_default(func, val, exc=Exception):
     """Specify a default value for when an exception occurs"""
@@ -114,6 +113,59 @@ class Prog (unittest.TestCase):
 
         print cmd
         self.assertEqual(os.system(cmd), 0)
+
+
+    def test_bad_align(self):
+        """Test spimap with bad alignment file"""
+
+        util.makedirs("test/data/bad_align")
+        cmd = ("spimap " +
+               "-S test/data/flies.smap -s test/data/flies.stree " +
+               "-D .4 -L .4 -i 10 --log - " +
+               "-a test/data/bad/0.align " +
+               "-o test/data/bad_align/0")
+
+        self.assertNotEqual(os.system(cmd), 0)
+
+
+    def test_bad_stree(self):
+        """Test spimap with bad alignment file"""
+
+        util.makedirs("test/data/bad_align")
+        cmd = ("spimap " +
+               "-S test/data/flies.smap -s test/data/bad/flies.stree " +
+               "-D .4 -L .4 -i 10 --log - " +
+               "-a test/data/flies/0/0.nt.align " +
+               "-o test/data/bad_align/0")
+
+        self.assertNotEqual(os.system(cmd), 0)
+
+
+    def test_bad_stree2(self):
+        """Test spimap with bad alignment file"""
+
+        util.makedirs("test/output/bad_align")
+        cmd = ("spimap " +
+               "-S test/data/flies.smap -s test/data/bad/flies2.stree " +
+               "-D .4 -L .4 -i 10 --log - " +
+               "-a test/data/flies/0/0.nt.align " +
+               "-r " +
+               "-o test/output/bad_align/0")
+
+        self.assertNotEqual(os.system(cmd), 0)
+
+
+    def test_bad_smap(self):
+        """Test spimap with bad alignment file"""
+
+        util.makedirs("test/data/bad_align")
+        cmd = ("spimap " +
+               "-S test/data/bad/flies.smap -s test/data/flies.stree " +
+               "-D .4 -L .4 -i 10 --log - " +
+               "-a test/data/flies/0/0.nt.align " +
+               "-o test/data/bad_align/0")
+
+        self.assertNotEqual(os.system(cmd), 0)
 
               
         

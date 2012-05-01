@@ -22,11 +22,9 @@
 namespace spidir {
 
 
-float readDist(FILE *infile, int &depth)
+bool readDist(FILE *infile, float *dist)
 {
-    float dist = 0;
-    fscanf(infile, "%f", &dist);
-    return dist;
+    return fscanf(infile, "%f", dist) == 1;
 }
 
 
@@ -114,17 +112,25 @@ Node *readNewickNode(FILE *infile, Tree *tree, Node *parent, int &depth)
                 return NULL;
         }
         
-        // read distance for this node
+        // read name and distance for this node
         char chr = readUntil(infile, token, "):,;", depth);
+
+        // node name, if it does not start with a number or ".","-"
+        // if it looks like a number it could be a bootstrap value
+        if (token.size() > 0) {
+            char c = token[0];
+            if (!isdigit(c) && c != '.' && c != '-') {
+                node->longname = trim(token.c_str());
+            }
+        }
+
         if (chr == ':') {
-            node->dist = readDist(infile, depth);
+            if (!readDist(infile, &node->dist)) {
+                printError("expected branch length for node");
+                return NULL;
+            }
             if (!(chr = readUntil(infile, token, "):,", depth)))
                 return NULL;
-        } else {
-            // node name, if it does not start with a number or ".","-"
-            if (!isdigit(chr) && chr != '.' && chr != '-') {
-                node->longname = char1 + trim(token.c_str());
-            }
         }
         
         return node;
@@ -142,7 +148,10 @@ Node *readNewickNode(FILE *infile, Tree *tree, Node *parent, int &depth)
         
         // read distance for this node
         if (chr == ':') {
-            node->dist = readDist(infile, depth);
+            if (!readDist(infile, &node->dist)) {
+                printError("expected branch length for node");
+                return NULL;
+            }
             if (!(chr = readUntil(infile, token, ":),", depth)))
                 return NULL;
         }

@@ -11,6 +11,7 @@
 #include "logging.h"
 #include "phylogeny.h"
 #include "parsing.h"
+#include "Sequences.h"
 
 namespace spidir {
 
@@ -542,6 +543,7 @@ bool Gene2species::getMap(string *genes, int ngenes,
         if (sp.size() == 0) {
             // no species mapping
             // map[i] = -1;
+            printError("cannot find species for gene '%s'", genes[i].c_str());
             return false;
         } else {
             // find the index of the species name
@@ -554,14 +556,30 @@ bool Gene2species::getMap(string *genes, int ngenes,
             }
             
             // no species found
-            if (map[i] == -1)
+            if (map[i] == -1) {
+                printError("cannot find species '%s'", sp.c_str());
                 return false;
+            }
         }
     }
 
     return true;
 }
 
+
+bool checkTreeNames(Tree *tree)
+{
+    for (int i=0; i<tree->nnodes; i++) {
+        const char *name = tree->nodes[i]->longname.c_str();
+        if (tree->nodes[i]->isLeaf() || strlen(name) > 0) {
+            if (!checkSeqName(name)) {
+                printError("tree node %d name is illegal '%s'", i, name);
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 
 } // namespace spidir

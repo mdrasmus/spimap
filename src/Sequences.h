@@ -78,7 +78,10 @@ Sequences *readFasta(const char *filename);
 Sequences *readAlignFasta(const char *filename);
 void writeFasta(FILE *stream, Sequences *seqs);
 bool writeFasta(const char *filename, Sequences *seqs);
+bool checkSequences(Sequences *seqs);
 bool checkSequences(int nseqs, int seqlen, char **seqs);
+bool checkSeqNames(Sequences *seqs);
+bool checkSeqName(const char *name);
 void resampleAlign(Sequences *aln, Sequences *aln2);
 
 } // namespace spidir
